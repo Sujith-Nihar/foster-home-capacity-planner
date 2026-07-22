@@ -1,0 +1,338 @@
+{
+  "title": "Foster Home Capacity Planner \u2014 Raw Data Profile",
+  "generated_at": "2026-07-22T23:30:01.841627+00:00",
+  "status": "passed",
+  "reporting_date": "2026-07-01",
+  "source_files": {
+    "providers": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/raw/provider_level_updated.csv",
+    "children": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/raw/child_level.csv",
+    "placements": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/raw/placement_level.csv"
+  },
+  "row_counts": {
+    "providers": 6063,
+    "children": 16139,
+    "placements": 51994
+  },
+  "placement_type_counts": {
+    "foster_home": 32859,
+    "kin": 16926,
+    "nonfamily": 2209
+  },
+  "current_child_count": 8071,
+  "missing_age_counts": {
+    "missing_age_at_removal": 6,
+    "missing_most_recent_age": 6,
+    "missing_either_age_field": 6
+  },
+  "county_summary": {
+    "normalization_map": {
+      "Vermillion": "Vermilion",
+      "De Witt": "DeWitt"
+    },
+    "tables": {
+      "providers": {
+        "county_provider": {
+          "unique_raw_count": 103,
+          "unique_normalized_count": 102,
+          "normalization_counts": {
+            "Vermillion": 21,
+            "De Witt": 46
+          },
+          "top_values": {
+            "Lake": 594,
+            "Will": 463,
+            "DuPage": 461,
+            "Kane": 446,
+            "Cook": 318,
+            "McLean": 122,
+            "McHenry": 97,
+            "Kankakee": 88,
+            "Rock Island": 83,
+            "Stephenson": 81
+          }
+        }
+      },
+      "children": {
+        "removal_county": {
+          "unique_raw_count": 102,
+          "unique_normalized_count": 102,
+          "normalization_counts": {
+            "Vermillion": 0,
+            "De Witt": 23
+          },
+          "top_values": {
+            "Cook": 3854,
+            "DuPage": 1874,
+            "Lake": 1597,
+            "Will": 1467,
+            "Kane": 1068,
+            "McHenry": 452,
+            "McLean": 284,
+            "Winnebago": 280,
+            "Madison": 277,
+            "St. Clair": 243
+          }
+        }
+      },
+      "placements": {
+        "removal_county": {
+          "unique_raw_count": 102,
+          "unique_normalized_count": 102,
+          "normalization_counts": {
+            "Vermillion": 0,
+            "De Witt": 72
+          },
+          "top_values": {
+            "Cook": 12427,
+            "DuPage": 5975,
+            "Lake": 5157,
+            "Will": 4771,
+            "Kane": 3518,
+            "McHenry": 1528,
+            "McLean": 935,
+            "Madison": 877,
+            "Winnebago": 860,
+            "St. Clair": 786
+          }
+        },
+        "placement_county": {
+          "unique_raw_count": 103,
+          "unique_normalized_count": 102,
+          "normalization_counts": {
+            "Vermillion": 111,
+            "De Witt": 304
+          },
+          "top_values": {
+            "Lake": 4107,
+            "DuPage": 3726,
+            "Cook": 3562,
+            "Will": 3398,
+            "Kane": 3360,
+            "McHenry": 1031,
+            "McLean": 860,
+            "Rock Island": 656,
+            "Kankakee": 639,
+            "Madison": 585
+          }
+        }
+      }
+    }
+  },
+  "validations": [
+    {
+      "name": "providers_required_columns",
+      "status": "passed",
+      "details": {
+        "expected": [
+          "id_provider",
+          "license_start_date",
+          "license_end_date",
+          "county_provider",
+          "n_days_licensed",
+          "n_days_active",
+          "min_age",
+          "max_age"
+        ],
+        "actual": [
+          "id_provider",
+          "license_start_date",
+          "license_end_date",
+          "county_provider",
+          "n_days_licensed",
+          "n_days_active",
+          "min_age",
+          "max_age"
+        ],
+        "missing": [],
+        "extra": []
+      }
+    },
+    {
+      "name": "children_required_columns",
+      "status": "passed",
+      "details": {
+        "expected": [
+          "id_child",
+          "removal_date",
+          "discharge_date",
+          "age_at_removal",
+          "most_recent_age",
+          "removal_county"
+        ],
+        "actual": [
+          "id_child",
+          "removal_date",
+          "discharge_date",
+          "age_at_removal",
+          "most_recent_age",
+          "removal_county"
+        ],
+        "missing": [],
+        "extra": []
+      }
+    },
+    {
+      "name": "placements_required_columns",
+      "status": "passed",
+      "details": {
+        "expected": [
+          "id_child",
+          "placement_start_date",
+          "placement_end_date",
+          "resource_type_on_this_placement",
+          "placement_index",
+          "removal_county",
+          "placement_county",
+          "id_provider",
+          "placement_length"
+        ],
+        "actual": [
+          "id_child",
+          "placement_start_date",
+          "placement_end_date",
+          "resource_type_on_this_placement",
+          "placement_index",
+          "removal_county",
+          "placement_county",
+          "id_provider",
+          "placement_length"
+        ],
+        "missing": [],
+        "extra": []
+      }
+    },
+    {
+      "name": "expected_row_counts",
+      "status": "passed",
+      "details": {
+        "expected": {
+          "providers": 6063,
+          "children": 16139,
+          "placements": 51994
+        },
+        "actual": {
+          "providers": 6063,
+          "children": 16139,
+          "placements": 51994
+        }
+      }
+    },
+    {
+      "name": "unique_provider_ids",
+      "status": "passed",
+      "details": {
+        "duplicate_count": 0,
+        "unique_count": 6063
+      }
+    },
+    {
+      "name": "unique_child_ids",
+      "status": "passed",
+      "details": {
+        "duplicate_count": 0,
+        "unique_count": 16139
+      }
+    },
+    {
+      "name": "unique_child_placement_index_pairs",
+      "status": "passed",
+      "details": {
+        "duplicate_pair_count": 0
+      }
+    },
+    {
+      "name": "sequential_placement_indices_per_child",
+      "status": "passed",
+      "details": {
+        "offender_count": 0,
+        "sample_offenders": []
+      }
+    },
+    {
+      "name": "source_date_parsing",
+      "status": "passed",
+      "details": {
+        "date_format": "%m/%d/%y",
+        "invalid_counts": {}
+      }
+    },
+    {
+      "name": "placement_length_equals_date_difference",
+      "status": "passed",
+      "details": {
+        "mismatch_count": 0,
+        "sample_mismatches": []
+      }
+    },
+    {
+      "name": "placement_children_join",
+      "status": "passed",
+      "details": {
+        "orphan_placement_child_count": 0,
+        "sample_orphan_child_ids": []
+      }
+    },
+    {
+      "name": "foster_home_provider_join",
+      "status": "passed",
+      "details": {
+        "foster_home_placement_count": 32859,
+        "missing_provider_join_count": 0,
+        "sample_missing_rows": []
+      }
+    },
+    {
+      "name": "kin_provider_ids_null",
+      "status": "passed",
+      "details": {
+        "kin_placement_count": 16926,
+        "non_null_provider_id_count": 0,
+        "sample_non_null_rows": []
+      }
+    },
+    {
+      "name": "nonfamily_provider_ids_not_in_provider_table",
+      "status": "passed",
+      "details": {
+        "nonfamily_placement_count": 2209,
+        "joined_provider_count": 0,
+        "sample_joined_rows": []
+      }
+    },
+    {
+      "name": "current_children_latest_placement_end_date",
+      "status": "passed",
+      "details": {
+        "current_child_count": 8071,
+        "mismatch_count": 0,
+        "expected_end_date": "2026-07-01",
+        "sample_mismatches": []
+      }
+    },
+    {
+      "name": "provider_min_age_not_greater_than_max_age",
+      "status": "passed",
+      "details": {
+        "invalid_count": 0,
+        "sample_invalid_rows": []
+      }
+    },
+    {
+      "name": "provider_n_days_licensed_equals_license_interval",
+      "status": "passed",
+      "details": {
+        "mismatch_count": 0,
+        "sample_mismatches": []
+      }
+    },
+    {
+      "name": "foster_placement_county_matches_provider_county",
+      "status": "passed",
+      "details": {
+        "foster_home_placement_count": 32859,
+        "mismatch_count": 0,
+        "sample_mismatches": []
+      }
+    }
+  ]
+}
