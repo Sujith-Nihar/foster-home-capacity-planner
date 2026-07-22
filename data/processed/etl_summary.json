@@ -1,0 +1,91 @@
+{
+  "county_normalization_counts": {
+    "children": {
+      "removal_county": {
+        "De Witt": 23,
+        "Vermillion": 0
+      }
+    },
+    "placements": {
+      "placement_county": {
+        "De Witt": 304,
+        "Vermillion": 111
+      },
+      "removal_county": {
+        "De Witt": 72,
+        "Vermillion": 0
+      }
+    },
+    "providers": {
+      "county_provider": {
+        "De Witt": 46,
+        "Vermillion": 21
+      }
+    }
+  },
+  "current_placement_totals": {
+    "current_children_in_care": 8071,
+    "current_foster_home_children": 4343,
+    "current_kin_children": 3688,
+    "current_nonfamily_children": 40
+  },
+  "etl_version": "1.0.0",
+  "generated_at": "2026-07-22T23:39:23.442058+00:00",
+  "input_row_counts": {
+    "children": 16139,
+    "placements": 51994,
+    "providers": 6063
+  },
+  "output_files": {
+    "county_age_metrics": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/county_age_metrics.csv",
+    "county_metrics": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/county_metrics.csv",
+    "dataset_metadata": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/dataset_metadata.csv",
+    "etl_summary": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/etl_summary.json",
+    "monthly_metrics": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/monthly_metrics.csv",
+    "provider_activity_periods": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/provider_activity_periods.csv",
+    "provider_metrics": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/provider_metrics.csv",
+    "system_snapshot": "/Users/sujiththota/Downloads/Python/Foster_Insights_Take_Home/foster-home-capacity-planner/data/processed/system_snapshot.csv"
+  },
+  "output_row_counts": {
+    "county_age_metrics": 408,
+    "county_metrics": 102,
+    "dataset_metadata": 1,
+    "monthly_metrics": 63,
+    "provider_activity_periods": 9050,
+    "provider_metrics": 3391,
+    "system_snapshot": 1
+  },
+  "recruitment_percentile_thresholds": {
+    "children_per_active_provider": {
+      "median": 1.292857142857143,
+      "p75": 1.9654654654654655
+    },
+    "highest_age_group_pressure": {
+      "median": 1.128787878787879,
+      "p75": 1.4802631578947367
+    },
+    "out_of_county_foster_rate": {
+      "median": 0.5857771260997068,
+      "p75": 0.7234848484848485
+    }
+  },
+  "recruitment_priority_distribution": {
+    "High": 10,
+    "Limited data": 50,
+    "Low": 21,
+    "Medium": 21
+  },
+  "reporting_date": "2026-07-01",
+  "retention_priority_distribution": {
+    "High": 448,
+    "Low": 1854,
+    "Medium": 1089
+  },
+  "source_hashes": {
+    "children": "6175479dd6865fcad1d8b71d6c63d40dcf9e7d29ddb64368d138855e6fdcb492",
+    "combined": "424fcaee4b1a89324af1aa1afae381ef7a66e1c664d35d243a78c4aab4d74090",
+    "placements": "b4141eb9c0784b30a8f2a3c5070cfe77e2c8dfe7efa3c8ecda01a395fe2d0e9e",
+    "providers": "0ccf98a97713fa4e04fc1a0494b7dd9cd01c614abd817a784e2a2c01ca5c82b8"
+  },
+  "status": "passed"
+}
