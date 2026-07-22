@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Raw and generated assessment data
+data/raw/*.csv
+data/processed/*.csv
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Test/build artifacts
+coverage/
+playwright-report/
+test-results/
