@@ -31,10 +31,10 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-anon-key>
 For local loading only:
 
 ```text
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+SUPABASE_SECRET_KEY=<service-role-secret-key>
 ```
 
-Never expose the service role key to the browser or commit it to git.
+Never expose the secret key to the browser or commit it to git.
 
 ## 2. Link the Supabase project (CLI)
 
@@ -91,13 +91,55 @@ Load in dependency order because of foreign keys:
 6. `provider_activity_periods.csv`
 7. `monthly_metrics.csv`
 
-### Option A: Supabase Table Editor / SQL `COPY`
+### Option A: Python loader (recommended)
 
-Use the service role in the SQL editor or a trusted loader script. JSON reason columns (`recruitment_reasons`, `outreach_reasons`) must be valid JSON arrays.
+The repository includes `scripts/load_to_supabase.py`, a CLI-only loader that reads **only** `data/processed/` files. It is not imported by the Next.js application.
 
-### Option B: Python loader (recommended)
+Set environment variables in `.env.local`:
 
-Use the service role key with `supabase-py` or `psql \copy` from a machine that can reach the database. Example `psql` pattern:
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SECRET_KEY=<service-role-secret-key>
+```
+
+Validate files and counts without writing:
+
+```bash
+python3 scripts/load_to_supabase.py --dry-run
+```
+
+Load all tables with deterministic, idempotent upserts:
+
+```bash
+python3 scripts/load_to_supabase.py
+```
+
+Load a single table:
+
+```bash
+python3 scripts/load_to_supabase.py --table county_metrics
+```
+
+Adjust batch size (default `500`):
+
+```bash
+python3 scripts/load_to_supabase.py --batch-size 250
+```
+
+The loader:
+
+- Refuses to run without `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` (except `--dry-run`)
+- Never logs secrets
+- Validates row counts against `data/processed/etl_summary.json` before loading
+- Verifies database row counts after loading
+- Fails if any processed CSV contains `id_child` or other forbidden child-level columns
+- Retries transient network failures with bounded exponential backoff
+
+### Option B: Supabase Table Editor / SQL `COPY`
+
+Use the service role in the SQL editor or `psql \copy` from a machine that can reach the database. JSON reason columns (`recruitment_reasons`, `outreach_reasons`) must be valid JSON arrays.
+
+Example `psql` pattern:
 
 ```bash
 psql "$SUPABASE_DB_URL" -c "TRUNCATE public.provider_activity_periods, public.provider_metrics, public.county_age_metrics, public.county_metrics, public.system_snapshot, public.monthly_metrics, public.dataset_metadata CASCADE;"
@@ -144,7 +186,7 @@ Expected:
 
 1. Re-run the ETL locally.
 2. Truncate read-model tables in reverse dependency order (or `CASCADE` from `dataset_metadata`).
-3. Reload processed CSVs in the order listed above.
+3. Reload processed CSVs with `python3 scripts/load_to_supabase.py` or the SQL pattern below.
 4. Confirm `dataset_metadata.source_hash` matches `data/processed/etl_summary.json`.
 
 ## Security summary
@@ -153,6 +195,6 @@ Expected:
 | --- | --- |
 | `anon` | `SELECT` on read models; `EXECUTE` on `get_application_filter_options` |
 | `anon` | No `INSERT` / `UPDATE` / `DELETE` |
-| Service role | Full access for local loading only |
+| Service role / secret key | Full access for local loading only |
 
 Raw child identifiers and child-level placement episodes are intentionally absent from the database schema.
