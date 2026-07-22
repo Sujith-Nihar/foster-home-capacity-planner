@@ -1,0 +1,6 @@
+# Minimal Supabase project config for local migration linting.
+
+project_id = "foster-home-capacity-planner"
+
+[db]
+major_version = 15
