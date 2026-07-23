@@ -140,3 +140,7 @@ export type ProviderDetailDto = {
   provider: ProviderMetricsDto;
   activityPeriods: ProviderActivityPeriodDto[];
 };
+
+export type ProviderPageData = ProviderDetailDto & {
+  reviewSummary: string;
+};

@@ -7,8 +7,10 @@ import {
   type Database,
 } from "@/lib/supabase/server";
 import { DataAccessError } from "@/lib/supabase/errors";
+import type { ProviderPageData } from "@/lib/types/domain";
+import { buildProviderReviewSummary } from "@/lib/providers/detail";
+import { parseProviderRouteId } from "@/lib/navigation/providers";
 import type { ProviderDetailDto } from "@/lib/types/domain";
-import { formatAgePreferenceRange, formatBooleanLabel, formatDays, formatNullablePercent } from "@/lib/utils/formatters";
 
 const PROVIDER_DETAIL_COLUMNS =
   "provider_id, county, reporting_date, license_start_date, license_end_date, days_until_expiration, currently_has_placement, last_completed_placement_end, days_since_last_placement, total_active_days, active_days_last_365, eligible_licensed_days_last_365, engagement_rate_last_365, min_age, max_age, outreach_priority, outreach_reasons";
@@ -49,21 +51,6 @@ export async function getProviderActivityPeriods(providerId: number) {
   return rows.map(mapProviderActivityPeriod);
 }
 
-export function buildProviderReviewSummary(provider: ProviderDetailDto["provider"]): string {
-  const placementStatus = formatBooleanLabel(
-    provider.currentlyHasPlacement,
-    "currently has a foster-home placement",
-    "does not currently have a foster-home placement",
-  );
-
-  return [
-    `Provider ${provider.providerId} in ${provider.county} County ${placementStatus}.`,
-    `License expires in ${formatDays(provider.daysUntilExpiration)} with age preferences of ${formatAgePreferenceRange(provider.minAge, provider.maxAge)}.`,
-    `Recent engagement is ${formatNullablePercent(provider.engagementRateLast365)} over the last 365-day window.`,
-    `Outreach priority reasons: ${provider.outreachReasons.join("; ") || "No elevated outreach signals at the reporting date."}`,
-  ].join(" ");
-}
-
 export async function getProviderDetail(providerId: number): Promise<ProviderDetailDto> {
   if (!Number.isFinite(providerId) || providerId <= 0) {
     throw new DataAccessError("Invalid provider id.", { code: "VALIDATION_ERROR" });
@@ -90,11 +77,26 @@ export async function getProviderDetail(providerId: number): Promise<ProviderDet
   }
 }
 
-export async function getProviderPageData(providerId: number) {
-  const detail = await getProviderDetail(providerId);
+export async function getProviderPageData(
+  providerIdParam: string,
+): Promise<ProviderPageData | null> {
+  const providerId = parseProviderRouteId(providerIdParam);
 
-  return {
-    ...detail,
-    reviewSummary: buildProviderReviewSummary(detail.provider),
-  };
+  if (providerId === null) {
+    return null;
+  }
+
+  try {
+    const detail = await getProviderDetail(providerId);
+
+    return {
+      ...detail,
+      reviewSummary: buildProviderReviewSummary(detail.provider),
+    };
+  } catch (error) {
+    if (error instanceof DataAccessError && error.code === "NOT_FOUND") {
+      return null;
+    }
+    throw error;
+  }
 }
