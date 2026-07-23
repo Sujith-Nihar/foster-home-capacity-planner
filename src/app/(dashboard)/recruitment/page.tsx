@@ -1,12 +1,21 @@
+import { EmptyState } from "@/components/empty-state";
+import { MethodologyLink } from "@/components/methodology-link";
+import { PageHeader } from "@/components/page-header";
+import { breadcrumbRecruitment } from "@/lib/navigation/breadcrumbs";
+
 export default function RecruitmentPage() {
   return (
-    <section aria-labelledby="recruitment-heading">
-      <h2 id="recruitment-heading" className="text-2xl font-semibold tracking-tight">
-        Recruitment
-      </h2>
-      <p className="mt-2 max-w-2xl text-muted-foreground">
-        County recruitment planning views will be added in a later phase.
-      </p>
-    </section>
+    <>
+      <PageHeader
+        title="Recruitment"
+        description="County-level foster home recruitment planning priorities based on current placement pressure."
+        breadcrumbs={breadcrumbRecruitment()}
+      />
+      <EmptyState
+        title="Recruitment views coming next"
+        description="County rankings, filters and drill-down detail will be added in a later phase."
+        action={<MethodologyLink label="Review recruitment methodology" />}
+      />
+    </>
   );
 }

@@ -1,3 +1,8 @@
+import { EmptyState } from "@/components/empty-state";
+import { MethodologyLink } from "@/components/methodology-link";
+import { PageHeader } from "@/components/page-header";
+import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
+
 type ProviderDetailPageProps = {
   params: Promise<{ providerId: string }>;
 };
@@ -8,13 +13,17 @@ export default async function ProviderDetailPage({
   const { providerId } = await params;
 
   return (
-    <section aria-labelledby="provider-heading">
-      <h2 id="provider-heading" className="text-2xl font-semibold tracking-tight">
-        Provider {providerId}
-      </h2>
-      <p className="mt-2 max-w-2xl text-muted-foreground">
-        Provider detail views will be added in a later phase.
-      </p>
-    </section>
+    <>
+      <PageHeader
+        title={`Provider ${providerId}`}
+        description="License status, recent activity and outreach priority context for a single licensed provider."
+        breadcrumbs={breadcrumbProvider(providerId)}
+      />
+      <EmptyState
+        title="Provider detail coming next"
+        description="Activity periods, engagement metrics and outreach reasons will be added in a later phase."
+        action={<MethodologyLink />}
+      />
+    </>
   );
 }

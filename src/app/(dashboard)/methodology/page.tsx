@@ -1,12 +1,19 @@
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { breadcrumbMethodology } from "@/lib/navigation/breadcrumbs";
+
 export default function MethodologyPage() {
   return (
-    <section aria-labelledby="methodology-heading">
-      <h2 id="methodology-heading" className="text-2xl font-semibold tracking-tight">
-        Methodology
-      </h2>
-      <p className="mt-2 max-w-2xl text-muted-foreground">
-        Calculation documentation will be added in a later phase.
-      </p>
-    </section>
+    <>
+      <PageHeader
+        title="Methodology"
+        description="Metric definitions, analytical assumptions and known limitations for this assessment build."
+        breadcrumbs={breadcrumbMethodology()}
+      />
+      <EmptyState
+        title="Documentation coming next"
+        description="Detailed methodology content will be added in a later phase."
+      />
+    </>
   );
 }
