@@ -29,9 +29,9 @@ export function DataTableShell({
       <CardHeader className="border-b border-border-default">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
-            <h3 id={titleId} className="text-base font-medium text-text-primary">
+            <h2 id={titleId} className="text-base font-medium text-text-primary">
               {title}
-            </h3>
+            </h2>
             {description ? <CardDescription>{description}</CardDescription> : null}
           </div>
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}

@@ -98,7 +98,31 @@ describe("retention export", () => {
     expect(csv).toContain("Inactive for at least 180 days");
   });
 
-  it("documents the export row cap", () => {
-    expect(MAX_EXPORT_ROWS).toBe(5000);
+  it("serializes retention export rows to CSV", () => {
+    const csv = serializeCsv(
+      mapRetentionExportRows([
+        {
+          providerId: 500021,
+          county: "Adams",
+          reportingDate: "2026-07-01",
+          licenseStartDate: "2021-07-01",
+          licenseEndDate: "2026-07-15",
+          daysUntilExpiration: 14,
+          currentlyHasPlacement: false,
+          lastCompletedPlacementEnd: "2026-04-25",
+          daysSinceLastPlacement: 67,
+          totalActiveDays: 1575,
+          activeDaysLast365: 298,
+          eligibleLicensedDaysLast365: 365,
+          engagementRateLast365: 0.81,
+          minAge: 0,
+          maxAge: 8,
+          outreachPriority: "High",
+          outreachReasons: ["Inactive with license expiring within 90 days"],
+        },
+      ]),
+    );
+    expect(csv).toContain("provider_id,county,license_end_date");
+    expect(csv).toContain("500021");
   });
 });

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 type ChartPanelProps = {
   title: string;
+  titleId?: string;
   description: string;
   summary: string;
   isEmpty?: boolean;
@@ -17,8 +18,13 @@ type ChartPanelProps = {
   className?: string;
 };
 
+function slugifyTitle(title: string): string {
+  return title.replace(/\s+/g, "-").toLowerCase();
+}
+
 export function ChartPanel({
   title,
+  titleId,
   description,
   summary,
   isEmpty = false,
@@ -27,9 +33,12 @@ export function ChartPanel({
   children,
   className,
 }: ChartPanelProps) {
+  const summaryId = titleId ?? `${slugifyTitle(title)}-summary`;
+
   return (
     <ChartCard title={title} description={description} className={className}>
-      <p id={`${title.replace(/\s+/g, "-").toLowerCase()}-summary`} className="sr-only">
+      <p id={summaryId} className="mb-4 text-sm leading-6 text-text-secondary">
+        <span className="sr-only">Chart summary: </span>
         {summary}
       </p>
       {isEmpty ? (
@@ -37,7 +46,7 @@ export function ChartPanel({
       ) : (
         <div
           role="img"
-          aria-labelledby={`${title.replace(/\s+/g, "-").toLowerCase()}-summary`}
+          aria-labelledby={summaryId}
           className={cn("min-h-56 w-full")}
         >
           {children}
