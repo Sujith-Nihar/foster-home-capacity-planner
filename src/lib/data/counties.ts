@@ -7,14 +7,29 @@ import {
   type Database,
 } from "@/lib/supabase/server";
 import { DataAccessError } from "@/lib/supabase/errors";
-import type { CountyDetailDto } from "@/lib/types/domain";
 import { getRetentionProvidersForCounty } from "@/lib/data/retention";
+import { normalizeRouteCounty } from "@/lib/navigation/counties";
+import {
+  buildCountyLimitations,
+  buildCountyPriorityExplanation,
+  orderCountyAgeGroups,
+} from "@/lib/recruitment/county-detail";
+import type { CountyAgeMetricsDto, CountyMetricsDto, PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
 
 const COUNTY_DETAIL_COLUMNS =
   "county, reporting_date, current_children_in_care, current_foster_home_children, current_kin_children, current_nonfamily_children, licensed_providers, active_providers, inactive_providers, children_per_active_provider, out_of_county_foster_count, out_of_county_foster_rate, expiring_90_days, expiring_180_days, high_retention_providers, medium_retention_providers, highest_pressure_age_group, recruitment_priority, recruitment_reasons";
 
 const COUNTY_AGE_COLUMNS =
   "county, age_group, reporting_date, current_foster_home_children, matching_licensed_providers, matching_active_providers, children_per_matching_active_provider";
+
+export type CountyPageData = {
+  county: CountyMetricsDto;
+  ageGroups: CountyAgeMetricsDto[];
+  retentionProviders: ProviderMetricsDto[];
+  retentionPagination: PaginatedResult<ProviderMetricsDto>;
+  priorityExplanation: string;
+  limitations: string[];
+};
 
 export async function getCountyMetricsByName(
   county: string,
@@ -54,30 +69,38 @@ export async function getCountyAgeMetrics(
   return rows.map(mapCountyAgeMetrics);
 }
 
-export async function getCountyDetail(
-  county: string,
+export async function getCountyPageData(
+  countyParam: string,
   searchParams: Record<string, string | string[] | undefined> = {},
-): Promise<CountyDetailDto> {
-  const decodedCounty = decodeURIComponent(county);
+): Promise<CountyPageData | null> {
+  const county = normalizeRouteCounty(countyParam);
+  if (!county) {
+    return null;
+  }
 
   try {
     const [countyMetrics, ageGroups, retentionProviders] = await Promise.all([
-      getCountyMetricsByName(decodedCounty),
-      getCountyAgeMetrics(decodedCounty),
-      getRetentionProvidersForCounty(decodedCounty, searchParams),
+      getCountyMetricsByName(county),
+      getCountyAgeMetrics(county),
+      getRetentionProvidersForCounty(county, {
+        ...searchParams,
+        pageSize: searchParams.pageSize ?? "10",
+        sort: searchParams.sort ?? "outreach_priority",
+        direction: searchParams.direction ?? "asc",
+      }),
     ]);
 
     return {
       county: countyMetrics,
-      ageGroups,
+      ageGroups: orderCountyAgeGroups(ageGroups),
       retentionProviders: retentionProviders.items,
+      retentionPagination: retentionProviders,
+      priorityExplanation: buildCountyPriorityExplanation(countyMetrics),
+      limitations: buildCountyLimitations(countyMetrics),
     };
   } catch (error) {
     if (error instanceof DataAccessError && error.code === "NOT_FOUND") {
-      throw new DataAccessError(`County not found: ${decodedCounty}`, {
-        code: "NOT_FOUND",
-        cause: error,
-      });
+      return null;
     }
     throw error;
   }
