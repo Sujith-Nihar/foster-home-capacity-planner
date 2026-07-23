@@ -5,7 +5,13 @@ import {
 } from "@/lib/supabase/server";
 import { wrapDataAccessError } from "@/lib/supabase/errors";
 import { getFilterOptions } from "@/lib/data/recruitment";
-import type { PaginatedResult, ProviderMetricsDto, RetentionPriorityDistributionDto } from "@/lib/types/domain";
+import { sortRetentionProviders } from "@/lib/retention/query";
+import type {
+  PaginatedResult,
+  ProviderMetricsDto,
+  RetentionPriorityDistributionDto,
+  RetentionSummaryDto,
+} from "@/lib/types/domain";
 import {
   parseCountyProvidersSearchParams,
   parseRetentionSearchParams,
@@ -40,6 +46,10 @@ function applyRetentionFilters<
 
   if (params.activity === "inactive") {
     query = query.eq("currently_has_placement", false);
+  }
+
+  if (params.expiration === "within_30") {
+    query = query.lte("days_until_expiration", 30);
   }
 
   if (params.expiration === "within_60") {
@@ -85,6 +95,62 @@ function applyRetentionFilters<
   return query;
 }
 
+async function countRetentionProviders(
+  reportingDate: string,
+  filters?: {
+    currentlyHasPlacement?: boolean;
+    maxDaysUntilExpiration?: number;
+    outreachPriority?: "High" | "Medium" | "Low";
+  },
+): Promise<number> {
+  const supabase = getServerSupabaseClient();
+  let query = supabase
+    .from("provider_metrics")
+    .select("provider_id", { count: "exact", head: true })
+    .eq("reporting_date", reportingDate);
+
+  if (filters?.currentlyHasPlacement !== undefined) {
+    query = query.eq("currently_has_placement", filters.currentlyHasPlacement);
+  }
+
+  if (filters?.maxDaysUntilExpiration !== undefined) {
+    query = query.lte("days_until_expiration", filters.maxDaysUntilExpiration);
+  }
+
+  if (filters?.outreachPriority) {
+    query = query.eq("outreach_priority", filters.outreachPriority);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw wrapDataAccessError("count retention providers", error);
+  }
+
+  return count ?? 0;
+}
+
+export async function getRetentionSummaryMetrics(
+  reportingDate?: string,
+): Promise<RetentionSummaryDto> {
+  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  const [currentlyLicensedProviders, currentlyActiveProviders, licensesExpiringWithin90Days, highOutreachPriorityProviders] =
+    await Promise.all([
+      countRetentionProviders(activeReportingDate),
+      countRetentionProviders(activeReportingDate, { currentlyHasPlacement: true }),
+      countRetentionProviders(activeReportingDate, { maxDaysUntilExpiration: 90 }),
+      countRetentionProviders(activeReportingDate, { outreachPriority: "High" }),
+    ]);
+
+  return {
+    currentlyLicensedProviders,
+    currentlyActiveProviders,
+    inactiveProviders: currentlyLicensedProviders - currentlyActiveProviders,
+    licensesExpiringWithin90Days,
+    highOutreachPriorityProviders,
+  };
+}
+
 export async function getRetentionProviders(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<PaginatedResult<ProviderMetricsDto>> {
@@ -99,6 +165,30 @@ export async function getRetentionProviders(
     params,
     reportingDate,
   );
+
+  if (params.sort === "outreach_priority") {
+    const { data, error, count } = await baseQuery;
+
+    if (error) {
+      throw wrapDataAccessError("load retention providers", error);
+    }
+
+    const sortedItems = sortRetentionProviders(
+      (data ?? []).map(mapProviderMetrics),
+      params.sort,
+      params.direction,
+    );
+    const totalCount = count ?? sortedItems.length;
+    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize);
+
+    return {
+      items: sortedItems.slice(from, to + 1),
+      page: params.page,
+      pageSize: params.pageSize,
+      totalCount,
+      totalPages,
+    };
+  }
 
   const { data, error, count } = await baseQuery
     .order(params.sort, { ascending: params.direction === "asc", nullsFirst: false })
@@ -137,6 +227,29 @@ export async function getRetentionProvidersForCounty(
     county,
   );
 
+  if (params.sort === "outreach_priority") {
+    const { data, error, count } = await baseQuery;
+
+    if (error) {
+      throw wrapDataAccessError("load retention providers", error);
+    }
+
+    const sortedItems = sortRetentionProviders(
+      (data ?? []).map(mapProviderMetrics),
+      params.sort,
+      params.direction,
+    );
+    const totalCount = count ?? sortedItems.length;
+
+    return {
+      items: sortedItems.slice(from, to + 1),
+      page: params.page,
+      pageSize: params.pageSize,
+      totalCount,
+      totalPages: totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize),
+    };
+  }
+
   const { data, error, count } = await baseQuery
     .order(params.sort, { ascending: params.direction === "asc", nullsFirst: false })
     .range(from, to);
@@ -160,18 +273,7 @@ async function countByOutreachPriority(
   priority: "High" | "Medium" | "Low",
   reportingDate: string,
 ): Promise<number> {
-  const supabase = getServerSupabaseClient();
-  const { count, error } = await supabase
-    .from("provider_metrics")
-    .select("provider_id", { count: "exact", head: true })
-    .eq("reporting_date", reportingDate)
-    .eq("outreach_priority", priority);
-
-  if (error) {
-    throw wrapDataAccessError(`count ${priority} outreach providers`, error);
-  }
-
-  return count ?? 0;
+  return countRetentionProviders(reportingDate, { outreachPriority: priority });
 }
 
 export async function getRetentionPriorityDistribution(
@@ -190,16 +292,16 @@ export async function getRetentionPriorityDistribution(
 export async function getRetentionPageData(
   searchParams: Record<string, string | string[] | undefined>,
 ) {
-  const [providers, filterOptions, distribution] = await Promise.all([
+  const [providers, filterOptions, summary] = await Promise.all([
     getRetentionProviders(searchParams),
     getFilterOptions(),
-    getRetentionPriorityDistribution(),
+    getRetentionSummaryMetrics(),
   ]);
 
   return {
     providers,
     filterOptions,
-    distribution,
+    summary,
     searchParams: parseRetentionSearchParams(searchParams),
   };
 }

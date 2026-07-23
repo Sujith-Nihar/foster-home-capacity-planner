@@ -117,6 +117,14 @@ export type RetentionPriorityDistributionDto = {
   low: number;
 };
 
+export type RetentionSummaryDto = {
+  currentlyLicensedProviders: number;
+  currentlyActiveProviders: number;
+  inactiveProviders: number;
+  licensesExpiringWithin90Days: number;
+  highOutreachPriorityProviders: number;
+};
+
 export type OverviewInsightsDto = {
   headline: string;
   bullets: string[];

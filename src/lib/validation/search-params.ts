@@ -38,6 +38,7 @@ export const RETENTION_ACTIVITY_FILTERS = ["all", "active", "inactive"] as const
 
 export const RETENTION_EXPIRATION_FILTERS = [
   "all",
+  "within_30",
   "within_60",
   "within_90",
   "within_180",

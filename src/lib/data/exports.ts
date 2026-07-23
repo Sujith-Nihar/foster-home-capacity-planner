@@ -10,6 +10,7 @@ import {
   formatRatio,
   formatRecruitmentPriorityLabel,
   formatOutreachPriorityLabel,
+  formatReportingDate,
 } from "@/lib/utils/formatters";
 
 export type RecruitmentExportRow = {
@@ -27,10 +28,12 @@ export type RecruitmentExportRow = {
 export type RetentionExportRow = {
   provider_id: number;
   county: string;
+  license_end_date: string;
   outreach_priority: string;
   currently_has_placement: string;
   days_until_expiration: number;
   days_since_last_placement: string;
+  active_days_last_365: number;
   engagement_rate_last_365: string;
   min_age: number;
   max_age: number;
@@ -58,6 +61,7 @@ export function mapRetentionExportRows(providers: ProviderMetricsDto[]): Retenti
   return providers.map((provider) => ({
     provider_id: provider.providerId,
     county: provider.county,
+    license_end_date: formatReportingDate(provider.licenseEndDate),
     outreach_priority: formatOutreachPriorityLabel(provider.outreachPriority),
     currently_has_placement: formatBooleanLabel(
       provider.currentlyHasPlacement,
@@ -69,6 +73,7 @@ export function mapRetentionExportRows(providers: ProviderMetricsDto[]): Retenti
       provider.daysSinceLastPlacement === null
         ? "—"
         : String(provider.daysSinceLastPlacement),
+    active_days_last_365: provider.activeDaysLast365,
     engagement_rate_last_365: formatNullablePercent(provider.engagementRateLast365),
     min_age: provider.minAge,
     max_age: provider.maxAge,
@@ -88,14 +93,17 @@ export async function getRecruitmentExportData(
 
 export async function getRetentionExportData(
   searchParams: Record<string, string | string[] | undefined>,
-): Promise<RetentionExportRow[]> {
+): Promise<{ rows: RetentionExportRow[]; totalCount: number }> {
   const firstPage = await getRetentionProviders({
     ...searchParams,
     page: "1",
     pageSize: String(MAX_EXPORT_ROWS),
   });
 
-  return mapRetentionExportRows(firstPage.items);
+  return {
+    rows: mapRetentionExportRows(firstPage.items),
+    totalCount: firstPage.totalCount,
+  };
 }
 
 export function recruitmentExportFilename(reportingDate: string): string {
