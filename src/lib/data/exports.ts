@@ -1,6 +1,7 @@
 import { getRecruitmentCounties } from "@/lib/data/recruitment";
 import { getRetentionProviders } from "@/lib/data/retention";
 import type { CountyMetricsDto, ProviderMetricsDto } from "@/lib/types/domain";
+import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 import {
   formatBooleanLabel,
   formatCountyName,
@@ -18,6 +19,7 @@ export type RecruitmentExportRow = {
   active_providers: number;
   children_per_active_provider: string;
   out_of_county_foster_rate: string;
+  highest_pressure_age_group: string;
   expiring_90_days: number;
   recruitment_reasons: string;
 };
@@ -46,6 +48,7 @@ export function mapRecruitmentExportRows(counties: CountyMetricsDto[]): Recruitm
       county.outOfCountyFosterRate === null
         ? "—"
         : formatPercent(county.outOfCountyFosterRate),
+    highest_pressure_age_group: county.highestPressureAgeGroup ?? "—",
     expiring_90_days: county.expiring90Days,
     recruitment_reasons: county.recruitmentReasons.join("; "),
   }));
@@ -75,12 +78,13 @@ export function mapRetentionExportRows(providers: ProviderMetricsDto[]): Retenti
 
 export async function getRecruitmentExportData(
   searchParams: Record<string, string | string[] | undefined>,
-): Promise<RecruitmentExportRow[]> {
+): Promise<{ rows: RecruitmentExportRow[]; totalCount: number }> {
   const counties = await getRecruitmentCounties(searchParams);
-  return mapRecruitmentExportRows(counties);
+  return {
+    rows: mapRecruitmentExportRows(counties).slice(0, MAX_EXPORT_ROWS),
+    totalCount: counties.length,
+  };
 }
-
-const MAX_EXPORT_ROWS = 10_000;
 
 export async function getRetentionExportData(
   searchParams: Record<string, string | string[] | undefined>,

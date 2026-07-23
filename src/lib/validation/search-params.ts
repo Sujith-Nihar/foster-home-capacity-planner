@@ -17,12 +17,11 @@ export const OUTREACH_PRIORITIES = ["High", "Medium", "Low"] as const;
 export const AGE_GROUP_LABELS = ["0–5", "6–12", "13–17", "Unknown"] as const satisfies readonly AgeGroupLabel[];
 
 export const RECRUITMENT_SORT_FIELDS = [
-  "county",
+  "recruitment_priority",
   "current_foster_home_children",
   "children_per_active_provider",
   "out_of_county_foster_rate",
-  "active_providers",
-  "recruitment_priority",
+  "expiring_90_days",
 ] as const;
 
 export const RETENTION_SORT_FIELDS = [
@@ -70,11 +69,29 @@ export const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(25),
 });
 
-export const recruitmentSearchSchema = z.object({
-  priority: z.enum(RECRUITMENT_PRIORITIES).optional(),
-  sort: z.enum(RECRUITMENT_SORT_FIELDS).default("children_per_active_provider"),
-  direction: z.enum(SORT_DIRECTIONS).default("desc"),
-});
+export const recruitmentSearchSchema = z
+  .object({
+    priority: z.enum(RECRUITMENT_PRIORITIES).optional(),
+    minFosterChildren: z.coerce.number().int().min(0).optional(),
+    ageGroup: z.enum(AGE_GROUP_LABELS).optional(),
+    minOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),
+    maxOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),
+    sort: z.enum(RECRUITMENT_SORT_FIELDS).default("children_per_active_provider"),
+    direction: z.enum(SORT_DIRECTIONS).default("desc"),
+  })
+  .superRefine((value, context) => {
+    if (
+      value.minOutOfCountyRate !== undefined &&
+      value.maxOutOfCountyRate !== undefined &&
+      value.minOutOfCountyRate > value.maxOutOfCountyRate
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "minOutOfCountyRate must be less than or equal to maxOutOfCountyRate",
+        path: ["minOutOfCountyRate"],
+      });
+    }
+  });
 
 export const retentionSearchSchema = z.object({
   county: optionalString,
