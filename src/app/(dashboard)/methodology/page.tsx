@@ -1,19 +1,23 @@
-import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { MethodologyPageContent } from "@/components/methodology/methodology-page-content";
+import { ReportingDateBadge } from "@/components/reporting-date-badge";
+import { getMethodologyPageData } from "@/lib/data/methodology";
 import { breadcrumbMethodology } from "@/lib/navigation/breadcrumbs";
 
-export default function MethodologyPage() {
+export const dynamic = "force-dynamic";
+
+export default async function MethodologyPage() {
+  const data = await getMethodologyPageData();
+
   return (
     <>
       <PageHeader
         title="Methodology"
-        description="Metric definitions, analytical assumptions and known limitations for this assessment build."
+        description="Metric definitions, analytical assumptions, and known limitations for this assessment build."
         breadcrumbs={breadcrumbMethodology()}
+        actions={<ReportingDateBadge reportingDate={data.metadata.reportingDate} />}
       />
-      <EmptyState
-        title="Documentation coming next"
-        description="Detailed methodology content will be added in a later phase."
-      />
+      <MethodologyPageContent metadata={data.metadata} sections={data.sections} />
     </>
   );
 }
