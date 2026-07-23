@@ -4,7 +4,6 @@ import { MethodologyLink } from "@/components/methodology-link";
 import { PageHeader } from "@/components/page-header";
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
 import { ProviderNotFound } from "@/components/providers/provider-not-found";
-import { ReportingDateBadge } from "@/components/reporting-date-badge";
 import { APP_TITLE } from "@/config/navigation";
 import { getProviderPageData } from "@/lib/data/providers";
 import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
@@ -48,7 +47,6 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
         title={`Provider ${formatProviderId(data.provider.providerId)}`}
         description="License status, recent activity, and outreach priority context for a single licensed provider."
         breadcrumbs={breadcrumbProvider(String(data.provider.providerId))}
-        actions={<ReportingDateBadge reportingDate={data.provider.reportingDate} />}
       />
       <ProviderDetailPageContent data={data} />
       <div className="mt-8">

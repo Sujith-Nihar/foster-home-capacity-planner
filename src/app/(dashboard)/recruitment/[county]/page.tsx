@@ -4,7 +4,6 @@ import { MethodologyLink } from "@/components/methodology-link";
 import { PageHeader } from "@/components/page-header";
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
 import { CountyNotFound } from "@/components/recruitment/county-not-found";
-import { ReportingDateBadge } from "@/components/reporting-date-badge";
 import { APP_TITLE } from "@/config/navigation";
 import { getCountyPageData } from "@/lib/data/counties";
 import { breadcrumbCounty } from "@/lib/navigation/breadcrumbs";
@@ -56,7 +55,6 @@ export default async function CountyDetailPage({
         title={displayName}
         description="County recruitment context, age-group pressure, and linked retention outreach providers."
         breadcrumbs={breadcrumbCounty(displayName)}
-        actions={<ReportingDateBadge reportingDate={data.county.reportingDate} />}
       />
       <CountyDetailPageContent data={data} />
       <div className="mt-8">

@@ -29,7 +29,6 @@ import {
   formatNullablePercent,
   formatRatio,
   formatRecruitmentPriorityLabel,
-  formatReportingDate,
 } from "@/lib/utils/formatters";
 
 type CountyDetailPageContentProps = {
@@ -44,19 +43,14 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
     <div className="space-y-8">
       <section
         aria-labelledby="county-summary-heading"
-        className="rounded-lg border border-border-default bg-surface-raised p-6"
+        className="section-enter overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised p-6 sm:p-8"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h2 id="county-summary-heading" className="text-xl font-semibold text-text-primary">
+            <p className="eyebrow-label text-text-tertiary">County executive summary</p>
+            <h2 id="county-summary-heading" className="text-2xl font-medium tracking-tight text-text-primary">
               {formatCountyName(county.county)}
             </h2>
-            <p className="text-sm text-text-secondary">
-              Reporting date:{" "}
-              <time dateTime={county.reportingDate} className="font-medium text-text-primary">
-                {formatReportingDate(county.reportingDate)}
-              </time>
-            </p>
           </div>
           <PriorityBadge
             level={priorityToAttentionLevel(county.recruitmentPriority)}

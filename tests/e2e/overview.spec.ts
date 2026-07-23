@@ -5,7 +5,7 @@ test.describe("overview page", () => {
     await page.goto("/");
 
     await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible();
-    await expect(page.getByRole("main").getByText("Reporting date:")).toBeVisible();
+    await expect(page.getByRole("banner", { name: "Application header" }).getByText("Reporting date:")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Statewide snapshot" })).toBeVisible();
     await expect(page.getByText("Current children in care", { exact: true })).toBeVisible();
     await expect(page.getByText("High-priority outreach providers", { exact: true })).toBeVisible();

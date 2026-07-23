@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { cn } from "@/lib/utils";
 
 type DataTableShellProps = {
-  title: string;
+  title?: string;
   titleId?: string;
   description?: string;
   filters?: ReactNode;
@@ -24,23 +24,42 @@ export function DataTableShell({
   footer,
   className,
 }: DataTableShellProps) {
+  const hasHeader = Boolean(title || description || actions || filters);
+
   return (
-    <Card className={cn("shadow-none", className)}>
-      <CardHeader className="border-b border-border-default">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <h2 id={titleId} className="text-base font-medium text-text-primary">
-              {title}
-            </h2>
-            {description ? <CardDescription>{description}</CardDescription> : null}
+    <Card
+      className={cn(
+        "overflow-hidden rounded-[1.125rem] border border-border-subtle bg-surface-raised shadow-[0_1px_2px_rgba(15,23,42,0.04)] ring-0",
+        className,
+      )}
+    >
+      {hasHeader ? (
+        <CardHeader className="border-b border-border-subtle bg-surface-tint/40">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            {title || description ? (
+              <div className="space-y-1">
+                {title ? (
+                  <h2 id={titleId} className="text-lg font-medium tracking-tight text-text-primary">
+                    {title}
+                  </h2>
+                ) : null}
+                {description ? <CardDescription>{description}</CardDescription> : null}
+              </div>
+            ) : (
+              <div />
+            )}
+            {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
           </div>
-          {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-        </div>
-        {filters ? <div className="pt-4">{filters}</div> : null}
-      </CardHeader>
+          {filters ? (
+            <div className="rounded-[1rem] border border-border-subtle bg-surface-raised p-4">
+              {filters}
+            </div>
+          ) : null}
+        </CardHeader>
+      ) : null}
       <CardContent className="overflow-x-auto p-0">{children}</CardContent>
       {footer ? (
-        <div className="border-t border-border-default px-4 py-3 text-sm text-text-secondary">
+        <div className="border-t border-border-subtle bg-surface-tint/30 px-5 py-3 text-sm text-text-secondary">
           {footer}
         </div>
       ) : null}

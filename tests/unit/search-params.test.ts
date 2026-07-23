@@ -5,12 +5,14 @@ import {
   isAllowedRetentionSortField,
   isAllowedSortDirection,
   parseRecruitmentSearchParams,
+  parseRetentionExportSearchParams,
   parseRetentionSearchParams,
   RECRUITMENT_SORT_FIELDS,
   RETENTION_SORT_FIELDS,
   safeParseRecruitmentSearchParams,
   safeParseRetentionSearchParams,
 } from "@/lib/validation/search-params";
+import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 
 describe("recruitment search params", () => {
   it("applies defaults for an empty query string", () => {
@@ -93,6 +95,18 @@ describe("retention search params", () => {
   it("rejects invalid engagement values", () => {
     const result = safeParseRetentionSearchParams({ minEngagement: "2" });
     expect(result.success).toBe(false);
+  });
+
+  it("allows export page sizes up to the export row cap", () => {
+    expect(
+      parseRetentionExportSearchParams({
+        providerId: "500021",
+      }),
+    ).toMatchObject({
+      providerId: 500021,
+      page: 1,
+      pageSize: MAX_EXPORT_ROWS,
+    });
   });
 });
 

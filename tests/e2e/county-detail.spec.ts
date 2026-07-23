@@ -5,7 +5,9 @@ test.describe("county detail page", () => {
     await page.goto("/recruitment/Cook");
 
     await expect(page.getByRole("heading", { name: "Cook County", exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("main").getByText("Reporting date:").first()).toBeVisible();
+    await expect(
+      page.getByRole("banner", { name: "Application header" }).getByText("Reporting date:"),
+    ).toBeVisible();
     await expect(page.getByText("High planning priority", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Current placement demand" })).toBeVisible();
     await expect(page.getByText("Current foster-home children", { exact: true })).toBeVisible();

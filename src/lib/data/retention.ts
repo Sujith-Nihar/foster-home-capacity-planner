@@ -14,8 +14,10 @@ import type {
 } from "@/lib/types/domain";
 import {
   parseCountyProvidersSearchParams,
+  parseRetentionExportSearchParams,
   parseRetentionSearchParams,
   type RetentionFilterParams,
+  type RetentionSearchParams,
 } from "@/lib/validation/search-params";
 
 const RETENTION_LIST_COLUMNS =
@@ -154,7 +156,18 @@ export async function getRetentionSummaryMetrics(
 export async function getRetentionProviders(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<PaginatedResult<ProviderMetricsDto>> {
-  const params = parseRetentionSearchParams(searchParams);
+  return listRetentionProviders(parseRetentionSearchParams(searchParams));
+}
+
+export async function getRetentionExportProviders(
+  searchParams: Record<string, string | string[] | undefined>,
+): Promise<PaginatedResult<ProviderMetricsDto>> {
+  return listRetentionProviders(parseRetentionExportSearchParams(searchParams));
+}
+
+async function listRetentionProviders(
+  params: RetentionSearchParams,
+): Promise<PaginatedResult<ProviderMetricsDto>> {
   const reportingDate = await getActiveReportingDate();
   const supabase = getServerSupabaseClient();
   const from = (params.page - 1) * params.pageSize;

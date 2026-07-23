@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const HOST = "127.0.0.1";
+const PORT = 3100;
+const baseURL = `http://${HOST}:${PORT}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -7,9 +11,14 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
+  timeout: 30_000,
+  expect: {
+    timeout: 10_000,
+  },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL,
     trace: "on-first-retry",
+    actionTimeout: 10_000,
   },
   projects: [
     {
@@ -17,9 +26,15 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+    ? undefined
+    : {
+        // Use the production server so e2e does not compete with `next dev` lock files.
+        command: "npm run start:e2e",
+        url: baseURL,
+        reuseExistingServer: false,
+        timeout: 120_000,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
 });

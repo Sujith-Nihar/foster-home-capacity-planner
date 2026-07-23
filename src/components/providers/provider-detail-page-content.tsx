@@ -29,11 +29,12 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
     <div className="space-y-8">
       <section
         aria-labelledby="provider-summary-heading"
-        className="rounded-lg border border-border-default bg-surface-raised p-6"
+        className="section-enter overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised p-6 sm:p-8"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <h2 id="provider-summary-heading" className="text-xl font-semibold text-text-primary">
+            <p className="eyebrow-label text-text-tertiary">Provider executive summary</p>
+            <h2 id="provider-summary-heading" className="text-2xl font-medium tracking-tight text-text-primary">
               Provider {formatProviderId(provider.providerId)}
             </h2>
             <p className="text-sm text-text-secondary">
@@ -45,12 +46,6 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
               >
                 {formatCountyName(provider.county)}
               </Link>
-            </p>
-            <p className="text-sm text-text-secondary">
-              Reporting date:{" "}
-              <time dateTime={provider.reportingDate} className="font-medium text-text-primary">
-                {formatReportingDate(provider.reportingDate)}
-              </time>
             </p>
           </div>
           <PriorityBadge

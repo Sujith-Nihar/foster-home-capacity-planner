@@ -18,7 +18,7 @@ import type {
 } from "@/lib/types/domain";
 import { formatCount, formatPercent } from "@/lib/utils/formatters";
 import { getRecruitmentCountyRanking } from "@/lib/data/recruitment";
-import { getRetentionPriorityDistribution } from "@/lib/data/retention";
+import { getRetentionPriorityDistribution, getRetentionSummaryMetrics } from "@/lib/data/retention";
 
 export async function getDatasetMetadata(): Promise<DatasetMetadataDto> {
   const supabase = getServerSupabaseClient();
@@ -155,14 +155,21 @@ export async function getOverviewInsights(): Promise<OverviewInsightsDto> {
 }
 
 export async function getOverviewPageData() {
-  const [snapshot, monthlyMetrics, topRecruitmentCounties, retentionDistribution, largestCounties] =
-    await Promise.all([
-      getSystemSnapshot(),
-      getMonthlyMetrics(24),
-      getRecruitmentCountyRanking(10),
-      getRetentionPriorityDistribution(),
-      getLargestCountiesByFosterPlacements(5),
-    ]);
+  const [
+    snapshot,
+    monthlyMetrics,
+    topRecruitmentCounties,
+    retentionDistribution,
+    largestCounties,
+    retentionSummary,
+  ] = await Promise.all([
+    getSystemSnapshot(),
+    getMonthlyMetrics(24),
+    getRecruitmentCountyRanking(10),
+    getRetentionPriorityDistribution(),
+    getLargestCountiesByFosterPlacements(5),
+    getRetentionSummaryMetrics(),
+  ]);
 
   const insights = buildOverviewInsights({
     snapshot,
@@ -176,6 +183,7 @@ export async function getOverviewPageData() {
     topRecruitmentCounties,
     retentionDistribution,
     largestCounties,
+    retentionSummary,
     insights,
   };
 }

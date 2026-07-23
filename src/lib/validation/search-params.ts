@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { AgeGroupLabel } from "@/config/metrics";
 import type { SortDirection } from "@/lib/types/domain";
+import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 
 export const SORT_DIRECTIONS = ["asc", "desc"] as const satisfies readonly SortDirection[];
 
@@ -150,6 +151,20 @@ export function parseRetentionSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): RetentionSearchParams {
   return retentionSearchSchema.parse(normalizeSearchParams(searchParams));
+}
+
+const retentionExportSearchSchema = retentionSearchSchema.extend({
+  pageSize: z.coerce.number().int().min(1).max(MAX_EXPORT_ROWS).default(MAX_EXPORT_ROWS),
+});
+
+export function parseRetentionExportSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+): RetentionSearchParams {
+  return retentionExportSearchSchema.parse({
+    ...normalizeSearchParams(searchParams),
+    page: "1",
+    pageSize: String(MAX_EXPORT_ROWS),
+  });
 }
 
 export function parseCountyProvidersSearchParams(

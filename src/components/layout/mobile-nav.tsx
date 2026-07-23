@@ -1,76 +1,62 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 
-import { APP_TITLE, PRIMARY_NAV_ITEMS } from "@/config/navigation";
+import { PrimaryNav } from "@/components/layout/primary-nav";
+import { APP_BRAND_NAME } from "@/config/navigation";
+import { REPORTING_DATE } from "@/config/metrics";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
-
-function isNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/") {
-    return pathname === "/";
-  }
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+import { formatReportingDate } from "@/lib/utils/formatters";
 
 export function MobileNav() {
-  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
           <Button
             variant="outline"
             size="icon"
-            className="lg:hidden"
+            className="size-9 shrink-0"
             aria-label="Open navigation menu"
           />
         }
       >
-        <Menu aria-hidden="true" />
+        <Menu className="size-4" aria-hidden="true" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-[min(100%,20rem)] p-0">
-        <SheetHeader className="border-b border-border-default px-4 py-4 text-left">
-          <SheetTitle className="text-base">{APP_TITLE}</SheetTitle>
-          <SheetDescription>Illinois DCFS decision support navigation</SheetDescription>
+      <SheetContent side="left" className="flex w-[min(100%,15rem)] flex-col gap-0 p-0">
+        <SheetHeader className="border-b border-border-default px-5 py-4 text-left">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+            Illinois DCFS
+          </p>
+          <SheetTitle className="text-[15px] font-semibold">{APP_BRAND_NAME}</SheetTitle>
         </SheetHeader>
-        <nav aria-label="Primary" className="px-3 py-4">
-          <ul className="space-y-1">
-            {PRIMARY_NAV_ITEMS.map((item) => {
-              const active = isNavItemActive(pathname, item.href);
-              const Icon = item.icon;
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm",
-                      active
-                        ? "bg-muted font-medium text-text-primary"
-                        : "text-text-secondary hover:bg-muted hover:text-text-primary",
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" aria-hidden="true" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <PrimaryNav className="flex-1 overflow-y-auto px-3 py-4" onNavigate={() => setOpen(false)} />
+        <div className="mt-auto border-t border-border-default px-5 py-4">
+          <p className="text-xs text-text-tertiary">
+            Data through{" "}
+            <time dateTime={REPORTING_DATE} className="font-medium text-text-secondary">
+              {formatReportingDate(REPORTING_DATE)}
+            </time>
+          </p>
+          <Link
+            href="/methodology"
+            onClick={() => setOpen(false)}
+            className="mt-2 inline-flex text-xs font-medium text-accent-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Methodology definitions
+          </Link>
+        </div>
       </SheetContent>
     </Sheet>
   );

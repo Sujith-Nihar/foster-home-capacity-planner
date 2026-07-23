@@ -29,7 +29,7 @@ export function LoadingSkeleton({ className, rows = 3 }: LoadingSkeletonProps) {
 export function MetricCardSkeleton() {
   return (
     <div
-      className="space-y-3 rounded-xl border border-border-default bg-surface-raised p-4"
+      className="space-y-2 rounded-lg border border-border-default bg-surface-raised p-3"
       aria-hidden="true"
     >
       <SkeletonBlock className="h-4 w-24" />

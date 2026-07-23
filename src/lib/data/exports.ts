@@ -1,5 +1,5 @@
 import { getRecruitmentCounties } from "@/lib/data/recruitment";
-import { getRetentionProviders } from "@/lib/data/retention";
+import { getRetentionExportProviders } from "@/lib/data/retention";
 import type { CountyMetricsDto, ProviderMetricsDto } from "@/lib/types/domain";
 import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 import {
@@ -94,11 +94,7 @@ export async function getRecruitmentExportData(
 export async function getRetentionExportData(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<{ rows: RetentionExportRow[]; totalCount: number }> {
-  const firstPage = await getRetentionProviders({
-    ...searchParams,
-    page: "1",
-    pageSize: String(MAX_EXPORT_ROWS),
-  });
+  const firstPage = await getRetentionExportProviders(searchParams);
 
   return {
     rows: mapRetentionExportRows(firstPage.items),

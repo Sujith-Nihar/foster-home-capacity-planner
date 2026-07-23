@@ -5,11 +5,11 @@ test.describe("retention page", () => {
     await page.goto("/retention");
 
     await expect(page.getByRole("heading", { name: "Retention", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Licensed provider snapshot" })).toBeVisible();
-    await expect(page.getByText("Currently licensed providers", { exact: true })).toBeVisible();
-    await expect(page.getByText("High outreach-priority providers", { exact: true })).toBeVisible();
+    await expect(page.getByText("Licensed providers", { exact: true })).toBeVisible();
+    await expect(page.getByText("High outreach priority", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /licenses expire within 90 days/i })).toBeVisible();
     await expect(
-      page.getByText(/Outreach priority is rule-based decision support/i),
+      page.getByText(/Outreach priorities are based on recent activity, engagement and license timing/i),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Licensed provider outreach list" }),

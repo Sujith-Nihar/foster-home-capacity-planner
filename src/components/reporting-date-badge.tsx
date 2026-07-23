@@ -16,14 +16,14 @@ export function ReportingDateBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-md border border-border-default bg-surface-raised px-3 py-1.5 text-sm text-text-secondary",
+        "inline-flex items-center gap-2 text-sm text-text-secondary",
         className,
       )}
     >
       <CalendarDays className="size-4 shrink-0 text-text-tertiary" aria-hidden="true" />
       <span>
         Reporting date:{" "}
-        <time dateTime={reportingDate} className="font-medium text-text-primary">
+        <time dateTime={reportingDate} className="font-medium tabular-nums text-text-primary">
           {formatReportingDate(reportingDate)}
         </time>
       </span>
