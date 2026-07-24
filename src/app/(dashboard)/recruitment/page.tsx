@@ -17,6 +17,7 @@ export default async function RecruitmentPage({ searchParams }: RecruitmentPageP
       limitedDataCounties={data.limitedDataCounties}
       filterOptions={data.filterOptions}
       ageGroupPressure={data.ageGroupPressure}
+      countyAgeMetricsByCounty={data.countyAgeMetricsByCounty}
       searchParams={data.searchParams}
     />
   );

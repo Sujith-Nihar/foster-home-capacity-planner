@@ -253,7 +253,7 @@
     border-radius: 0.875rem;
     border: 1px solid var(--border-subtle);
     background-color: var(--surface-raised);
-    overflow: hidden;
+    overflow: clip;
   }
 
   .data-table-viewport {
@@ -264,6 +264,13 @@
   @media (max-width: 1279px) {
     .data-table-viewport--scroll {
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .data-table-viewport--scroll {
+      overflow-x: visible;
     }
   }
 

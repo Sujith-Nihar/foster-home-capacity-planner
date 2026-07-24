@@ -7,8 +7,9 @@ import {
   type Database,
 } from "@/lib/supabase/server";
 import { aggregateAgeGroupPressure, partitionRecruitmentCounties, type AgeGroupPressureDto } from "@/lib/recruitment/analytics";
+import { groupCountyAgeMetricsByCounty } from "@/lib/recruitment/age-groups";
 import { sortRecruitmentCounties } from "@/lib/recruitment/query";
-import type { CountyMetricsDto, FilterOptionsDto, OutreachPriority, RecruitmentPriority } from "@/lib/types/domain";
+import type { CountyAgeMetricsDto, CountyMetricsDto, FilterOptionsDto, OutreachPriority, RecruitmentPriority } from "@/lib/types/domain";
 import type { AgeGroupLabel } from "@/config/metrics";
 import { parseRecruitmentSearchParams } from "@/lib/validation/search-params";
 
@@ -130,14 +131,32 @@ export async function getAgeGroupPressureRanking(
   );
 }
 
+async function loadAllCountyAgeMetrics(
+  reportingDate?: string,
+): Promise<CountyAgeMetricsDto[]> {
+  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  const supabase = getServerSupabaseClient();
+  const rows = await executeSupabaseQuery("load all county age metrics", async () =>
+    supabase
+      .from("county_age_metrics")
+      .select(COUNTY_AGE_PRESSURE_COLUMNS)
+      .eq("reporting_date", activeReportingDate)
+      .order("county", { ascending: true })
+      .order("age_group", { ascending: true }),
+  );
+
+  return rows.map(mapCountyAgeMetrics);
+}
+
 export async function getRecruitmentPageData(
   searchParams: Record<string, string | string[] | undefined>,
 ) {
   const params = parseRecruitmentSearchParams(searchParams);
-  const [counties, filterOptions, ageGroupPressure] = await Promise.all([
+  const [counties, filterOptions, ageGroupPressure, allCountyAgeMetrics] = await Promise.all([
     getRecruitmentCounties(searchParams),
     getFilterOptions(),
     getAgeGroupPressureRanking(),
+    loadAllCountyAgeMetrics(),
   ]);
 
   const { eligible, limitedData } = partitionRecruitmentCounties(counties);
@@ -148,6 +167,9 @@ export async function getRecruitmentPageData(
     limitedDataCounties: limitedData,
     filterOptions,
     ageGroupPressure,
+    countyAgeMetricsByCounty: groupCountyAgeMetricsByCounty(allCountyAgeMetrics),
     searchParams: params,
   };
 }
+
+export type CountyAgeMetricsByCounty = Map<string, CountyAgeMetricsDto[]>;

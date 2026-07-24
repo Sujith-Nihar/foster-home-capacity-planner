@@ -36,6 +36,6 @@ test.describe("table accessibility", () => {
   test("recruitment county table exposes column headers", async ({ page }) => {
     await page.goto("/recruitment");
     await expect(page.getByRole("columnheader", { name: "County" }).first()).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /Priority/i }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /Suggested attention/i }).first()).toBeVisible();
   });
 });

@@ -14,6 +14,10 @@ import {
   buildCountyPriorityExplanation,
   orderCountyAgeGroups,
 } from "@/lib/recruitment/county-detail";
+import {
+  computeStatewideAgeGroupBenchmarks,
+  type StatewideAgeGroupBenchmark,
+} from "@/lib/recruitment/age-groups";
 import type { CountyAgeMetricsDto, CountyMetricsDto, PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
 
 const COUNTY_DETAIL_COLUMNS =
@@ -25,6 +29,7 @@ const COUNTY_AGE_COLUMNS =
 export type CountyPageData = {
   county: CountyMetricsDto;
   ageGroups: CountyAgeMetricsDto[];
+  statewideAgeGroupBenchmarks: StatewideAgeGroupBenchmark[];
   retentionProviders: ProviderMetricsDto[];
   retentionPagination: PaginatedResult<ProviderMetricsDto>;
   priorityExplanation: string;
@@ -69,6 +74,23 @@ export async function getCountyAgeMetrics(
   return rows.map(mapCountyAgeMetrics);
 }
 
+export async function getAllCountyAgeMetrics(
+  reportingDate?: string,
+): Promise<CountyAgeMetricsDto[]> {
+  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  const supabase = getServerSupabaseClient();
+  const rows = await executeSupabaseQuery("load all county age metrics", async () =>
+    supabase
+      .from("county_age_metrics")
+      .select(COUNTY_AGE_COLUMNS)
+      .eq("reporting_date", activeReportingDate)
+      .order("county", { ascending: true })
+      .order("age_group", { ascending: true }),
+  );
+
+  return rows.map(mapCountyAgeMetrics);
+}
+
 export async function getCountyPageData(
   countyParam: string,
   searchParams: Record<string, string | string[] | undefined> = {},
@@ -79,9 +101,10 @@ export async function getCountyPageData(
   }
 
   try {
-    const [countyMetrics, ageGroups, retentionProviders] = await Promise.all([
+    const [countyMetrics, ageGroups, allCountyAgeGroups, retentionProviders] = await Promise.all([
       getCountyMetricsByName(county),
       getCountyAgeMetrics(county),
+      getAllCountyAgeMetrics(),
       getRetentionProvidersForCounty(county, {
         ...searchParams,
         pageSize: searchParams.pageSize ?? "10",
@@ -90,12 +113,15 @@ export async function getCountyPageData(
       }),
     ]);
 
+    const orderedAgeGroups = orderCountyAgeGroups(ageGroups);
+
     return {
       county: countyMetrics,
-      ageGroups: orderCountyAgeGroups(ageGroups),
+      ageGroups: orderedAgeGroups,
+      statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeGroups),
       retentionProviders: retentionProviders.items,
       retentionPagination: retentionProviders,
-      priorityExplanation: buildCountyPriorityExplanation(countyMetrics),
+      priorityExplanation: buildCountyPriorityExplanation(countyMetrics, orderedAgeGroups, allCountyAgeGroups),
       limitations: buildCountyLimitations(countyMetrics),
     };
   } catch (error) {

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCountyLimitations,
   buildCountyPriorityExplanation,
+  ageGroupSectionLabel,
   orderCountyAgeGroups,
 } from "@/lib/recruitment/county-detail";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
@@ -52,10 +53,32 @@ describe("normalizeRouteCounty", () => {
 
 describe("county detail helpers", () => {
   it("builds a plain-language explanation for eligible counties", () => {
-    const explanation = buildCountyPriorityExplanation(sampleCounty());
+    const ageGroups = [
+      {
+        county: "Cook",
+        ageGroup: "13–17" as const,
+        reportingDate: "2026-07-01",
+        currentFosterHomeChildren: 361,
+        matchingLicensedProviders: 60,
+        matchingActiveProviders: 49,
+        childrenPerMatchingActiveProvider: 7.37,
+      },
+      {
+        county: "Cook",
+        ageGroup: "6–12" as const,
+        reportingDate: "2026-07-01",
+        currentFosterHomeChildren: 434,
+        matchingLicensedProviders: 120,
+        matchingActiveProviders: 103,
+        childrenPerMatchingActiveProvider: 4.21,
+      },
+    ] as CountyAgeMetricsDto[];
+
+    const explanation = buildCountyPriorityExplanation(sampleCounty(), ageGroups, ageGroups);
     expect(explanation).toContain("Cook County");
     expect(explanation).toContain("High planning priority");
     expect(explanation).toContain("Above the 75th percentile");
+    expect(explanation).toContain("Recruitment attention is highest for ages 13–17");
   });
 
   it("builds a separate explanation for limited-data counties", () => {
@@ -89,6 +112,11 @@ describe("county detail helpers", () => {
     ] as CountyAgeMetricsDto[]);
 
     expect(ordered.map((group) => group.ageGroup)).toEqual(["0–5", "Unknown"]);
+  });
+
+  it("labels unknown ages as age unavailable", () => {
+    expect(ageGroupSectionLabel("Unknown")).toBe("Age unavailable");
+    expect(ageGroupSectionLabel("0–5")).toBe("Ages 0–5");
   });
 
   it("includes interpretation limitations", () => {

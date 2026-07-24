@@ -1,5 +1,6 @@
 import { AGE_GROUPS, RECRUITMENT_MINIMUM_VOLUME } from "@/config/metrics";
 import type { AgeGroupLabel } from "@/config/metrics";
+import { buildAgeGroupPrioritySummary, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
 import type { CountyAgeMetricsDto, CountyMetricsDto } from "@/lib/types/domain";
 import { formatCountyName, formatRecruitmentPriorityLabel } from "@/lib/utils/formatters";
 
@@ -14,7 +15,11 @@ export function orderCountyAgeGroups(
     .filter((group): group is CountyAgeMetricsDto => group !== undefined);
 }
 
-export function buildCountyPriorityExplanation(county: CountyMetricsDto): string {
+export function buildCountyPriorityExplanation(
+  county: CountyMetricsDto,
+  countyAgeGroups: CountyAgeMetricsDto[] = [],
+  allCountyAgeGroups: CountyAgeMetricsDto[] = [],
+): string {
   const countyLabel = formatCountyName(county.county);
 
   if (county.recruitmentPriority === "Limited data") {
@@ -22,13 +27,22 @@ export function buildCountyPriorityExplanation(county: CountyMetricsDto): string
   }
 
   const priorityLabel = formatRecruitmentPriorityLabel(county.recruitmentPriority);
-  const introduction = `${countyLabel} is classified as ${priorityLabel} at the reporting date. This is a planning signal based on foster-home demand, out-of-county placement pressure, and age-group indicators relative to other eligible counties—not a proven shortage estimate.`;
+  let explanation = `${countyLabel} is classified as ${priorityLabel} at the reporting date. This is a planning signal based on foster-home demand, out-of-county placement pressure, and age-group indicators relative to other eligible counties—not a proven shortage estimate.`;
 
-  if (county.recruitmentReasons.length === 0) {
-    return introduction;
+  const ageGroupSummary = buildAgeGroupPrioritySummary(
+    countyAgeGroups,
+    computeStatewideAgeGroupBenchmarks(allCountyAgeGroups),
+  );
+
+  if (ageGroupSummary) {
+    explanation += ` ${ageGroupSummary}`;
   }
 
-  return `${introduction} Documented factors: ${county.recruitmentReasons.join("; ")}.`;
+  if (county.recruitmentReasons.length === 0) {
+    return explanation;
+  }
+
+  return `${explanation} Documented factors: ${county.recruitmentReasons.join("; ")}.`;
 }
 
 export function buildCountyLimitations(county: CountyMetricsDto): string[] {
@@ -50,5 +64,5 @@ export function buildCountyLimitations(county: CountyMetricsDto): string[] {
 }
 
 export function ageGroupSectionLabel(label: AgeGroupLabel): string {
-  return label === "Unknown" ? "Unknown age group" : `Ages ${label}`;
+  return label === "Unknown" ? "Age unavailable" : `Ages ${label}`;
 }

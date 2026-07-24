@@ -11,7 +11,7 @@ test.describe("county detail page", () => {
     await expect(page.getByText("High planning priority", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Current placement demand" })).toBeVisible();
     await expect(page.getByText("Current foster-home children", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Age-group pressure" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Age-group recruitment comparison" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Retention outreach providers" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Limitations and interpretation" })).toBeVisible();
     await expect(page.getByRole("link", { name: /View all county providers/i })).toHaveAttribute(

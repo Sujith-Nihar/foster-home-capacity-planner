@@ -6,6 +6,7 @@ import { MethodologyLink } from "@/components/methodology-link";
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
 import { PageIntroduction } from "@/components/ui/page-introduction";
+import type { CountyAgeMetricsByCounty } from "@/lib/data/recruitment";
 import type { AgeGroupPressureDto } from "@/lib/recruitment/analytics";
 import { buildRecruitmentQueryString } from "@/lib/recruitment/query";
 import type { CountyMetricsDto, FilterOptionsDto } from "@/lib/types/domain";
@@ -17,6 +18,7 @@ type RecruitmentPageContentProps = {
   limitedDataCounties: CountyMetricsDto[];
   filterOptions: FilterOptionsDto;
   ageGroupPressure: AgeGroupPressureDto[];
+  countyAgeMetricsByCounty: CountyAgeMetricsByCounty;
   searchParams: RecruitmentSearchParams;
 };
 
@@ -25,6 +27,7 @@ export function RecruitmentPageContent({
   limitedDataCounties,
   filterOptions,
   ageGroupPressure,
+  countyAgeMetricsByCounty,
   searchParams,
 }: RecruitmentPageContentProps) {
   const exportQuery = buildRecruitmentQueryString(searchParams).replace(/^\?/, "");
@@ -65,6 +68,7 @@ export function RecruitmentPageContent({
 
       <RecruitmentCountyTable
         counties={eligibleCounties}
+        countyAgeMetricsByCounty={countyAgeMetricsByCounty}
         searchParams={searchParams}
         title="County recruitment planning priorities"
         titleId="recruitment-county-table-heading"
@@ -89,6 +93,7 @@ export function RecruitmentPageContent({
 
       <RecruitmentCountyTable
         counties={limitedDataCounties}
+        countyAgeMetricsByCounty={countyAgeMetricsByCounty}
         searchParams={searchParams}
         title="Limited-data counties"
         titleId="limited-data-counties-heading"

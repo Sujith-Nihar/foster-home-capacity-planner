@@ -25,6 +25,7 @@ import {
 import { tableColumnClasses } from "@/components/ui/table-utils";
 import type { CountyPageData } from "@/lib/data/counties";
 import { ageGroupSectionLabel } from "@/lib/recruitment/county-detail";
+import { MEASURABLE_AGE_GROUP_LABELS } from "@/lib/recruitment/age-groups";
 import {
   formatCount,
   formatNullablePercent,
@@ -36,7 +37,18 @@ type CountyDetailPageContentProps = {
 };
 
 export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) {
-  const { county, ageGroups, retentionProviders, retentionPagination, limitations } = data;
+  const {
+    county,
+    ageGroups,
+    statewideAgeGroupBenchmarks,
+    retentionProviders,
+    retentionPagination,
+    limitations,
+  } = data;
+
+  const benchmarkByAgeGroup = new Map(
+    statewideAgeGroupBenchmarks.map((benchmark) => [benchmark.ageGroup, benchmark]),
+  );
 
   return (
     <div className="space-y-8">
@@ -148,8 +160,8 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
       <section aria-labelledby="county-age-pressure-heading">
         <DataTableShell
           titleId="county-age-pressure-heading"
-          title="Age-group pressure"
-          description="Foster-home children and matching provider counts by age group. Unknown is shown separately from defined age bands."
+          title="Age-group recruitment comparison"
+          description="Foster-home children and matching provider counts by age group. Active providers are licensed providers whose current preferences include the age group. Age unavailable is shown separately and does not receive an age-specific ratio."
         >
           {ageGroups.length === 0 ? (
             <p className="px-4 py-6 text-sm text-text-secondary" role="status">
@@ -159,11 +171,13 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             <div className="data-table-viewport--scroll">
               <Table>
                 <TableColgroup>
-                  <TableCol style={{ width: "24%" }} />
-                  <TableCol style={{ width: "16%" }} />
-                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "20%" }} />
-                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "20%" }} />
-                  <TableCol style={{ width: "20%" }} />
+                  <TableCol style={{ width: "14%" }} />
+                  <TableCol style={{ width: "12%" }} />
+                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "14%" }} />
+                  <TableCol style={{ width: "14%" }} />
+                  <TableCol style={{ width: "14%" }} />
+                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "16%" }} />
+                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "16%" }} />
                 </TableColgroup>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -172,34 +186,57 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
                       Foster-home children
                     </TableHead>
                     <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                      Licensed providers
-                    </TableHead>
-                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                      Active providers
+                      Matching licensed providers
                     </TableHead>
                     <TableHead scope="col" className={tableColumnClasses.numeric}>
-                      Children per provider
+                      Matching active providers
+                    </TableHead>
+                    <TableHead scope="col" className={tableColumnClasses.numeric}>
+                      Children per matching active provider
+                    </TableHead>
+                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                      Statewide median
+                    </TableHead>
+                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                      Statewide 75th percentile
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ageGroups.map((group) => (
-                    <TableRow key={group.ageGroup}>
-                      <TableCell>{ageGroupSectionLabel(group.ageGroup)}</TableCell>
-                      <TableCell className={tableColumnClasses.numeric}>
-                        {formatCount(group.currentFosterHomeChildren)}
-                      </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {formatCount(group.matchingLicensedProviders)}
-                      </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {formatCount(group.matchingActiveProviders)}
-                      </TableCell>
-                      <TableCell className={tableColumnClasses.numeric}>
-                        {formatRatio(group.childrenPerMatchingActiveProvider)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {ageGroups.map((group) => {
+                    const benchmark = MEASURABLE_AGE_GROUP_LABELS.includes(
+                      group.ageGroup as (typeof MEASURABLE_AGE_GROUP_LABELS)[number],
+                    )
+                      ? benchmarkByAgeGroup.get(
+                          group.ageGroup as (typeof MEASURABLE_AGE_GROUP_LABELS)[number],
+                        )
+                      : undefined;
+                    const isUnknown = group.ageGroup === "Unknown";
+
+                    return (
+                      <TableRow key={group.ageGroup}>
+                        <TableCell>{ageGroupSectionLabel(group.ageGroup)}</TableCell>
+                        <TableCell className={tableColumnClasses.numeric}>
+                          {formatCount(group.currentFosterHomeChildren)}
+                        </TableCell>
+                        <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                          {formatCount(group.matchingLicensedProviders)}
+                        </TableCell>
+                        <TableCell className={tableColumnClasses.numeric}>
+                          {formatCount(group.matchingActiveProviders)}
+                        </TableCell>
+                        <TableCell className={tableColumnClasses.numeric}>
+                          {isUnknown ? "—" : formatRatio(group.childrenPerMatchingActiveProvider)}
+                        </TableCell>
+                        <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                          {isUnknown || !benchmark ? "—" : formatRatio(benchmark.median)}
+                        </TableCell>
+                        <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                          {isUnknown || !benchmark ? "—" : formatRatio(benchmark.p75)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
