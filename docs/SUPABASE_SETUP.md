@@ -60,8 +60,15 @@ Migrations live in `supabase/migrations/`:
 | `20260722184500_create_read_models.sql` | Tables, constraints, indexes, comments |
 | `20260722184501_enable_row_level_security.sql` | RLS policies and anonymous `SELECT` grants |
 | `20260722184502_create_filter_options_function.sql` | `get_application_filter_options()` helper |
+| `20260724150000_add_provider_outreach_priority_rank.sql` | `outreach_priority_rank` column and performance indexes |
 
 Apply to a linked remote project:
+
+```bash
+npx supabase db push
+```
+
+Or, if the Supabase CLI is installed globally:
 
 ```bash
 supabase db push

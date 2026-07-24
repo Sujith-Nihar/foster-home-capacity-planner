@@ -698,11 +698,19 @@ Playwright smoke tests
 
 ## 13. Performance
 
+See [`docs/PERFORMANCE.md`](PERFORMANCE.md) for the implemented performance architecture.
+
+Summary:
+
 - Keep raw events out of the runtime path.
-- Query only read models.
-- Select only required columns.
-- Paginate provider results on the server.
-- Cache stable aggregate pages with a documented revalidation interval.
+- Query only read models with explicit column lists.
+- Cache stable snapshot aggregates server-side (`unstable_cache`).
+- Deduplicate shared reads (for example county-age metrics on recruitment).
+- Fetch independent page data in parallel (`Promise.all`).
+- Paginate and sort provider results on the server.
+- Use `outreach_priority_rank` for retention priority sorting, with an in-memory fallback when the migration is not applied.
+- Enable structured JSON timing logs in development or with `PERFORMANCE_LOGGING_ENABLED=true`.
+- Measure production routes with `npm run benchmark:routes`.
 - Keep filtered table pages dynamic.
 - Add skeleton loading states.
 - Avoid shipping database and business logic to the browser.

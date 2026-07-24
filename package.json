@@ -15,6 +15,7 @@
     "pretest:e2e": "npm run build",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "benchmark:routes": "node scripts/benchmark-production-routes.mjs",
     "verify": "bash scripts/verify-production-readiness.sh"
   },
   "dependencies": {

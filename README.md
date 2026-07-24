@@ -48,7 +48,22 @@ Key routes:
 | `/methodology` | Definitions, assumptions, and limitations |
 | `/api/exports/*` | Filtered CSV exports only |
 
-See also: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md).
+See also: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md), [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
+
+## Performance architecture
+
+The application serves a **fixed reporting snapshot through July 1, 2026**. To keep pages responsive without changing staff-facing behavior:
+
+- **Stable read models are cached server-side** for statewide aggregates, filter options, and shared county-age metrics.
+- **Duplicate Supabase queries were removed**, including repeated reporting-date lookups and duplicate county-age metric loads on recruitment.
+- **Independent data requests run in parallel** when assembling overview, recruitment, and retention pages.
+- **Provider filtering, sorting, and pagination stay on the server** so tables do not download the full provider list.
+- **Retention priority sorting uses `outreach_priority_rank`** in PostgreSQL, with a safe in-memory fallback until the migration is applied.
+- **Structured performance logging** can be enabled for JSON timing output per server operation.
+- **Production routes can be measured** with `npm run benchmark:routes` after `npm run build` and `npm run start`.
+
+Full details, migration notes, and benchmark methodology: [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
+
 
 ## Setup
 
@@ -64,8 +79,11 @@ See also: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/PROJECT_SPEC.md
 cp .env.example .env.local
 # Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npm ci
+npx supabase db push
 npm run dev
 ```
+
+`npx supabase db push` applies SQL migrations in `supabase/migrations/`, including indexes and `outreach_priority_rank` for retention sorting. See [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
 
 Open [http://localhost:3000](http://localhost:3000).
 
@@ -130,6 +148,9 @@ npm run typecheck
 npm run test
 npm run build
 npm run test:e2e
+
+# Production route timing (requires npm run start in another terminal)
+npm run benchmark:routes
 ```
 
 GitHub Actions runs the same checks in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
@@ -178,6 +199,7 @@ AI-assisted tooling (including Cursor) was used to accelerate implementation, te
 
 ## Additional documentation
 
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — caching, query deduplication, retention indexes, logging, benchmarks
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — major tradeoffs
 - [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) — table and column reference
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — database setup and loading

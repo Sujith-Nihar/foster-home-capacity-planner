@@ -34,13 +34,15 @@ This document records major tradeoffs for the Foster Home Capacity Planner asses
 
 **Tradeoff:** URLs can become long with many filters. The UI resets page index when filters change to keep results coherent.
 
-## In-app priority sorting for outreach labels
+## Database-side outreach priority sorting
 
-**Decision:** When sorting retention providers by outreach priority, the app fetches the filtered set and applies a fixed High → Medium → Low order before pagination.
+**Decision:** Retention providers sorted by outreach priority use a generated `outreach_priority_rank` column and supporting index in PostgreSQL. If that migration is missing, the app falls back to in-memory priority ordering over the filtered result set before pagination.
 
-**Why:** Database lexical ordering does not match business priority order.
+**Why:** Database lexical ordering of `outreach_priority` text does not match business priority order (High → Medium → Low). A stored rank enables indexed, paginated sorting without loading all providers into memory.
 
-**Tradeoff:** Very large filtered sets would eventually need a database-side priority rank column. Current dataset size is manageable for the assessment scope.
+**Tradeoff:** Deployments must apply `20260724150000_add_provider_outreach_priority_rank.sql`. Until then, priority sorting remains correct but slower on large filtered sets.
+
+See [`docs/PERFORMANCE.md`](PERFORMANCE.md).
 
 ## Limited-data county partition
 
