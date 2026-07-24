@@ -9,8 +9,14 @@ import {
 import { DataAccessError } from "@/lib/supabase/errors";
 import type { ProviderPageData } from "@/lib/types/domain";
 import { buildProviderReviewSummary } from "@/lib/providers/detail";
+import {
+  buildProviderPreferenceContext,
+  formatCurrentPreferenceLabel,
+} from "@/lib/providers/preference-context";
 import { parseProviderRouteId } from "@/lib/navigation/providers";
 import type { ProviderDetailDto } from "@/lib/types/domain";
+import { getCountyMetricsByName } from "@/lib/data/counties";
+import type { MeasurableAgeGroupLabel } from "@/lib/recruitment/age-groups";
 
 const PROVIDER_DETAIL_COLUMNS =
   "provider_id, county, reporting_date, license_start_date, license_end_date, days_until_expiration, currently_has_placement, last_completed_placement_end, days_since_last_placement, total_active_days, active_days_last_365, eligible_licensed_days_last_365, engagement_rate_last_365, min_age, max_age, outreach_priority, outreach_reasons";
@@ -88,10 +94,21 @@ export async function getProviderPageData(
 
   try {
     const detail = await getProviderDetail(providerId);
+    const countyMetrics = await getCountyMetricsByName(detail.provider.county);
+    const highestPressureAgeGroup =
+      (countyMetrics.highestPressureAgeGroup as MeasurableAgeGroupLabel | null) ?? null;
 
     return {
       ...detail,
       reviewSummary: buildProviderReviewSummary(detail.provider),
+      currentPreferenceLabel: formatCurrentPreferenceLabel(
+        detail.provider.minAge,
+        detail.provider.maxAge,
+      ),
+      preferenceContext: buildProviderPreferenceContext(
+        detail.provider,
+        highestPressureAgeGroup,
+      ),
     };
   } catch (error) {
     if (error instanceof DataAccessError && error.code === "NOT_FOUND") {

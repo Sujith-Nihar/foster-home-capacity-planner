@@ -53,11 +53,22 @@ export function formatRecruitmentPriorityLabel(priority: RecruitmentPriority): s
   if (priority === "Limited data") {
     return "Limited data";
   }
-  return `${priority} planning priority`;
+  return `${priority} recruitment attention`;
+}
+
+export function formatCompactRecruitmentPriorityLabel(priority: RecruitmentPriority): string {
+  if (priority === "Limited data") {
+    return "Limited data";
+  }
+  return `${priority} attention`;
 }
 
 export function formatOutreachPriorityLabel(priority: OutreachPriority): string {
   return `${priority} outreach priority`;
+}
+
+export function formatCompactOutreachPriorityLabel(priority: OutreachPriority): string {
+  return `${priority} outreach`;
 }
 
 export function formatCountyName(county: string): string {

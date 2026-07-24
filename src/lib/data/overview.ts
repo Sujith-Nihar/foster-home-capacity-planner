@@ -105,7 +105,7 @@ export function buildOverviewAttentionBullets(input: {
   const { snapshot, topRecruitmentCounties, retentionDistribution } = input;
   const bullets: string[] = [
     `${formatCount(snapshot.currentFosterHomeChildren)} children are in foster-home placements statewide, with ${formatCount(snapshot.currentKinChildren)} in kin care and ${formatCount(snapshot.currentNonfamilyChildren)} in nonfamily placements.`,
-    `${formatCount(snapshot.highRecruitmentCounties)} counties have high recruitment planning priority and ${formatCount(snapshot.highRetentionProviders)} licensed providers have high outreach priority.`,
+    `${formatCount(snapshot.highRecruitmentCounties)} counties have high suggested recruitment attention and ${formatCount(snapshot.highRetentionProviders)} licensed providers have high outreach priority.`,
     `${formatCount(retentionDistribution.high)} providers are classified as high outreach priority, ${formatCount(retentionDistribution.medium)} as medium, and ${formatCount(retentionDistribution.low)} as low.`,
   ];
 

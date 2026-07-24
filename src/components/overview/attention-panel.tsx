@@ -26,7 +26,7 @@ export function AttentionPanel({
   const findings = [
     `${formatCount(retentionSummary.licensesExpiringWithin90Days)} licenses expire within 90 days.`,
     `${formatCount(retentionDistribution.high)} providers currently meet high outreach-priority criteria.`,
-    `${formatCount(snapshot.highRecruitmentCounties)} counties have high recruitment planning priority.`,
+    `${formatCount(snapshot.highRecruitmentCounties)} counties have high suggested recruitment attention.`,
   ];
 
   return (

@@ -1,36 +1,33 @@
 "use client";
 
-import { useId, useState } from "react";
 import Link from "next/link";
+import { Info } from "lucide-react";
 
-import { CountyBreakdownToggleButton } from "@/components/recruitment/county-breakdown-toggle-button";
-import {
-  CountyAgeGroupBreakdownTable,
-  CountyAgeGroupSummary,
-} from "@/components/recruitment/county-age-group-breakdown";
-import {
-  PriorityBadgeWithReasons,
-  PriorityBadgeWithReasonsProvider,
-} from "@/components/recruitment/priority-badge-with-reasons";
+import { CountyHighestPressureSummary } from "@/components/recruitment/county-details-disclosure";
+import { RecruitmentAttentionSummary } from "@/components/recruitment/recruitment-attention-summary";
 import { RecruitmentSortHeader } from "@/components/recruitment/recruitment-filters";
+import { StackedTableCell } from "@/components/shared/stacked-table-cell";
+import { TableViewActionLink } from "@/components/shared/table-view-action-link";
 import {
   Table,
   TableBody,
   TableCell,
-  TableCol,
-  TableColgroup,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableMobileField, TableMobileItem, TableMobileList } from "@/components/ui/table-mobile-list";
 import {
-  TableMobileDetails,
-  TableMobileField,
-  TableMobileItem,
-  TableMobileList,
-} from "@/components/ui/table-mobile-list";
-import { tableColumnClasses } from "@/components/ui/table-utils";
-import { findHighestNeedAgeGroup, buildMeasurableAgeGroupRows } from "@/lib/recruitment/age-groups";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  buildMeasurableAgeGroupRows,
+  findHighestPressureAgeGroups,
+  type MeasurableAgeGroupLabel,
+} from "@/lib/recruitment/age-groups";
 import type { CountyAgeMetricsDto, CountyMetricsDto } from "@/lib/types/domain";
 import {
   formatCount,
@@ -40,9 +37,9 @@ import {
 } from "@/lib/utils/formatters";
 import type { RecruitmentSearchParams } from "@/lib/validation/search-params";
 
-const COMPACT_CELL = "py-2";
-const ACTION_COL_WIDTH = "165px";
-const COLUMN_COUNT = 9;
+const ROW_CELL = "px-3 py-3 align-top";
+const CHILDREN_PER_PROVIDER_HELP =
+  "Foster-home children divided by engaged local providers. This describes placement pressure, not available beds or vacancies.";
 
 type RecruitmentCountyTableBodyProps = {
   counties: CountyMetricsDto[];
@@ -50,106 +47,122 @@ type RecruitmentCountyTableBodyProps = {
   searchParams: RecruitmentSearchParams;
 };
 
-function allReasons(county: CountyMetricsDto): string {
-  return county.recruitmentReasons.length > 0 ? county.recruitmentReasons.join("; ") : "—";
-}
-
 function countyHref(county: string): string {
   return `/recruitment/${encodeURIComponent(county)}`;
 }
 
-function RecruitmentCountyMobileList({
-  counties,
-  countyAgeMetricsByCounty,
-  expandedCounty,
-  onToggleCounty,
+function ProviderBaseSummary({ county }: { county: CountyMetricsDto }) {
+  return (
+    <StackedTableCell
+      primary={
+        <span className="tabular-nums">
+          {formatCount(county.currentFosterHomeChildren)} foster-home children
+        </span>
+      }
+      secondary={
+        <span className="tabular-nums">
+          {formatCount(county.activeProviders)} engaged providers
+        </span>
+      }
+    />
+  );
+}
+
+function PlacementPressureSummary({ county }: { county: CountyMetricsDto }) {
+  const ratio = formatRatio(county.childrenPerActiveProvider);
+  const outOfCounty = formatNullablePercent(county.outOfCountyFosterRate);
+
+  return (
+    <StackedTableCell
+      primary={
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <span className="inline-flex cursor-help items-center gap-1 tabular-nums underline decoration-dotted underline-offset-2">
+                {ratio} children per provider
+                <Info className="size-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />
+              </span>
+            }
+          />
+          <TooltipContent className="max-w-xs text-left">{CHILDREN_PER_PROVIDER_HELP}</TooltipContent>
+        </Tooltip>
+      }
+      secondary={<span className="tabular-nums">{outOfCounty} placed out of county</span>}
+    />
+  );
+}
+
+function PressureAndAgeSummary({
+  county,
+  highestGroups,
 }: {
-  counties: CountyMetricsDto[];
-  countyAgeMetricsByCounty: Record<string, CountyAgeMetricsDto[]>;
-  expandedCounty: string | null;
-  onToggleCounty: (county: string) => void;
+  county: CountyMetricsDto;
+  highestGroups: MeasurableAgeGroupLabel[];
 }) {
   return (
-    <TableMobileList>
-      {counties.map((county) => {
-        const countyLabel = formatCountyName(county.county);
-        const ageGroups = countyAgeMetricsByCounty[county.county] ?? [];
-        const panelId = `county-age-breakdown-mobile-${county.county.replace(/\s+/g, "-")}`;
-        const isExpanded = expandedCounty === county.county;
-        const measurableRows = buildMeasurableAgeGroupRows(ageGroups);
-        const highestNeed = findHighestNeedAgeGroup(measurableRows);
-        const reasons = allReasons(county);
+    <div className="min-w-0 space-y-2">
+      <PlacementPressureSummary county={county} />
+      <CountyHighestPressureSummary highestGroups={highestGroups} />
+    </div>
+  );
+}
 
-        return (
-          <TableMobileItem key={county.county}>
-            <div className="flex items-start justify-between gap-3">
-              <Link
-                href={countyHref(county.county)}
-                className="font-medium text-brand-navy underline-offset-4 hover:underline"
-              >
-                {countyLabel}
-              </Link>
-              <PriorityBadgeWithReasons county={county} />
-            </div>
-            <dl className="mt-3 space-y-2">
-              <TableMobileField
-                label="Foster-home children"
-                value={formatCount(county.currentFosterHomeChildren)}
-              />
-              <TableMobileField
-                label="Active providers"
-                value={formatCount(county.activeProviders)}
-              />
-              <TableMobileField
-                label="Highest-need age group"
-                value={<CountyAgeGroupSummary highestNeed={highestNeed} compact />}
-              />
-            </dl>
-            <TableMobileDetails summary="View additional county metrics">
-              <TableMobileField
-                label="Children per provider"
-                value={formatRatio(county.childrenPerActiveProvider)}
-              />
-              <TableMobileField
-                label="Out-of-county"
-                value={formatNullablePercent(county.outOfCountyFosterRate)}
-              />
-              <TableMobileField
-                label="Expiring licenses"
-                value={formatCount(county.expiring90Days)}
-              />
-              {county.recruitmentReasons.length > 0 ? (
-                <TableMobileField label="Planning reasons" value={reasons} />
-              ) : null}
-            </TableMobileDetails>
-            <div className="mt-3 border-t border-border-subtle pt-3">
-              <CountyBreakdownToggleButton
-                isExpanded={isExpanded}
-                panelId={panelId}
-                onToggle={() => onToggleCounty(county.county)}
-                className="w-full justify-between"
-              />
-              {isExpanded ? (
-                <div className="mt-3 min-w-0">
-                  <CountyAgeGroupBreakdownTable
-                    ageGroups={ageGroups}
-                    countyLabel={countyLabel}
-                    countyHref={countyHref(county.county)}
-                    panelId={panelId}
-                  />
-                  {county.recruitmentReasons.length > 0 ? (
-                    <p className="mt-3 text-sm text-text-secondary">
-                      <span className="font-medium text-text-primary">Planning reasons:</span>{" "}
-                      {reasons}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </TableMobileItem>
-        );
-      })}
-    </TableMobileList>
+function RenewalAndActionCell({ county }: { county: CountyMetricsDto }) {
+  return (
+    <div className="flex min-w-0 flex-col items-start gap-2">
+      <p className="text-sm tabular-nums text-text-primary">
+        {county.expiring90Days > 0
+          ? `${formatCount(county.expiring90Days)} licenses expiring`
+          : "No licenses expiring"}
+      </p>
+      <TableViewActionLink href={countyHref(county.county)} label="View county" />
+    </div>
+  );
+}
+
+function RecruitmentCountyCard({
+  county,
+  highestGroups,
+}: {
+  county: CountyMetricsDto;
+  highestGroups: MeasurableAgeGroupLabel[];
+}) {
+  const countyLabel = formatCountyName(county.county);
+
+  return (
+    <TableMobileItem>
+      <Link
+        href={countyHref(county.county)}
+        className="font-medium text-brand-navy underline-offset-4 hover:underline"
+      >
+        {countyLabel}
+      </Link>
+      <dl className="mt-3 space-y-3">
+        <TableMobileField
+          label="Attention"
+          value={<RecruitmentAttentionSummary county={county} />}
+        />
+        <TableMobileField label="Provider base" value={<ProviderBaseSummary county={county} />} />
+        <TableMobileField label="Placement pressure" value={<PlacementPressureSummary county={county} />} />
+        <TableMobileField
+          label="Age focus"
+          value={<CountyHighestPressureSummary highestGroups={highestGroups} />}
+        />
+        <TableMobileField
+          label="Expiring licenses"
+          value={
+            <span className="tabular-nums">
+              {county.expiring90Days > 0
+                ? `${formatCount(county.expiring90Days)} licenses expiring`
+                : "None in the next 90 days"}
+            </span>
+          }
+        />
+      </dl>
+      <div className="mt-3 border-t border-border-subtle pt-3">
+        <TableViewActionLink href={countyHref(county.county)} label="View county" />
+      </div>
+    </TableMobileItem>
   );
 }
 
@@ -158,96 +171,65 @@ export function RecruitmentCountyTableBody({
   countyAgeMetricsByCounty,
   searchParams,
 }: RecruitmentCountyTableBodyProps) {
-  const [expandedCounty, setExpandedCounty] = useState<string | null>(null);
-  const tableId = useId();
-
-  const toggleCounty = (county: string) => {
-    setExpandedCounty((current) => (current === county ? null : county));
-  };
-
   return (
-    <PriorityBadgeWithReasonsProvider>
-      <RecruitmentCountyMobileList
-        counties={counties}
-        countyAgeMetricsByCounty={countyAgeMetricsByCounty}
-        expandedCounty={expandedCounty}
-        onToggleCounty={toggleCounty}
-      />
+    <TooltipProvider>
+      <TableMobileList>
+        {counties.map((county) => {
+          const ageGroups = countyAgeMetricsByCounty[county.county] ?? [];
+          const highestGroups = findHighestPressureAgeGroups(buildMeasurableAgeGroupRows(ageGroups));
 
-      <div className="table-desktop-only min-w-0 data-table-viewport--scroll">
-        <Table id={tableId} className="min-w-0">
-          <TableColgroup>
-            <TableCol style={{ width: "13%" }} />
-            <TableCol style={{ width: "12%" }} />
-            <TableCol style={{ width: "10%" }} />
-            <TableCol style={{ width: "9%" }} />
-            <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "9%" }} />
-            <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "8%" }} />
-            <TableCol className="hidden md:table-cell" style={{ width: "11%" }} />
-            <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "7%" }} />
-            <TableCol className="hidden md:table-cell" style={{ width: ACTION_COL_WIDTH, minWidth: ACTION_COL_WIDTH }} />
-          </TableColgroup>
+          return (
+            <RecruitmentCountyCard key={county.county} county={county} highestGroups={highestGroups} />
+          );
+        })}
+      </TableMobileList>
+
+      <div className="table-desktop-only min-w-0">
+        <Table className="w-full min-w-0 table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead scope="col" className={COMPACT_CELL}>
+              <TableHead scope="col" className={`${ROW_CELL} w-[15%]`}>
                 County
               </TableHead>
-              <TableHead scope="col" className={COMPACT_CELL}>
+              <TableHead scope="col" className={`${ROW_CELL} w-[20%]`}>
                 <RecruitmentSortHeader
-                  label="Suggested attention"
+                  label="Attention"
                   sortKey="recruitment_priority"
                   searchParams={searchParams}
                 />
               </TableHead>
-              <TableHead scope="col" className={`${COMPACT_CELL} ${tableColumnClasses.numeric}`}>
-                <RecruitmentSortHeader
-                  label="Foster-home children"
-                  sortKey="current_foster_home_children"
-                  searchParams={searchParams}
-                />
-              </TableHead>
-              <TableHead scope="col" className={`${COMPACT_CELL} ${tableColumnClasses.numeric}`}>
-                Active providers
+              <TableHead scope="col" className={`${ROW_CELL} w-[17%]`}>
+                Provider base
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
+                className={`${ROW_CELL} w-[19%] hidden xl:table-cell`}
               >
-                <RecruitmentSortHeader
-                  label="Children per provider"
-                  sortKey="children_per_active_provider"
-                  searchParams={searchParams}
-                />
+                Placement pressure
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
+                className={`${ROW_CELL} w-[13%] hidden xl:table-cell`}
               >
-                <RecruitmentSortHeader
-                  label="Out-of-county"
-                  sortKey="out_of_county_foster_rate"
-                  searchParams={searchParams}
-                />
-              </TableHead>
-              <TableHead scope="col" className={`hidden md:table-cell ${COMPACT_CELL}`}>
-                Highest-need age group
+                Age focus
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
+                className={`${ROW_CELL} w-[29%] xl:hidden`}
               >
-                <RecruitmentSortHeader
-                  label="Expiring licenses"
-                  sortKey="expiring_90_days"
-                  searchParams={searchParams}
-                />
+                Pressure and age focus
               </TableHead>
               <TableHead
                 scope="col"
-                className={`hidden md:table-cell ${COMPACT_CELL} pr-4`}
-                style={{ width: ACTION_COL_WIDTH }}
+                className={`${ROW_CELL} w-[16%] hidden xl:table-cell`}
               >
-                <span className="sr-only">Age breakdown</span>
+                Renewal and action
+              </TableHead>
+              <TableHead
+                scope="col"
+                className={`${ROW_CELL} w-[11%] xl:hidden`}
+              >
+                Action
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -255,119 +237,50 @@ export function RecruitmentCountyTableBody({
             {counties.map((county) => {
               const countyLabel = formatCountyName(county.county);
               const ageGroups = countyAgeMetricsByCounty[county.county] ?? [];
-              const measurableRows = buildMeasurableAgeGroupRows(ageGroups);
-              const highestNeed = findHighestNeedAgeGroup(measurableRows);
-              const panelId = `county-age-breakdown-${county.county.replace(/\s+/g, "-")}`;
-              const isExpanded = expandedCounty === county.county;
-              const reasons = allReasons(county);
+              const highestGroups = findHighestPressureAgeGroups(buildMeasurableAgeGroupRows(ageGroups));
 
               return (
-                <CountyTableRows
-                  key={county.county}
-                  county={county}
-                  countyLabel={countyLabel}
-                  ageGroups={ageGroups}
-                  highestNeed={highestNeed}
-                  panelId={panelId}
-                  isExpanded={isExpanded}
-                  reasons={reasons}
-                  onToggle={() => toggleCounty(county.county)}
-                />
+                <TableRow key={county.county}>
+                  <TableCell className={`${ROW_CELL} min-w-0 font-medium`}>
+                    <Link
+                      href={countyHref(county.county)}
+                      className="text-brand-navy underline-offset-4 hover:underline"
+                    >
+                      {countyLabel}
+                    </Link>
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0`}>
+                    <RecruitmentAttentionSummary county={county} />
+                    {county.expiring90Days > 0 ? (
+                      <p className="mt-1 text-xs tabular-nums text-text-secondary xl:hidden">
+                        {formatCount(county.expiring90Days)} licenses expiring
+                      </p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0`}>
+                    <ProviderBaseSummary county={county} />
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0 hidden xl:table-cell`}>
+                    <PlacementPressureSummary county={county} />
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0 hidden xl:table-cell`}>
+                    <CountyHighestPressureSummary highestGroups={highestGroups} />
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0 xl:hidden`}>
+                    <PressureAndAgeSummary county={county} highestGroups={highestGroups} />
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0 hidden xl:table-cell`}>
+                    <RenewalAndActionCell county={county} />
+                  </TableCell>
+                  <TableCell className={`${ROW_CELL} min-w-0 xl:hidden`}>
+                    <TableViewActionLink href={countyHref(county.county)} label="View county" />
+                  </TableCell>
+                </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
-    </PriorityBadgeWithReasonsProvider>
-  );
-}
-
-function CountyTableRows({
-  county,
-  countyLabel,
-  ageGroups,
-  highestNeed,
-  panelId,
-  isExpanded,
-  reasons,
-  onToggle,
-}: {
-  county: CountyMetricsDto;
-  countyLabel: string;
-  ageGroups: CountyAgeMetricsDto[];
-  highestNeed: ReturnType<typeof findHighestNeedAgeGroup>;
-  panelId: string;
-  isExpanded: boolean;
-  reasons: string;
-  onToggle: () => void;
-}) {
-  return (
-    <>
-      <TableRow>
-        <TableCell className={`${COMPACT_CELL} max-w-0 font-medium`}>
-          <Link
-            href={countyHref(county.county)}
-            className="block truncate text-brand-navy underline-offset-4 hover:underline"
-            title={countyLabel}
-          >
-            {countyLabel}
-          </Link>
-        </TableCell>
-        <TableCell className={COMPACT_CELL}>
-          <PriorityBadgeWithReasons county={county} />
-        </TableCell>
-        <TableCell className={`${COMPACT_CELL} ${tableColumnClasses.numeric}`}>
-          {formatCount(county.currentFosterHomeChildren)}
-        </TableCell>
-        <TableCell className={`${COMPACT_CELL} ${tableColumnClasses.numeric}`}>
-          {formatCount(county.activeProviders)}
-        </TableCell>
-        <TableCell
-          className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
-        >
-          {formatRatio(county.childrenPerActiveProvider)}
-        </TableCell>
-        <TableCell
-          className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
-        >
-          {formatNullablePercent(county.outOfCountyFosterRate)}
-        </TableCell>
-        <TableCell className={`hidden md:table-cell ${COMPACT_CELL}`}>
-          <CountyAgeGroupSummary highestNeed={highestNeed} compact />
-        </TableCell>
-        <TableCell
-          className={`${COMPACT_CELL} ${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}
-        >
-          {formatCount(county.expiring90Days)}
-        </TableCell>
-        <TableCell
-          className={`hidden md:table-cell ${COMPACT_CELL} px-2`}
-          style={{ width: ACTION_COL_WIDTH, minWidth: ACTION_COL_WIDTH, maxWidth: ACTION_COL_WIDTH }}
-        >
-          <CountyBreakdownToggleButton
-            isExpanded={isExpanded}
-            panelId={panelId}
-            onToggle={onToggle}
-          />
-        </TableCell>
-      </TableRow>
-      {isExpanded ? (
-        <TableRow className="bg-surface-tint/30 hover:bg-surface-tint/30">
-          <TableCell colSpan={COLUMN_COUNT} className="min-w-0 px-4 py-3">
-            <CountyAgeGroupBreakdownTable
-              ageGroups={ageGroups}
-              countyLabel={countyLabel}
-              countyHref={countyHref(county.county)}
-              panelId={panelId}
-            />
-            {county.recruitmentReasons.length > 0 ? (
-              <p className="mt-3 text-sm text-text-secondary">
-                <span className="font-medium text-text-primary">Planning reasons:</span> {reasons}
-              </p>
-            ) : null}
-          </TableCell>
-        </TableRow>
-      ) : null}
-    </>
+    </TooltipProvider>
   );
 }

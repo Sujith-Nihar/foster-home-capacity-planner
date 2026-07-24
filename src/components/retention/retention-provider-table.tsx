@@ -6,6 +6,13 @@ import { RetentionFilterToolbar } from "@/components/retention/retention-filter-
 import { RetentionSortHeader } from "@/components/retention/retention-filters";
 import { RetentionPagination } from "@/components/retention/retention-pagination";
 import {
+  formatLicenseTiming,
+  formatProviderStatus,
+  formatRecentEngagement,
+  PrimaryReason,
+} from "@/components/shared/reason-summary";
+import { TableViewActionLink } from "@/components/shared/table-view-action-link";
+import {
   Table,
   TableBody,
   TableCell,
@@ -15,20 +22,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  TableMobileDetails,
-  TableMobileField,
-  TableMobileItem,
-  TableMobileList,
-} from "@/components/ui/table-mobile-list";
+import { TableMobileField, TableMobileItem, TableMobileList } from "@/components/ui/table-mobile-list";
 import { tableColumnClasses, TruncateCell } from "@/components/ui/table-utils";
 import type { FilterOptionsDto, PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
 import {
-  formatAgePreferenceRange,
-  formatBooleanLabel,
+  formatCompactOutreachPriorityLabel,
   formatCount,
-  formatNullablePercent,
-  formatOutreachPriorityLabel,
   formatProviderId,
   formatReportingDate,
 } from "@/lib/utils/formatters";
@@ -42,68 +41,67 @@ type RetentionProviderTableProps = {
   exportQuery: string;
 };
 
+const ROW_CELL = "py-2.5 align-middle";
+
 function RetentionMobileList({ providers }: { providers: ProviderMetricsDto[] }) {
   return (
     <TableMobileList>
-      {providers.map((provider) => {
-        const reasons =
-          provider.outreachReasons.length > 0 ? provider.outreachReasons.join("; ") : "—";
-
-        return (
-          <TableMobileItem key={provider.providerId}>
-            <div className="flex items-start justify-between gap-3">
+      {providers.map((provider) => (
+        <TableMobileItem key={provider.providerId}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
               <Link
                 href={`/providers/${provider.providerId}`}
                 className="font-medium text-brand-navy underline-offset-4 hover:underline"
               >
                 Provider {formatProviderId(provider.providerId)}
               </Link>
-              <PriorityBadge
-                level={priorityToAttentionLevel(provider.outreachPriority)}
-                label={formatOutreachPriorityLabel(provider.outreachPriority)}
-              />
+              <p className="mt-0.5 text-sm text-text-secondary">{provider.county}</p>
             </div>
-            <dl className="mt-3 space-y-2">
-              <TableMobileField
-                label="Days until expiration"
-                value={formatCount(provider.daysUntilExpiration)}
-              />
-              <TableMobileField
-                label="Current activity"
-                value={formatBooleanLabel(
-                  provider.currentlyHasPlacement,
-                  "Active",
-                  "Inactive",
-                )}
-              />
-            </dl>
-            <TableMobileDetails summary="View additional provider metrics">
-              <TableMobileField label="County" value={provider.county} />
-              <TableMobileField
-                label="License expiration"
-                value={formatReportingDate(provider.licenseEndDate)}
-              />
-              <TableMobileField
-                label="Days since last placement"
-                value={
-                  provider.daysSinceLastPlacement === null
-                    ? "—"
-                    : formatCount(provider.daysSinceLastPlacement)
-                }
-              />
-              <TableMobileField
-                label="Engagement rate"
-                value={formatNullablePercent(provider.engagementRateLast365)}
-              />
-              <TableMobileField label="Reasons" value={reasons} />
-              <TableMobileField
-                label="Age preference"
-                value={formatAgePreferenceRange(provider.minAge, provider.maxAge)}
-              />
-            </TableMobileDetails>
-          </TableMobileItem>
-        );
-      })}
+            <PriorityBadge
+              level={priorityToAttentionLevel(provider.outreachPriority)}
+              label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
+              className="shrink-0 whitespace-nowrap"
+            />
+          </div>
+          <dl className="mt-3 space-y-2">
+            <TableMobileField
+              label="Current status"
+              value={formatProviderStatus(provider.currentlyHasPlacement)}
+            />
+            <TableMobileField
+              label="License timing"
+              value={formatLicenseTiming(
+                provider.licenseEndDate,
+                provider.daysUntilExpiration,
+                formatReportingDate,
+              )}
+            />
+            <TableMobileField
+              label="Recent engagement"
+              value={formatRecentEngagement(
+                provider.activeDaysLast365,
+                provider.engagementRateLast365,
+              )}
+            />
+            <TableMobileField
+              label="Why review"
+              value={
+                <PrimaryReason
+                  reasons={provider.outreachReasons}
+                  moreOnPageLabel="provider page"
+                />
+              }
+            />
+          </dl>
+          <div className="mt-3 border-t border-border-subtle pt-3">
+            <TableViewActionLink
+              href={`/providers/${provider.providerId}`}
+              label="View provider"
+            />
+          </div>
+        </TableMobileItem>
+      ))}
     </TableMobileList>
   );
 }
@@ -123,7 +121,7 @@ export function RetentionProviderTable({
     <OperationalDataTable
       title="Licensed provider outreach list"
       titleId="retention-provider-table-heading"
-      description="Review licensed providers by outreach priority, placement activity, license timing, and engagement."
+      description="Review licensed providers by suggested outreach priority, placement activity, license timing, and engagement."
       toolbar={
         <RetentionFilterToolbar
           filterOptions={filterOptions}
@@ -159,137 +157,113 @@ export function RetentionProviderTable({
         <>
           <RetentionMobileList providers={providers} />
 
-          <div className="table-desktop-only data-table-viewport--scroll">
-            <Table>
+          <div className="table-desktop-only min-w-0 data-table-viewport--scroll">
+            <Table className="min-w-0">
               <TableColgroup>
-                <TableCol style={{ width: "9%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "8%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "9%" }} />
-                <TableCol style={{ width: "9%" }} />
-                <TableCol style={{ width: "8%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "9%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "8%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "8%" }} />
                 <TableCol style={{ width: "10%" }} />
-                <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "22%" }} />
+                <TableCol className={tableColumnClasses.narrowHidden} style={{ width: "9%" }} />
+                <TableCol style={{ width: "11%" }} />
+                <TableCol style={{ width: "15%" }} />
+                <TableCol style={{ width: "16%" }} />
+                <TableCol style={{ width: "13%" }} />
+                <TableCol style={{ width: "18%" }} />
+                <TableCol style={{ width: "10%" }} />
               </TableColgroup>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead scope="col">
+                  <TableHead scope="col" className={ROW_CELL}>
                     <RetentionSortHeader
-                      label="Provider ID"
+                      label="Provider"
                       sortKey="provider_id"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={tableColumnClasses.tabletHidden}>
+                  <TableHead scope="col" className={`${ROW_CELL} ${tableColumnClasses.narrowHidden}`}>
                     <RetentionSortHeader label="County" sortKey="county" searchParams={searchParams} />
                   </TableHead>
-                  <TableHead scope="col" className={tableColumnClasses.tabletHidden}>
-                    License expiration
-                  </TableHead>
-                  <TableHead scope="col" className={tableColumnClasses.numeric}>
+                  <TableHead scope="col" className={ROW_CELL}>
                     <RetentionSortHeader
-                      label="Days until expiration"
-                      sortKey="days_until_expiration"
-                      searchParams={searchParams}
-                    />
-                  </TableHead>
-                  <TableHead scope="col">
-                    <RetentionSortHeader
-                      label="Current activity"
+                      label="Current status"
                       sortKey="currently_has_placement"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                    <RetentionSortHeader
-                      label="Days since last placement"
-                      sortKey="days_since_last_placement"
-                      searchParams={searchParams}
-                    />
+                  <TableHead scope="col" className={ROW_CELL}>
+                    License timing
                   </TableHead>
-                  <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                    Active days (365)
+                  <TableHead scope="col" className={ROW_CELL}>
+                    Recent engagement
                   </TableHead>
-                  <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                  <TableHead scope="col" className={`${ROW_CELL} min-w-0`}>
                     <RetentionSortHeader
-                      label="Engagement rate"
-                      sortKey="engagement_rate_last_365"
-                      searchParams={searchParams}
-                    />
-                  </TableHead>
-                  <TableHead scope="col">
-                    <RetentionSortHeader
-                      label="Outreach priority"
+                      label="Suggested outreach priority"
                       sortKey="outreach_priority"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={tableColumnClasses.tabletHidden}>
-                    Reasons
+                  <TableHead scope="col" className={ROW_CELL}>
+                    Why review
+                  </TableHead>
+                  <TableHead scope="col" className={ROW_CELL}>
+                    Action
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {providers.map((provider) => {
-                  const reasons =
-                    provider.outreachReasons.length > 0
-                      ? provider.outreachReasons.join("; ")
-                      : "—";
-
-                  return (
-                    <TableRow key={provider.providerId}>
-                      <TableCell>
-                        <Link
-                          href={`/providers/${provider.providerId}`}
-                          className="font-medium text-brand-navy underline-offset-4 hover:underline"
-                        >
-                          {formatProviderId(provider.providerId)}
-                        </Link>
-                      </TableCell>
-                      <TableCell className={tableColumnClasses.tabletHidden}>
-                        <TruncateCell lines={1}>{provider.county}</TruncateCell>
-                      </TableCell>
-                      <TableCell className={tableColumnClasses.tabletHidden}>
-                        {formatReportingDate(provider.licenseEndDate)}
-                      </TableCell>
-                      <TableCell className={tableColumnClasses.numeric}>
-                        {formatCount(provider.daysUntilExpiration)}
-                      </TableCell>
-                      <TableCell>
-                        {formatBooleanLabel(
-                          provider.currentlyHasPlacement,
-                          "Active",
-                          "Inactive",
-                        )}
-                      </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {provider.daysSinceLastPlacement === null
-                          ? "—"
-                          : formatCount(provider.daysSinceLastPlacement)}
-                      </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {formatCount(provider.activeDaysLast365)}
-                      </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {formatNullablePercent(provider.engagementRateLast365)}
-                      </TableCell>
-                      <TableCell>
+                {providers.map((provider) => (
+                  <TableRow key={provider.providerId}>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      <Link
+                        href={`/providers/${provider.providerId}`}
+                        className="font-medium text-brand-navy underline-offset-4 hover:underline"
+                      >
+                        {formatProviderId(provider.providerId)}
+                      </Link>
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0 ${tableColumnClasses.narrowHidden}`}>
+                      <TruncateCell lines={1}>{provider.county}</TruncateCell>
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0 whitespace-nowrap`}>
+                      {formatProviderStatus(provider.currentlyHasPlacement)}
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      {formatLicenseTiming(
+                        provider.licenseEndDate,
+                        provider.daysUntilExpiration,
+                        formatReportingDate,
+                      )}
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      {formatRecentEngagement(
+                        provider.activeDaysLast365,
+                        provider.engagementRateLast365,
+                        { hideSecondaryOnNarrow: true },
+                      )}
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      <div className="w-fit max-w-full">
                         <PriorityBadge
                           level={priorityToAttentionLevel(provider.outreachPriority)}
-                          label={formatOutreachPriorityLabel(provider.outreachPriority)}
+                          label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
+                          className="whitespace-nowrap"
                         />
-                      </TableCell>
-                      <TableCell className={tableColumnClasses.tabletHidden}>
-                        <TruncateCell title={reasons}>{reasons}</TruncateCell>
-                        <p className="mt-1 text-xs text-text-secondary">
-                          {formatAgePreferenceRange(provider.minAge, provider.maxAge)}
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      </div>
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      <PrimaryReason
+                        reasons={provider.outreachReasons}
+                        moreOnPageLabel="provider page"
+                        hideMoreOnNarrow
+                      />
+                    </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                      <TableViewActionLink
+                        href={`/providers/${provider.providerId}`}
+                        label="View provider"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

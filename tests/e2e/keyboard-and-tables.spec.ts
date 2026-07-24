@@ -28,14 +28,19 @@ test.describe("keyboard navigation", () => {
 test.describe("table accessibility", () => {
   test("retention provider table exposes column headers", async ({ page }) => {
     await page.goto("/retention");
-    await expect(page.getByRole("columnheader", { name: /Provider ID/i })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /Outreach priority/i })).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /Reasons/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /Provider/i }).first()).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: /Suggested outreach priority/i }),
+    ).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /Why review/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Action" })).toBeVisible();
   });
 
   test("recruitment county table exposes column headers", async ({ page }) => {
     await page.goto("/recruitment");
     await expect(page.getByRole("columnheader", { name: "County" }).first()).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: /Suggested attention/i }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Attention" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Provider base" }).first()).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Action" }).first()).toBeVisible();
   });
 });

@@ -91,7 +91,7 @@ describe("recruitment export", () => {
   it("serializes filtered export rows to CSV", () => {
     const csv = serializeCsv(mapRecruitmentExportRows([sampleCounty()]));
     expect(csv).toContain("county,recruitment_priority");
-    expect(csv).toContain("Cook,High planning priority,80,20");
+    expect(csv).toContain("Cook,High recruitment attention,80,20");
     expect(csv).toContain("6–12");
   });
 

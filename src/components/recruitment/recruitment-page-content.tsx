@@ -60,7 +60,7 @@ export function RecruitmentPageContent({
       >
         <Info className="mt-0.5 size-4 shrink-0 text-text-tertiary" aria-hidden="true" />
         <p>
-          Active local provider counts describe currently licensed providers with foster-home
+          Engaged local provider counts describe currently licensed providers with foster-home
           placement activity. They are not available beds, vacancies, or guaranteed placement
           capacity.
         </p>
@@ -72,7 +72,7 @@ export function RecruitmentPageContent({
         searchParams={searchParams}
         title="County recruitment planning priorities"
         titleId="recruitment-county-table-heading"
-        description="Eligible counties meeting minimum volume rules for comparative recruitment planning priority."
+        description="Eligible counties meeting minimum volume rules for comparative suggested recruitment attention."
         emptyMessage="No eligible counties match the current filters."
         filters={
           <RecruitmentFilters

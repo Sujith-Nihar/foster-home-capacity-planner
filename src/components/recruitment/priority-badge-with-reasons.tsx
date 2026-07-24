@@ -32,7 +32,7 @@ export function PriorityBadgeWithReasons({ county }: PriorityBadgeWithReasonsPro
     <Tooltip>
       <TooltipTrigger render={<span className="inline-flex max-w-full" />}>{badge}</TooltipTrigger>
       <TooltipContent className="max-w-sm text-left">
-        <p className="font-medium">Planning reasons</p>
+        <p className="font-medium">Recruitment reasons</p>
         <ul className="mt-1 list-disc space-y-1 pl-4">
           {county.recruitmentReasons.map((reason) => (
             <li key={reason}>{reason}</li>

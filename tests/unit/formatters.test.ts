@@ -24,7 +24,7 @@ describe("formatters", () => {
   });
 
   it("formats recruitment priority labels", () => {
-    expect(formatRecruitmentPriorityLabel("High")).toBe("High planning priority");
+    expect(formatRecruitmentPriorityLabel("High")).toBe("High recruitment attention");
     expect(formatRecruitmentPriorityLabel("Limited data")).toBe("Limited data");
   });
 

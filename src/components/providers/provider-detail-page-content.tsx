@@ -6,7 +6,6 @@ import { ProviderActivityTimeline } from "@/components/providers/provider-activi
 import { ReasonList } from "@/components/reason-list";
 import type { ProviderPageData } from "@/lib/types/domain";
 import {
-  formatAgePreferenceRange,
   formatBooleanLabel,
   formatCount,
   formatCountyName,
@@ -19,7 +18,8 @@ type ProviderDetailPageContentProps = {
 };
 
 export function ProviderDetailPageContent({ data }: ProviderDetailPageContentProps) {
-  const { provider, activityPeriods, reviewSummary } = data;
+  const { provider, activityPeriods, reviewSummary, currentPreferenceLabel, preferenceContext } =
+    data;
   const countyHref = `/recruitment/${encodeURIComponent(provider.county)}`;
 
   return (
@@ -62,7 +62,7 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
             label="Current placement status"
             value={formatBooleanLabel(
               provider.currentlyHasPlacement,
-              "Active",
+              "Currently active",
               "Inactive",
             )}
             helperText="Whether the provider currently has a foster-home placement"
@@ -71,21 +71,28 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <MetricCard
-            label="Preferred age range"
-            value={formatAgePreferenceRange(provider.minAge, provider.maxAge)}
-            helperText="Current licensed age preferences"
+            label="Current preference"
+            value={currentPreferenceLabel}
+            helperText={
+              preferenceContext ??
+              "Current licensed age preferences for this provider"
+            }
           />
           <MetricCard
             label="Days since last placement"
             value={
-              provider.daysSinceLastPlacement === null
+              provider.currentlyHasPlacement
                 ? "—"
-                : formatCount(provider.daysSinceLastPlacement)
+                : provider.daysSinceLastPlacement === null
+                  ? "—"
+                  : formatCount(provider.daysSinceLastPlacement)
             }
             helperText={
-              provider.lastCompletedPlacementEnd
-                ? `Last completed placement ended ${formatReportingDate(provider.lastCompletedPlacementEnd)}`
-                : "Not applicable while a placement is active or no completed placement is recorded"
+              provider.currentlyHasPlacement
+                ? "Not shown while the provider is currently active"
+                : provider.lastCompletedPlacementEnd
+                  ? `Last completed placement ended ${formatReportingDate(provider.lastCompletedPlacementEnd)}`
+                  : "No completed placement history is recorded"
             }
           />
         </div>

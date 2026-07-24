@@ -30,7 +30,7 @@
     "current_nonfamily_children": 40
   },
   "etl_version": "1.0.0",
-  "generated_at": "2026-07-23T00:46:14.101172+00:00",
+  "generated_at": "2026-07-24T16:51:33.008905+00:00",
   "input_row_counts": {
     "children": 16139,
     "placements": 51994,
@@ -77,9 +77,9 @@
   },
   "reporting_date": "2026-07-01",
   "retention_priority_distribution": {
-    "High": 448,
+    "High": 349,
     "Low": 1854,
-    "Medium": 1089
+    "Medium": 1188
   },
   "source_hashes": {
     "children": "6175479dd6865fcad1d8b71d6c63d40dcf9e7d29ddb64368d138855e6fdcb492",

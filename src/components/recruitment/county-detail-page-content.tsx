@@ -97,15 +97,15 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             icon={<Users className="size-4" aria-hidden="true" />}
           />
           <MetricCard
-            label="Active local providers"
+            label="Engaged local providers"
             value={formatCount(county.activeProviders)}
             helperText="Currently licensed with foster-home placement activity"
             icon={<Users className="size-4" aria-hidden="true" />}
           />
           <MetricCard
-            label="Children per active provider"
+            label="Children per engaged provider"
             value={formatRatio(county.childrenPerActiveProvider)}
-            helperText="Foster-home children divided by active providers"
+            helperText="Foster-home children divided by engaged local providers"
           />
           <MetricCard
             label="Inactive licensed providers"
@@ -161,7 +161,7 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
         <DataTableShell
           titleId="county-age-pressure-heading"
           title="Age-group recruitment comparison"
-          description="Foster-home children and matching provider counts by age group. Active providers are licensed providers whose current preferences include the age group. Age unavailable is shown separately and does not receive an age-specific ratio."
+          description="Foster-home children and matching provider counts by age group. Engaged providers are licensed providers whose current preferences include the age group. Age unavailable is shown separately and does not receive an age-specific ratio."
         >
           {ageGroups.length === 0 ? (
             <p className="px-4 py-6 text-sm text-text-secondary" role="status">
@@ -189,10 +189,10 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
                       Matching licensed providers
                     </TableHead>
                     <TableHead scope="col" className={tableColumnClasses.numeric}>
-                      Matching active providers
+                      Matching engaged providers
                     </TableHead>
                     <TableHead scope="col" className={tableColumnClasses.numeric}>
-                      Children per matching active provider
+                      Children per matching engaged provider
                     </TableHead>
                     <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
                       Statewide median

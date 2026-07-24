@@ -52,11 +52,14 @@ def classify_outreach_priority(row: pd.Series) -> tuple[str, list[str]]:
         )
 
     if (
-        pd.notna(engagement)
+        not currently_active
+        and pd.notna(engagement)
         and eligible_days >= RETENTION_THRESHOLDS["min_eligible_licensed_days"]
         and engagement < RETENTION_THRESHOLDS["high_engagement_rate_max"]
     ):
-        reasons.append("Engagement below 10% with at least 90 eligible licensed days")
+        reasons.append(
+            "Very low engagement while inactive with at least 90 eligible licensed days"
+        )
 
     if reasons:
         return "High", reasons
@@ -76,6 +79,14 @@ def classify_outreach_priority(row: pd.Series) -> tuple[str, list[str]]:
         and engagement < RETENTION_THRESHOLDS["medium_engagement_rate_max"]
     ):
         reasons.append("Engagement below 25% with at least 90 eligible licensed days")
+
+    if (
+        currently_active
+        and pd.notna(engagement)
+        and eligible_days >= RETENTION_THRESHOLDS["min_eligible_licensed_days"]
+        and engagement < RETENTION_THRESHOLDS["high_engagement_rate_max"]
+    ):
+        reasons.append("Currently active with very low annual engagement")
 
     if (
         currently_active

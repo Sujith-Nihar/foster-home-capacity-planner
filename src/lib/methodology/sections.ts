@@ -164,9 +164,9 @@ export function buildMethodologySections(): MethodologySection[] {
         `Statewide medians and ${RECRUITMENT_PRIORITY_PERCENTILES.high}th percentiles are calculated among eligible counties only.`,
       ],
       bullets: [
-        `High planning priority: at least ${RECRUITMENT_PRIORITY_RULES.highMinIndicatorsAt75th} indicators at or above the ${RECRUITMENT_PRIORITY_PERCENTILES.high}th percentile.`,
-        `Medium planning priority: at least ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAt75th} indicator at or above the ${RECRUITMENT_PRIORITY_PERCENTILES.high}th percentile, or at least ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAtMedian} indicators at or above the median.`,
-        "Low planning priority: eligible counties that do not meet the High or Medium rules.",
+        `High suggested recruitment attention: at least ${RECRUITMENT_PRIORITY_RULES.highMinIndicatorsAt75th} indicators at or above the ${RECRUITMENT_PRIORITY_PERCENTILES.high}th percentile.`,
+        `Medium suggested recruitment attention: at least ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAt75th} indicator at or above the ${RECRUITMENT_PRIORITY_PERCENTILES.high}th percentile, or at least ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAtMedian} indicators at or above the median.`,
+        "Low suggested recruitment attention: eligible counties that do not meet the High or Medium rules.",
         "Limited data: counties below minimum volume rules are shown separately and excluded from comparative ranking charts.",
         `License expiration exposure is reported for licenses ending within ${LICENSE_EXPIRATION_WINDOWS.days90} and ${LICENSE_EXPIRATION_WINDOWS.days180} days.`,
       ],
@@ -178,8 +178,8 @@ export function buildMethodologySections(): MethodologySection[] {
         "Retention views classify currently licensed providers into High, Medium, or Low outreach priority using transparent rules. High rules are evaluated before Medium rules.",
       ],
       bullets: [
-        `High outreach priority: inactive for at least ${RETENTION_THRESHOLDS.highInactivityDays} days; inactive with license expiring within ${RETENTION_THRESHOLDS.highExpirationDays} days and inactive for at least ${RETENTION_THRESHOLDS.highInactivityWithExpirationDays} days; or engagement below ${formatPercent(RETENTION_THRESHOLDS.highEngagementRateMax, 0)} with at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days.`,
-        `Medium outreach priority: inactive for at least ${RETENTION_THRESHOLDS.mediumInactivityDays} days; inactive with license expiring within ${RETENTION_THRESHOLDS.mediumExpirationDays} days; engagement below ${formatPercent(RETENTION_THRESHOLDS.mediumEngagementRateMax, 0)} with at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days; or active with license expiring within ${RETENTION_THRESHOLDS.mediumActiveExpirationDays} days.`,
+        `High outreach priority: inactive for at least ${RETENTION_THRESHOLDS.highInactivityDays} days; inactive with license expiring within ${RETENTION_THRESHOLDS.highExpirationDays} days and inactive for at least ${RETENTION_THRESHOLDS.highInactivityWithExpirationDays} days; or very low engagement below ${formatPercent(RETENTION_THRESHOLDS.highEngagementRateMax, 0)} while inactive with at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days.`,
+        `Medium outreach priority: inactive for at least ${RETENTION_THRESHOLDS.mediumInactivityDays} days; inactive with license expiring within ${RETENTION_THRESHOLDS.mediumExpirationDays} days; engagement below ${formatPercent(RETENTION_THRESHOLDS.mediumEngagementRateMax, 0)} with at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days; currently active with very low annual engagement below ${formatPercent(RETENTION_THRESHOLDS.highEngagementRateMax, 0)}; or active with license expiring within ${RETENTION_THRESHOLDS.mediumActiveExpirationDays} days.`,
         "Low outreach priority: all other currently licensed providers.",
         "Every triggered rule is stored and shown as a readable reason tag.",
       ],

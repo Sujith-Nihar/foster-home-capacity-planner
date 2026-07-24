@@ -215,6 +215,19 @@ class TestOutreachPriorityClassification:
         assert priority == "Low"
         assert reasons == ["No elevated outreach signals at the reporting date"]
 
+    def test_active_low_engagement_is_medium_not_high(self) -> None:
+        priority, reasons = classify_outreach_priority(
+            retention_metric_row(
+                currently_has_placement=True,
+                days_since_last_placement=0,
+                days_until_expiration=200,
+                engagement_rate_last_365=0.05,
+            )
+        )
+        assert priority == "Medium"
+        assert "Currently active with very low annual engagement" in reasons
+        assert "Very low engagement while inactive" not in " ".join(reasons)
+
     def test_high_priority_takes_precedence_over_medium(self) -> None:
         priority, reasons = classify_outreach_priority(
             retention_metric_row(

@@ -55,22 +55,39 @@ export function buildMeasurableAgeGroupRows(
 export function findHighestNeedAgeGroup(
   rows: AgeGroupRecruitmentRow[],
 ): MeasurableAgeGroupLabel | null {
-  let highest: AgeGroupRecruitmentRow | null = null;
+  const tied = findHighestPressureAgeGroups(rows);
+  return tied[0] ?? null;
+}
 
-  for (const row of rows) {
-    if (row.childrenPerMatchingActiveProvider === null) {
-      continue;
-    }
-
-    if (
-      !highest ||
-      row.childrenPerMatchingActiveProvider > (highest.childrenPerMatchingActiveProvider ?? -1)
-    ) {
-      highest = row;
-    }
+export function findHighestPressureAgeGroups(
+  rows: AgeGroupRecruitmentRow[],
+): MeasurableAgeGroupLabel[] {
+  const measurable = rows.filter((row) => row.childrenPerMatchingActiveProvider !== null);
+  if (measurable.length === 0) {
+    return [];
   }
 
-  return highest?.ageGroup ?? null;
+  const maxRatio = Math.max(
+    ...measurable.map((row) => row.childrenPerMatchingActiveProvider as number),
+  );
+
+  return measurable
+    .filter((row) => row.childrenPerMatchingActiveProvider === maxRatio)
+    .map((row) => row.ageGroup);
+}
+
+export function formatHighestPressureAgeGroupLabel(
+  groups: MeasurableAgeGroupLabel[],
+): string {
+  if (groups.length === 0) {
+    return "—";
+  }
+
+  if (groups.length === 1) {
+    return `Ages ${groups[0]}`;
+  }
+
+  return groups.map((group) => `Ages ${group}`).join(", ");
 }
 
 export function computeStatewideAgeGroupBenchmarks(
@@ -112,14 +129,28 @@ export function groupCountyAgeMetricsByCounty(
 
 export function formatAgeGroupRatioDescription(ratio: number | null): string {
   if (ratio === null) {
-    return "Ratio unavailable when no active providers with matching current preferences are recorded.";
+    return "Ratio unavailable when no engaged providers with matching current preferences are recorded.";
   }
 
-  return `${formatRatio(ratio)} children per active provider whose current preferences include this age group.`;
+  return `${formatRatio(ratio)} children per engaged provider whose current preferences include this age group.`;
 }
 
 export function formatAgeGroupCountDescription(row: AgeGroupRecruitmentRow): string {
-  return `${formatCount(row.currentFosterHomeChildren)} children and ${formatCount(row.matchingActiveProviders)} active providers with matching current preferences for ages ${row.ageGroup}.`;
+  return `${formatCount(row.currentFosterHomeChildren)} children and ${formatCount(row.matchingActiveProviders)} engaged providers with matching current preferences for ages ${row.ageGroup}.`;
+}
+
+export function providerPreferenceOverlapsAgeGroup(
+  minAge: number,
+  maxAge: number,
+  ageGroup: MeasurableAgeGroupLabel,
+): boolean {
+  const bounds: Record<MeasurableAgeGroupLabel, [number, number]> = {
+    "0–5": [0, 5],
+    "6–12": [6, 12],
+    "13–17": [13, 17],
+  };
+  const [groupMin, groupMax] = bounds[ageGroup];
+  return minAge <= groupMax && maxAge >= groupMin;
 }
 
 export function buildAgeGroupPrioritySummary(

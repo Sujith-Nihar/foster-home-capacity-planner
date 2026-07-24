@@ -5,6 +5,7 @@ import {
   buildMeasurableAgeGroupRows,
   computeStatewideAgeGroupBenchmarks,
   findHighestNeedAgeGroup,
+  findHighestPressureAgeGroups,
 } from "@/lib/recruitment/age-groups";
 import type { CountyAgeMetricsDto } from "@/lib/types/domain";
 
@@ -94,6 +95,16 @@ describe("age-group recruitment helpers", () => {
 
     expect(summary).toContain("Recruitment attention is highest for ages 13–17.");
     expect(summary).toContain("Ages 6–12 also have more children per matching provider than the statewide median.");
+  });
+
+  it("identifies tied highest-pressure age groups", () => {
+    const rows = buildMeasurableAgeGroupRows([
+      ageMetric("Sample", "0–5", 100, 50, 4),
+      ageMetric("Sample", "6–12", 200, 40, 4),
+      ageMetric("Sample", "13–17", 150, 30, 2),
+    ]);
+
+    expect(findHighestPressureAgeGroups(rows)).toEqual(["0–5", "6–12"]);
   });
 
   it("computes statewide median and 75th percentile by age group", () => {

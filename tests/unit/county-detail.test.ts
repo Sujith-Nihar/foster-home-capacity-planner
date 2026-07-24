@@ -76,7 +76,7 @@ describe("county detail helpers", () => {
 
     const explanation = buildCountyPriorityExplanation(sampleCounty(), ageGroups, ageGroups);
     expect(explanation).toContain("Cook County");
-    expect(explanation).toContain("High planning priority");
+    expect(explanation).toContain("High recruitment attention");
     expect(explanation).toContain("Above the 75th percentile");
     expect(explanation).toContain("Recruitment attention is highest for ages 13–17");
   });

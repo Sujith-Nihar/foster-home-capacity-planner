@@ -37,6 +37,9 @@ export function TruncateCell({
 export const tableColumnClasses = {
   mobileHidden: "hidden md:table-cell",
   tabletHidden: "hidden xl:table-cell",
+  narrowHidden: "hidden lg:table-cell",
+  wideDesktopOnly: "hidden xl:table-cell",
+  narrowDesktopOnly: "xl:hidden",
   mobileOnly: "md:hidden",
   numeric: "text-right tabular-nums",
 } as const;

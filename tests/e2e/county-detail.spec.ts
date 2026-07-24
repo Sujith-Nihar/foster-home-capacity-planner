@@ -8,7 +8,7 @@ test.describe("county detail page", () => {
     await expect(
       page.getByRole("banner", { name: "Application header" }).getByText("Reporting date:"),
     ).toBeVisible();
-    await expect(page.getByText("High planning priority", { exact: true })).toBeVisible();
+    await expect(page.getByText("High recruitment attention", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Current placement demand" })).toBeVisible();
     await expect(page.getByText("Current foster-home children", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Age-group recruitment comparison" })).toBeVisible();

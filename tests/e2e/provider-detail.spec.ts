@@ -7,7 +7,8 @@ test.describe("provider detail page", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Provider 500001" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Adams County", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "License and placement status" })).toBeVisible();
-    await expect(page.getByText("Preferred age range", { exact: true })).toBeVisible();
+    await expect(page.getByText("Current preference", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Current preference: Ages/i)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Engagement metrics" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Outreach priority" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Merged activity-period timeline" })).toBeVisible();

@@ -143,4 +143,6 @@ export type ProviderDetailDto = {
 
 export type ProviderPageData = ProviderDetailDto & {
   reviewSummary: string;
+  currentPreferenceLabel: string;
+  preferenceContext: string | null;
 };

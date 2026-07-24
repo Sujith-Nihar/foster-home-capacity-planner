@@ -7,7 +7,7 @@ import {
   type Database,
 } from "@/lib/supabase/server";
 import { aggregateAgeGroupPressure, partitionRecruitmentCounties, type AgeGroupPressureDto } from "@/lib/recruitment/analytics";
-import { groupCountyAgeMetricsByCounty } from "@/lib/recruitment/age-groups";
+import { groupCountyAgeMetricsByCounty, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
 import { sortRecruitmentCounties } from "@/lib/recruitment/query";
 import type { CountyAgeMetricsDto, CountyMetricsDto, FilterOptionsDto, OutreachPriority, RecruitmentPriority } from "@/lib/types/domain";
 import type { AgeGroupLabel } from "@/config/metrics";
@@ -168,6 +168,7 @@ export async function getRecruitmentPageData(
     filterOptions,
     ageGroupPressure,
     countyAgeMetricsByCounty: groupCountyAgeMetricsByCounty(allCountyAgeMetrics),
+    statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeMetrics),
     searchParams: params,
   };
 }
