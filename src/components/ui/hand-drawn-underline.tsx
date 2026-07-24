@@ -31,7 +31,7 @@ export function HandDrawnUnderline({ className, tone = "navy" }: HandDrawnUnderl
     const timer = window.setTimeout(() => {
       path.classList.add("hand-drawn-underline-path--drawn");
       path.style.strokeDashoffset = "0";
-    }, 320);
+    }, 380);
 
     return () => window.clearTimeout(timer);
   }, []);

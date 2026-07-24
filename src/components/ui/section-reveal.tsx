@@ -29,25 +29,33 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
       return;
     }
 
-    if (isInViewport(node)) {
-      node.classList.add("section-reveal--enhanced", "section-reveal--visible");
-      return;
-    }
-
     node.classList.add("section-reveal--enhanced");
 
-    const observer = new IntersectionObserver(
+    let observer: IntersectionObserver | undefined;
+
+    const reveal = () => {
+      node.classList.add("section-reveal--visible");
+      observer?.disconnect();
+    };
+
+    observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          node.classList.add("section-reveal--visible");
-          observer.disconnect();
+          reveal();
         }
       },
       { threshold: 0.12, rootMargin: "0px 0px -5% 0px" },
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+
+    requestAnimationFrame(() => {
+      if (isInViewport(node)) {
+        reveal();
+      }
+    });
+
+    return () => observer?.disconnect();
   }, []);
 
   return (

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { TextReveal } from "@/components/ui/text-reveal";
 import { SectionShell } from "@/components/ui/section-shell";
 import type {
   OverviewInsightsDto,
@@ -31,17 +32,13 @@ export function AttentionPanel({
 
   return (
     <SectionShell tone="dark" aria-labelledby="attention-panel-heading">
-      <div className="app-container">
-        <SectionReveal>
-          <div className="mx-auto max-w-3xl space-y-6 text-center sm:text-left">
-            <div className="space-y-3">
-              <h2
-                id="attention-panel-heading"
-                className="eyebrow-label text-white/80"
-              >
-                What needs attention
-              </h2>
-            </div>
+      <div className="content-container">
+        <div className="mx-auto max-w-3xl space-y-6 text-center sm:text-left">
+          <TextReveal as="h2" id="attention-panel-heading" className="eyebrow-label text-white/80">
+            What needs attention
+          </TextReveal>
+
+          <SectionReveal delayMs={100}>
             <ul className="space-y-3 text-base leading-relaxed text-white/78">
               {findings.map((finding) => (
                 <li key={finding} className="flex gap-3 sm:items-start">
@@ -53,24 +50,21 @@ export function AttentionPanel({
                 </li>
               ))}
             </ul>
+          </SectionReveal>
+
+          <SectionReveal delayMs={120}>
             <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
-              <Link
-                href="/retention?priority=High"
-                className="fi-btn-primary inline-flex items-center gap-2 bg-white text-brand-navy hover:bg-brand-blue-soft"
-              >
+              <Link href="/retention?priority=High" className="fi-btn-dark-primary">
                 Review retention
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
-              <Link
-                href="/recruitment"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/30 px-5 text-sm font-medium text-white transition-colors hover:border-white/50 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              >
+              <Link href="/recruitment" className="fi-btn-dark-secondary">
                 Explore recruitment
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
-          </div>
-        </SectionReveal>
+          </SectionReveal>
+        </div>
       </div>
     </SectionShell>
   );

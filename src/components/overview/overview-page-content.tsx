@@ -53,7 +53,7 @@ export function OverviewPageContent({
       />
 
       <SectionWave fill="mist" />
-      <div className="bg-surface-raised pb-8 pt-2">
+      <div className="bg-surface-raised pb-10 pt-4">
         <OverviewMetricsGrid snapshot={snapshot} />
       </div>
 

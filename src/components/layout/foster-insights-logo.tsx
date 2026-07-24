@@ -16,7 +16,10 @@ export function FosterInsightsLogo({ className, priority = true }: FosterInsight
     <Link
       href="/"
       aria-label="Foster Insights — Capacity Planner overview"
-      className={cn("inline-flex shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", className)}
+      className={cn(
+        "app-header-logo-link inline-flex shrink-0 bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
     >
       <Image
         src="/brand/foster-insights-logo.webp"
@@ -24,8 +27,9 @@ export function FosterInsightsLogo({ className, priority = true }: FosterInsight
         width={LOGO_WIDTH}
         height={LOGO_HEIGHT}
         priority={priority}
+        unoptimized
         sizes="(max-width: 640px) 150px, (max-width: 1024px) 185px, 220px"
-        className="app-header-logo h-auto w-[145px] sm:w-[170px] lg:w-[205px] xl:w-[220px]"
+        className="app-header-logo block h-auto w-[145px] bg-transparent object-contain sm:w-[170px] lg:w-[205px] xl:w-[220px]"
       />
     </Link>
   );

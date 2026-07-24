@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { HandDrawnUnderline } from "@/components/ui/hand-drawn-underline";
+import { TextReveal } from "@/components/ui/text-reveal";
 import { cn } from "@/lib/utils";
 
 type PageIntroductionAction = {
@@ -71,12 +72,21 @@ export function PageIntroduction({
         )}
       >
         <div className={cn("space-y-4", isHero && "flex flex-col items-center")}>
-          <p className="eyebrow-label">{eyebrow}</p>
-          <h1 id="page-intro-title" className="page-intro-headline">
+          <TextReveal as="p" className="eyebrow-label" immediate={isHero}>
+            {eyebrow}
+          </TextReveal>
+          <TextReveal as="h1" id="page-intro-title" className="page-intro-headline" immediate={isHero}>
             {renderHeadline()}
-          </h1>
+          </TextReveal>
           {description ? (
-            <p className={cn("page-intro-description", isHero && "text-center")}>{description}</p>
+            <TextReveal
+              as="p"
+              className={cn("page-intro-description", isHero && "text-center")}
+              delayMs={isHero ? 140 : 0}
+              immediate={isHero}
+            >
+              {description}
+            </TextReveal>
           ) : null}
           {actions && actions.length > 0 ? (
             <div className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}>
