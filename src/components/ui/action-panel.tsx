@@ -30,7 +30,7 @@ export function ActionPanel({
       id={id}
       aria-labelledby={id ? `${id}-title` : undefined}
       className={cn(
-        "section-enter rounded-2xl border border-status-medium-border bg-attention-ivory p-5 sm:p-6",
+        "rounded-2xl border border-status-medium-border bg-attention-ivory p-5 sm:p-6",
         className,
       )}
     >

@@ -58,7 +58,7 @@ export function RetentionExpirationPanel({ summary }: RetentionKpiGridProps) {
   return (
     <section
       aria-labelledby="retention-attention-heading"
-      className="section-enter rounded-2xl border border-status-medium-border bg-attention-ivory p-5 sm:p-6"
+      className="rounded-2xl border border-status-medium-border bg-attention-ivory p-5 sm:p-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="flex min-w-0 items-start gap-3">

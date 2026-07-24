@@ -60,8 +60,8 @@ export function OverviewMetricsGrid({ snapshot }: OverviewMetricsGridProps) {
           </p>
         </article>
 
-        {supportingStats.map((stat, index) => (
-          <div key={stat.label} className="min-w-0" style={{ transitionDelay: `${index * 110}ms` }}>
+        {supportingStats.map((stat) => (
+          <div key={stat.label} className="min-w-0">
             {stat.href ? (
               <Link href={stat.href} className="overview-metric-card overview-metric-card--tint overview-metric-card--link min-w-0">
                 <p className="overview-metric-card__label">{stat.label}</p>

@@ -18,14 +18,14 @@ test.describe("accessibility", () => {
       await page.getByRole("heading", { level: 1 }).first().waitFor();
 
       if (route === "/") {
-        const reveals = page.locator(".section-reveal--enhanced");
+        const reveals = page.locator(".fi-section-reveal--enhanced");
         const count = await reveals.count();
         for (let index = 0; index < count; index += 1) {
           await reveals.nth(index).scrollIntoViewIfNeeded();
         }
         await page.waitForFunction(() =>
-          [...document.querySelectorAll(".section-reveal--enhanced")].every((element) =>
-            element.classList.contains("section-reveal--visible"),
+          [...document.querySelectorAll(".fi-section-reveal--enhanced")].every((element) =>
+            element.classList.contains("fi-section-reveal--visible"),
           ),
         );
       }

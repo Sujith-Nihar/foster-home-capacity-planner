@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MethodologyLink } from "@/components/methodology-link";
-import { PageHeader } from "@/components/page-header";
 import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
 import { CountyNotFound } from "@/components/recruitment/county-not-found";
+import { PageIntroduction } from "@/components/ui/page-introduction";
 import { APP_TITLE } from "@/config/navigation";
 import { getCountyPageData } from "@/lib/data/counties";
 import { breadcrumbCounty } from "@/lib/navigation/breadcrumbs";
@@ -36,6 +37,14 @@ export async function generateMetadata({ params }: CountyDetailPageProps): Promi
   };
 }
 
+function countyIntroDescription(countyName: string, priority: string): string {
+  if (priority === "Limited data") {
+    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for statewide comparison.`;
+  }
+
+  return `${countyName} recruitment briefing with age-group pressure, provider base, and retention outreach context.`;
+}
+
 export default async function CountyDetailPage({
   params,
   searchParams,
@@ -52,12 +61,12 @@ export default async function CountyDetailPage({
 
   return (
     <>
-      <PageHeader
+      <Breadcrumbs items={breadcrumbCounty(displayName)} className="mb-6" />
+      <PageIntroduction
         eyebrow="COUNTY BRIEFING"
-        title={displayName}
-        description={data.priorityExplanation}
-        breadcrumbs={breadcrumbCounty(displayName)}
-        status={
+        headline={displayName}
+        description={countyIntroDescription(displayName, data.county.recruitmentPriority)}
+        aside={
           <PriorityBadge
             level={priorityToAttentionLevel(data.county.recruitmentPriority)}
             label={formatRecruitmentPriorityLabel(data.county.recruitmentPriority)}

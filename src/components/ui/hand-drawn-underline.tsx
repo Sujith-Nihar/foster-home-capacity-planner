@@ -29,21 +29,15 @@ export function HandDrawnUnderline({ className, tone = "navy" }: HandDrawnUnderl
       return;
     }
 
-    let delayTimer: number | undefined;
     const firstFrame = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        delayTimer = window.setTimeout(() => {
-          path.style.removeProperty("stroke-dashoffset");
-          path.classList.add("hand-drawn-underline-path--drawn");
-        }, 420);
+        path.style.removeProperty("stroke-dashoffset");
+        path.classList.add("hand-drawn-underline-path--drawn");
       });
     });
 
     return () => {
       window.cancelAnimationFrame(firstFrame);
-      if (delayTimer !== undefined) {
-        window.clearTimeout(delayTimer);
-      }
     };
   }, []);
 

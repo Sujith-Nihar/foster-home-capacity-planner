@@ -4,6 +4,14 @@ import { Calendar, Clock, MapPin, UserCheck } from "lucide-react";
 import { MetricCard } from "@/components/metric-card";
 import { ProviderActivityTimeline } from "@/components/providers/provider-activity-timeline";
 import { ReasonList } from "@/components/reason-list";
+import {
+  BriefingReviewPoints,
+  splitBriefingSummary,
+} from "@/components/ui/briefing-review-points";
+import {
+  BriefingSnapshotGrid,
+  DecisionBriefingSection,
+} from "@/components/ui/decision-briefing-section";
 import type { ProviderPageData } from "@/lib/types/domain";
 import {
   formatBooleanLabel,
@@ -24,40 +32,12 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-text-secondary">
-        <MapPin className="mr-1 inline size-4 text-text-tertiary" aria-hidden="true" />
-        County:{" "}
-        <Link
-          href={countyHref}
-          className="font-medium text-brand-navy underline-offset-4 hover:underline"
-        >
-          {formatCountyName(provider.county)}
-        </Link>
-      </p>
-
-      <section aria-labelledby="provider-license-heading" className="space-y-4">
-        <h2 id="provider-license-heading" className="text-lg font-semibold text-text-primary">
-          License and placement status
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            label="License start"
-            value={formatReportingDate(provider.licenseStartDate)}
-            helperText="Current license period start"
-            icon={<Calendar className="size-4" aria-hidden="true" />}
-          />
-          <MetricCard
-            label="License end"
-            value={formatReportingDate(provider.licenseEndDate)}
-            helperText="Current license period end"
-            icon={<Calendar className="size-4" aria-hidden="true" />}
-          />
-          <MetricCard
-            label="Days until expiration"
-            value={formatCount(provider.daysUntilExpiration)}
-            helperText="Remaining days on the current license"
-            icon={<Clock className="size-4" aria-hidden="true" />}
-          />
+      <DecisionBriefingSection
+        titleId="provider-snapshot-heading"
+        title="Provider snapshot"
+        lead={`Licensed provider in ${formatCountyName(provider.county)} at the reporting date.`}
+      >
+        <BriefingSnapshotGrid className="xl:grid-cols-4">
           <MetricCard
             label="Current placement status"
             value={formatBooleanLabel(
@@ -65,17 +45,54 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
               "Currently active",
               "Inactive",
             )}
-            helperText="Whether the provider currently has a foster-home placement"
             icon={<UserCheck className="size-4" aria-hidden="true" />}
           />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+          <MetricCard
+            label="Days until expiration"
+            value={formatCount(provider.daysUntilExpiration)}
+            icon={<Clock className="size-4" aria-hidden="true" />}
+          />
+          <MetricCard
+            label="Engagement rate"
+            value={formatNullablePercent(provider.engagementRateLast365)}
+            helperText="Active days divided by eligible licensed days"
+          />
+          <MetricCard
+            label="County"
+            value={
+              <Link
+                href={countyHref}
+                className="font-medium text-brand-navy underline-offset-4 hover:underline"
+              >
+                {formatCountyName(provider.county)}
+              </Link>
+            }
+            icon={<MapPin className="size-4" aria-hidden="true" />}
+          />
+        </BriefingSnapshotGrid>
+      </DecisionBriefingSection>
+
+      <DecisionBriefingSection
+        titleId="provider-license-heading"
+        title="License and placement status"
+        lead="Current license period, placement activity, and licensed age preferences."
+      >
+        <BriefingSnapshotGrid className="xl:grid-cols-4">
+          <MetricCard
+            label="License start"
+            value={formatReportingDate(provider.licenseStartDate)}
+            icon={<Calendar className="size-4" aria-hidden="true" />}
+          />
+          <MetricCard
+            label="License end"
+            value={formatReportingDate(provider.licenseEndDate)}
+            icon={<Calendar className="size-4" aria-hidden="true" />}
+          />
           <MetricCard
             label="Current preference"
             value={currentPreferenceLabel}
             helperText={
-              preferenceContext ??
-              "Current licensed age preferences for this provider"
+              preferenceContext ?? "Current licensed age preferences for this provider"
             }
           />
           <MetricCard
@@ -95,59 +112,58 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
                   : "No completed placement history is recorded"
             }
           />
-        </div>
-      </section>
+        </BriefingSnapshotGrid>
+      </DecisionBriefingSection>
 
-      <section aria-labelledby="provider-engagement-heading" className="space-y-4">
-        <h2 id="provider-engagement-heading" className="text-lg font-semibold text-text-primary">
-          Engagement metrics
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <DecisionBriefingSection
+        titleId="provider-engagement-heading"
+        title="Engagement metrics"
+        lead="Placement activity during the trailing year and lifetime totals."
+      >
+        <BriefingSnapshotGrid className="xl:grid-cols-4">
           <MetricCard
             label="Total active placement days"
             value={formatCount(provider.totalActiveDays)}
-            helperText="Recorded foster-home placement activity"
           />
           <MetricCard
             label="Active days last 365"
             value={formatCount(provider.activeDaysLast365)}
-            helperText="Placement-active days in the trailing year"
           />
           <MetricCard
             label="Eligible licensed days last 365"
             value={formatCount(provider.eligibleLicensedDaysLast365)}
-            helperText="Licensed days used as the engagement denominator"
           />
           <MetricCard
             label="Engagement rate"
             value={formatNullablePercent(provider.engagementRateLast365)}
-            helperText="Active days divided by eligible licensed days"
           />
-        </div>
-      </section>
+        </BriefingSnapshotGrid>
+      </DecisionBriefingSection>
 
-      <section aria-labelledby="provider-outreach-heading" className="space-y-4">
-        <h2 id="provider-outreach-heading" className="text-lg font-semibold text-text-primary">
-          Outreach priority
-        </h2>
+      <DecisionBriefingSection
+        titleId="provider-outreach-heading"
+        title="Outreach priority"
+        lead="Rule-based outreach signals for staff review. These do not predict provider closure."
+        tone="raised"
+      >
         <ReasonList
           title="Triggered outreach reasons"
           reasons={provider.outreachReasons}
           emptyMessage="No elevated outreach signals at the reporting date."
+          headingLevel="h3"
         />
-      </section>
+      </DecisionBriefingSection>
 
       <ProviderActivityTimeline activityPeriods={activityPeriods} />
 
-      <section
-        aria-labelledby="provider-review-heading"
-        className="rounded-2xl border border-border-subtle bg-warm-surface p-6"
-      >
-        <h2 id="provider-review-heading" className="text-lg font-semibold text-text-primary">
-          What staff may want to review
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-text-primary">{reviewSummary}</p>
-      </section>
+      <BriefingReviewPoints
+        titleId="provider-review-heading"
+        title="What staff may want to review"
+        points={splitBriefingSummary(reviewSummary).filter(
+          (point) =>
+            !point.startsWith("Outreach priority") && !point.startsWith("Triggered reasons"),
+        )}
+      />
 
       <p className="text-sm text-text-secondary">
         <Link

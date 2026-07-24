@@ -91,18 +91,18 @@ export function PageIntroduction({
         <div className={cn("space-y-4", isHero && "flex flex-col items-center")}>
           <TextReveal
             as="p"
-            className={cn("eyebrow-label", !isHero && "page-intro-eyebrow-reveal")}
+            className={cn("eyebrow-label", "page-intro-eyebrow-reveal")}
+            delayClassName="fi-reveal-delay-eyebrow"
             immediate
-            delayMs={isHero ? 0 : 0}
           >
             {eyebrow}
           </TextReveal>
           <TextReveal
             as="h1"
             id="page-intro-title"
-            className={cn("page-intro-headline", !isHero && "page-intro-headline-reveal")}
+            className={cn("page-intro-headline", "page-intro-headline-reveal")}
+            delayClassName="fi-reveal-delay-heading"
             immediate
-            delayMs={isHero ? 0 : 100}
           >
             {renderHeadline()}
           </TextReveal>
@@ -112,16 +112,21 @@ export function PageIntroduction({
               className={cn(
                 "page-intro-description",
                 isHero && "text-center",
-                !isHero && "page-intro-description-reveal",
+                "page-intro-description-reveal",
               )}
-              delayMs={isHero ? 140 : 180}
+              delayClassName="fi-reveal-delay-description"
               immediate
             >
               {description}
             </TextReveal>
           ) : null}
           {actions && actions.length > 0 ? (
-            <div className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}>
+            <TextReveal
+              as="div"
+              className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}
+              delayClassName="fi-reveal-delay-actions"
+              immediate
+            >
               {actions.map((action, index) => (
                 <Link
                   key={action.href}
@@ -134,7 +139,7 @@ export function PageIntroduction({
                   {action.label}
                 </Link>
               ))}
-            </div>
+            </TextReveal>
           ) : null}
         </div>
         {aside ? <div className="min-w-0">{aside}</div> : null}

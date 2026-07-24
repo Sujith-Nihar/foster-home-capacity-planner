@@ -38,7 +38,7 @@ export function AttentionPanel({
             What needs attention
           </TextReveal>
 
-          <SectionReveal delayMs={100}>
+          <SectionReveal delayClassName="fi-reveal-delay-content">
             <ul className="space-y-3 text-base leading-relaxed text-white/78">
               {findings.map((finding) => (
                 <li key={finding} className="flex gap-3 sm:items-start">
@@ -52,7 +52,7 @@ export function AttentionPanel({
             </ul>
           </SectionReveal>
 
-          <SectionReveal delayMs={120}>
+          <SectionReveal delayClassName="fi-reveal-delay-actions">
             <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
               <Link href="/retention?priority=High" className="fi-btn-dark-primary">
                 Review retention

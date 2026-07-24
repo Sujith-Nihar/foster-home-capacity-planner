@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 type SectionRevealProps = {
   children: ReactNode;
   className?: string;
+  delayClassName?: string;
   delayMs?: number;
 };
 
@@ -15,7 +16,12 @@ function isInViewport(node: HTMLElement) {
   return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
 }
 
-export function SectionReveal({ children, className, delayMs = 0 }: SectionRevealProps) {
+export function SectionReveal({
+  children,
+  className,
+  delayClassName,
+  delayMs = 0,
+}: SectionRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,13 +32,15 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
+      node.classList.add("fi-section-reveal--visible");
       return;
     }
 
-    node.classList.add("section-reveal--enhanced");
+    node.classList.add("fi-section-reveal--enhanced");
+    node.classList.remove("fi-section-reveal--visible");
 
     const reveal = () => {
-      node.classList.add("section-reveal--visible");
+      node.classList.add("fi-section-reveal--visible");
       observer.disconnect();
     };
 
@@ -47,7 +55,7 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
 
     observer.observe(node);
 
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       if (isInViewport(node)) {
         reveal();
       }
@@ -59,8 +67,8 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
   return (
     <div
       ref={ref}
-      className={cn("section-reveal", className)}
-      style={delayMs > 0 ? { transitionDelay: `${delayMs}ms` } : undefined}
+      className={cn("fi-section-reveal fi-section-reveal--visible", delayClassName, className)}
+      style={!delayClassName && delayMs > 0 ? { transitionDelay: `${delayMs}ms` } : undefined}
     >
       {children}
     </div>

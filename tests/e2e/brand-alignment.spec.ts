@@ -47,7 +47,7 @@ test.describe("brand alignment", () => {
     await expect(
       page.getByRole("heading", { name: /Translate foster-home data into clear action/i }),
     ).toBeVisible();
-    await expect(page.locator(".section-reveal").first()).toBeVisible();
+    await expect(page.locator(".fi-section-reveal").first()).toBeVisible();
   });
 
   test("recruitment table exposes visible View county actions", async ({ page }) => {

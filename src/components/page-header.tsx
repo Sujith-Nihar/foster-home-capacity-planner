@@ -25,10 +25,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <header
-      className={cn(
-        "section-enter mb-8 border-b border-border-subtle pb-6",
-        className,
-      )}
+      className={cn("mb-8 border-b border-border-subtle pb-6", className)}
     >
       {breadcrumbs && breadcrumbs.length > 0 ? (
         <Breadcrumbs items={breadcrumbs} className="mb-4" />

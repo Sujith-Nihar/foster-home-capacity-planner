@@ -85,7 +85,7 @@ test.describe("visual quality repair", () => {
     ).toBeVisible();
     await expect(page.getByText("Statewide metrics")).toBeVisible();
 
-    const opacity = await page.locator(".text-reveal").first().evaluate((el) => window.getComputedStyle(el).opacity);
+    const opacity = await page.locator(".fi-text-reveal").first().evaluate((el) => window.getComputedStyle(el).opacity);
     expect(Number(opacity)).toBeGreaterThan(0.9);
   });
 

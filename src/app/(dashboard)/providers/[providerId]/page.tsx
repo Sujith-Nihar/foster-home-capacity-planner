@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MethodologyLink } from "@/components/methodology-link";
-import { PageHeader } from "@/components/page-header";
 import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
 import { ProviderNotFound } from "@/components/providers/provider-not-found";
+import { PageIntroduction } from "@/components/ui/page-introduction";
 import { APP_TITLE } from "@/config/navigation";
 import { getProviderPageData } from "@/lib/data/providers";
 import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
@@ -42,14 +43,16 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
     return <ProviderNotFound />;
   }
 
+  const providerLabel = `Provider ${formatProviderId(data.provider.providerId)}`;
+
   return (
     <>
-      <PageHeader
+      <Breadcrumbs items={breadcrumbProvider(String(data.provider.providerId))} className="mb-6" />
+      <PageIntroduction
         eyebrow="PROVIDER BRIEFING"
-        title={`Provider ${formatProviderId(data.provider.providerId)}`}
+        headline={providerLabel}
         description="License status, recent activity, and outreach priority context for a single licensed provider."
-        breadcrumbs={breadcrumbProvider(String(data.provider.providerId))}
-        status={
+        aside={
           <PriorityBadge
             level={priorityToAttentionLevel(data.provider.outreachPriority)}
             label={formatOutreachPriorityLabel(data.provider.outreachPriority)}

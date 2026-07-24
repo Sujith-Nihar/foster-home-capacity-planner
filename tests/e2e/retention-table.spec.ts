@@ -174,14 +174,8 @@ test.describe("retention page line animation", () => {
       if (!svgPath) {
         return false;
       }
-      const inlineOffset = svgPath.style.strokeDashoffset;
-      return inlineOffset !== "" && Number.parseFloat(inlineOffset) > 0;
+      return svgPath.classList.contains("hand-drawn-underline-path--drawn");
     });
-
-    const initialOffset = await path.evaluate((node) =>
-      Number.parseFloat((node as SVGPathElement).style.strokeDashoffset),
-    );
-    expect(initialOffset).toBeGreaterThan(0);
 
     await page.waitForTimeout(2200);
     const completedOffset = await path.evaluate((node) =>

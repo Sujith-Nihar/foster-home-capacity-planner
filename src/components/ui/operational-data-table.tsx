@@ -32,7 +32,7 @@ export function OperationalDataTable({
       toolbar={toolbar}
       actions={actions}
       footer={footer}
-      className={cn("section-enter", className)}
+      className={cn(className)}
     >
       {children}
     </DataTableFrame>
