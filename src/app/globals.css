@@ -730,7 +730,15 @@
     }
 
     .page-intro-description.text-reveal--enhanced:not(.text-reveal--visible) {
-      transform: translateY(12px);
+      transform: translateY(10px);
+    }
+
+    .page-intro--operational .page-intro-headline-reveal.text-reveal--enhanced:not(.text-reveal--visible) {
+      transform: translateY(14px);
+    }
+
+    .page-intro--operational .page-intro-description-reveal.text-reveal--enhanced:not(.text-reveal--visible) {
+      transform: translateY(10px);
     }
   }
 
@@ -741,24 +749,147 @@
     overflow: clip;
   }
 
+  .retention-data-table.data-table-frame {
+    overflow: visible;
+  }
+
   .data-table-viewport {
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .retention-provider-table {
+    width: 100%;
+    table-layout: fixed;
+    box-sizing: border-box;
+    border-collapse: collapse;
+  }
+
+  .retention-provider-table col.retention-col--provider {
+    width: 180px;
+  }
+
+  .retention-provider-table col.retention-col--status {
+    width: 170px;
+  }
+
+  .retention-provider-table col.retention-col--license {
+    width: 190px;
+  }
+
+  .retention-provider-table col.retention-col--combined {
+    width: 220px;
+  }
+
+  .retention-provider-table col.retention-col--engagement {
+    width: 210px;
+  }
+
+  .retention-provider-table col.retention-col--outreach {
+    width: 190px;
+  }
+
+  .retention-provider-table col.retention-col--why {
+    width: auto;
+  }
+
+  .retention-provider-table col.retention-col--action {
+    width: 160px;
+  }
+
+  @media (max-width: 1100px) {
+    .retention-provider-table col.retention-col--provider {
+      width: 16%;
+    }
+
+    .retention-provider-table col.retention-col--combined {
+      width: 18%;
+    }
+
+    .retention-provider-table col.retention-col--engagement {
+      width: 17%;
+    }
+
+    .retention-provider-table col.retention-col--outreach {
+      width: 15%;
+    }
+
+    .retention-provider-table col.retention-col--why {
+      width: 19%;
+    }
+
+    .retention-provider-table col.retention-col--action {
+      width: 15%;
+    }
+
+    .retention-provider-table .retention-provider-table__row-cell {
+      padding: 0.75rem 0.5rem;
+    }
+
+    .retention-provider-table .retention-provider-table__action-cell {
+      padding-inline: 0.375rem;
+    }
+
+    .retention-provider-table .table-view-action {
+      padding-inline: 0.625rem;
+      gap: 0.375rem;
+    }
+  }
+
+  .retention-provider-table col.retention-col--split,
+  .retention-provider-table .retention-col--split-cell {
+    display: none;
+  }
+
+  .retention-provider-table col.retention-col--combined,
+  .retention-provider-table .retention-col--combined-cell {
+    display: table-cell;
+  }
+
+  @media (min-width: 1101px) {
+    .retention-provider-table col.retention-col--split,
+    .retention-provider-table .retention-col--split-cell {
+      display: table-cell;
+    }
+
+    .retention-provider-table col.retention-col--combined,
+    .retention-provider-table .retention-col--combined-cell {
+      display: none;
+    }
   }
 
   .retention-provider-table .retention-provider-table__row-cell {
-    padding: 1rem;
+    box-sizing: border-box;
+    padding: 0.875rem 0.75rem;
     vertical-align: middle;
   }
 
   @media (min-width: 1280px) {
     .retention-provider-table .retention-provider-table__row-cell {
-      padding: 1.125rem 1.25rem;
+      padding: 1rem 0.875rem;
     }
   }
 
   .retention-provider-table .retention-provider-table__action-cell {
     overflow: visible;
+    padding-inline: 0.625rem;
+  }
+
+  .retention-provider-table .table-view-action {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-inline: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .retention-provider-table__reason > p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
   }
 
   .table-view-action {
@@ -914,11 +1045,11 @@
   }
 
   .hand-drawn-underline-path {
-    transition: stroke-dashoffset var(--motion-underline) var(--ease-fi-draw);
+    transition: stroke-dashoffset var(--motion-underline) var(--ease-fi-draw) 420ms;
   }
 
   .hand-drawn-underline-path--drawn {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 0 !important;
   }
 
   .fi-btn-primary {

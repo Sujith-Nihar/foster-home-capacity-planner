@@ -22,6 +22,25 @@ type PageIntroductionProps = {
   variant?: "hero" | "operational";
 };
 
+function findHighlightRange(headline: string, highlightPhrase?: string) {
+  if (!highlightPhrase) {
+    return null;
+  }
+
+  const lowerHeadline = headline.toLowerCase();
+  const lowerPhrase = highlightPhrase.toLowerCase();
+  const start = lowerHeadline.indexOf(lowerPhrase);
+  if (start === -1) {
+    return null;
+  }
+
+  return {
+    before: headline.slice(0, start),
+    highlight: headline.slice(start, start + highlightPhrase.length),
+    after: headline.slice(start + highlightPhrase.length),
+  };
+}
+
 export function PageIntroduction({
   title,
   eyebrow,
@@ -35,23 +54,21 @@ export function PageIntroduction({
 }: PageIntroductionProps) {
   const displayHeadline = headline ?? title ?? "";
   const isHero = variant === "hero";
+  const highlight = findHighlightRange(displayHeadline, highlightPhrase);
 
   function renderHeadline() {
-    if (!highlightPhrase || !displayHeadline.includes(highlightPhrase)) {
+    if (!highlight) {
       return displayHeadline;
     }
 
-    const [before, ...rest] = displayHeadline.split(highlightPhrase);
-    const after = rest.join(highlightPhrase);
-
     return (
       <>
-        {before}
+        {highlight.before}
         <span className="relative inline-block text-brand-navy">
-          {highlightPhrase}
+          {highlight.highlight}
           <HandDrawnUnderline />
         </span>
-        {after}
+        {highlight.after}
       </>
     );
   }
@@ -72,18 +89,33 @@ export function PageIntroduction({
         )}
       >
         <div className={cn("space-y-4", isHero && "flex flex-col items-center")}>
-          <TextReveal as="p" className="eyebrow-label" immediate={isHero}>
+          <TextReveal
+            as="p"
+            className={cn("eyebrow-label", !isHero && "page-intro-eyebrow-reveal")}
+            immediate
+            delayMs={isHero ? 0 : 0}
+          >
             {eyebrow}
           </TextReveal>
-          <TextReveal as="h1" id="page-intro-title" className="page-intro-headline" immediate={isHero}>
+          <TextReveal
+            as="h1"
+            id="page-intro-title"
+            className={cn("page-intro-headline", !isHero && "page-intro-headline-reveal")}
+            immediate
+            delayMs={isHero ? 0 : 100}
+          >
             {renderHeadline()}
           </TextReveal>
           {description ? (
             <TextReveal
               as="p"
-              className={cn("page-intro-description", isHero && "text-center")}
-              delayMs={isHero ? 140 : 0}
-              immediate={isHero}
+              className={cn(
+                "page-intro-description",
+                isHero && "text-center",
+                !isHero && "page-intro-description-reveal",
+              )}
+              delayMs={isHero ? 140 : 180}
+              immediate
             >
               {description}
             </TextReveal>

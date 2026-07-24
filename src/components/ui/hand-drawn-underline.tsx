@@ -21,19 +21,30 @@ export function HandDrawnUnderline({ className, tone = "navy" }: HandDrawnUnderl
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const length = path.getTotalLength();
     path.style.strokeDasharray = `${length}`;
-    path.style.strokeDashoffset = prefersReducedMotion ? "0" : `${length}`;
+    path.style.strokeDashoffset = `${length}`;
 
     if (prefersReducedMotion) {
+      path.style.strokeDashoffset = "0";
       path.classList.add("hand-drawn-underline-path--drawn");
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      path.classList.add("hand-drawn-underline-path--drawn");
-      path.style.strokeDashoffset = "0";
-    }, 380);
+    let delayTimer: number | undefined;
+    const firstFrame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        delayTimer = window.setTimeout(() => {
+          path.style.removeProperty("stroke-dashoffset");
+          path.classList.add("hand-drawn-underline-path--drawn");
+        }, 420);
+      });
+    });
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (delayTimer !== undefined) {
+        window.clearTimeout(delayTimer);
+      }
+    };
   }, []);
 
   return (
@@ -55,6 +66,7 @@ export function HandDrawnUnderline({ className, tone = "navy" }: HandDrawnUnderl
         stroke="currentColor"
         strokeWidth="2.25"
         strokeLinecap="round"
+        fill="none"
         className="hand-drawn-underline-path"
       />
     </svg>

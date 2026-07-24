@@ -48,6 +48,10 @@ export function formatOutreachReasonForDisplay(
     return "Limited activity during the previous year";
   }
 
+  if (reason.includes("Engagement below 10%")) {
+    return "Limited placement activity during the previous year";
+  }
+
   if (reason === "Currently active with license expiring within 60 days") {
     return "Currently active, but license ends within 60 days";
   }

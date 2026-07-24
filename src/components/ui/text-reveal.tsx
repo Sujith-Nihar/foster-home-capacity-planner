@@ -36,8 +36,19 @@ export function TextReveal({
     }
 
     if (immediate) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReducedMotion) {
+        node.classList.add("text-reveal--visible");
+        return;
+      }
+
       window.requestAnimationFrame(() => {
-        node.classList.add("text-reveal--enhanced", "text-reveal--visible");
+        window.requestAnimationFrame(() => {
+          node.classList.add("text-reveal--enhanced");
+          window.requestAnimationFrame(() => {
+            node.classList.add("text-reveal--visible");
+          });
+        });
       });
       return;
     }
