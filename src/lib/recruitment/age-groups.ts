@@ -180,14 +180,14 @@ export function buildAgeGroupPrioritySummary(
     })
     .map((row) => `ages ${row.ageGroup}`);
 
-  let summary = `Recruitment attention is highest for ages ${highestNeed}.`;
+  let summary = `Ages ${highestNeed} show the highest recruitment pressure.`;
 
   if (alsoElevated.length > 0) {
     const joined =
       alsoElevated.length === 1
         ? alsoElevated[0]
         : `${alsoElevated.slice(0, -1).join(", ")} and ${alsoElevated.at(-1)}`;
-    summary += ` ${joined.charAt(0).toUpperCase()}${joined.slice(1)} also have more children per matching provider than the statewide median.`;
+    summary += ` ${joined.charAt(0).toUpperCase()}${joined.slice(1)} also have more children per matching engaged provider than the typical comparable county.`;
   }
 
   return summary;

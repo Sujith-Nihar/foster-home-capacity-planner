@@ -3,6 +3,7 @@ import { LicenseExpirationsChart } from "@/components/charts/license-expirations
 import { PlacementTypeChart } from "@/components/charts/placement-type-chart";
 import { RetentionDistributionChart } from "@/components/charts/retention-distribution-chart";
 import { MethodologyLink } from "@/components/methodology-link";
+import { PlanningPriorityCallout } from "@/components/methodology/planning-priority-callout";
 import { AttentionPanel } from "@/components/overview/attention-panel";
 import { OverviewMetricsGrid } from "@/components/overview/overview-metrics-grid";
 import { RecruitmentCountiesSection } from "@/components/overview/recruitment-counties-section";
@@ -42,10 +43,10 @@ export function OverviewPageContent({
     <div className="space-y-0">
       <PageIntroduction
         variant="hero"
-        eyebrow="STATEWIDE CAPACITY OVERVIEW"
+        eyebrow="ILLINOIS CAPACITY OVERVIEW"
         headline="Translate foster-home data into clear action."
         highlightPhrase="clear action"
-        description="Understand recruitment pressure, provider engagement and upcoming license exposure across Illinois."
+        description="Understand recruitment planning signals, recent provider placement activity and upcoming license exposure across Illinois."
         actions={[
           { label: "Review recruitment", href: "/recruitment" },
           { label: "Review retention", href: "/retention" },
@@ -54,7 +55,10 @@ export function OverviewPageContent({
 
       <SectionWave fill="mist" />
       <div className="bg-surface-raised pb-10 pt-4">
-        <OverviewMetricsGrid snapshot={snapshot} />
+        <div className="content-container space-y-6">
+          <PlanningPriorityCallout />
+          <OverviewMetricsGrid snapshot={snapshot} />
+        </div>
       </div>
 
       <SectionWave fill="navy" />
@@ -71,9 +75,9 @@ export function OverviewPageContent({
           <SectionShell>
             <SectionHeading
               titleId="recruitment-pressure-heading"
-              eyebrow="Recruitment pressure"
-              title="Top recruitment-pressure counties"
-              description="Counties ranked by children per active provider, excluding limited-data counties."
+              eyebrow="Recruitment planning"
+              title="Top counties for recruitment review"
+              description="Counties ranked by children per engaged provider, excluding limited-data counties."
             />
             <RecruitmentCountiesSection counties={topRecruitmentCounties} />
           </SectionShell>
@@ -84,7 +88,7 @@ export function OverviewPageContent({
             <SectionHeading
               eyebrow="Provider retention outlook"
               title="Retention and placement analytics"
-              description="License timing, outreach distribution, and placement context for statewide review."
+              description="License timing, outreach distribution, and placement context for Illinois review."
             />
             <div className="grid gap-6 lg:grid-cols-2">
               <LicenseExpirationsChart data={monthlyMetrics} />

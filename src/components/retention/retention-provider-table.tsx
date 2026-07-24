@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { OperationalDataTable } from "@/components/ui/operational-data-table";
 import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
+import { RETENTION_METRICS } from "@/content/methodology";
 import { RetentionFilterToolbar } from "@/components/retention/retention-filter-toolbar";
 import { RetentionSortHeader } from "@/components/retention/retention-filters";
 import { RetentionPagination } from "@/components/retention/retention-pagination";
@@ -87,7 +88,7 @@ function RetentionMobileList({ providers }: { providers: ProviderMetricsDto[] })
               )}
             />
             <TableMobileField
-              label="Recent engagement"
+              label={RETENTION_METRICS.recentEngagement.label}
               value={formatRecentEngagement(
                 provider.activeDaysLast365,
                 provider.engagementRateLast365,
@@ -142,7 +143,7 @@ export function RetentionProviderTable({
       className="retention-data-table"
       title="Licensed provider outreach list"
       titleId="retention-provider-table-heading"
-      description="Review licensed providers by suggested outreach priority, placement activity, license timing, and engagement."
+      description={`Review licensed providers by ${RETENTION_METRICS.outreachPriority.label.toLowerCase()}, placement activity, and license timing.`}
       toolbar={
         <RetentionFilterToolbar
           filterOptions={filterOptions}
@@ -213,7 +214,7 @@ export function RetentionProviderTable({
                     Status and license
                   </TableHead>
                   <TableHead scope="col" className={ROW_CELL}>
-                    Recent engagement
+                    {RETENTION_METRICS.recentEngagement.label}
                   </TableHead>
                   <TableHead scope="col" className={`${ROW_CELL} min-w-0`}>
                     <RetentionSortHeader

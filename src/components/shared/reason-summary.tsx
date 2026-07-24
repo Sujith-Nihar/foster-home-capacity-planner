@@ -1,14 +1,11 @@
 import Link from "next/link";
 
 import { StackedTableCell } from "@/components/shared/stacked-table-cell";
+import {
+  formatOutreachReasonForDisplay,
+  type OutreachReasonContext,
+} from "@/lib/retention/reason-display";
 import { cn } from "@/lib/utils";
-
-type OutreachReasonContext = {
-  daysSinceLastPlacement: number | null;
-  daysUntilExpiration: number;
-  currentlyHasPlacement: boolean;
-  engagementRateLast365: number | null;
-};
 
 type PrimaryReasonProps = {
   reasons: string[];
@@ -17,51 +14,11 @@ type PrimaryReasonProps = {
   className?: string;
 };
 
-export function formatOutreachReasonForDisplay(
-  reason: string,
-  context: OutreachReasonContext,
-): string {
-  if (reason === "No elevated outreach signals at the reporting date") {
-    return "No elevated outreach signals";
-  }
-
-  if (reason.startsWith("Inactive for at least") && context.daysSinceLastPlacement !== null) {
-    return `Inactive for ${context.daysSinceLastPlacement} days`;
-  }
-
-  if (
-    reason.includes("license expiring within 90 days") &&
-    reason.includes("inactive for at least 60")
-  ) {
-    return `Inactive and license ends in ${context.daysUntilExpiration} days`;
-  }
-
-  if (reason === "Inactive with license expiring within 180 days") {
-    return `Inactive and license ends in ${context.daysUntilExpiration} days`;
-  }
-
-  if (
-    reason.includes("Very low engagement while inactive") ||
-    reason.includes("Engagement below 25%") ||
-    reason === "Currently active with very low annual engagement"
-  ) {
-    return "Limited activity during the previous year";
-  }
-
-  if (reason.includes("Engagement below 10%")) {
-    return "Limited placement activity during the previous year";
-  }
-
-  if (reason === "Currently active with license expiring within 60 days") {
-    return "Currently active, but license ends within 60 days";
-  }
-
-  return reason;
-}
-
 function formatAdditionalFactorsLabel(count: number): string {
   return count === 1 ? "+1 additional factor" : `+${count} additional factors`;
 }
+
+export { formatOutreachReasonForDisplay, type OutreachReasonContext };
 
 export function PrimaryReason({ reasons, context, providerId, className }: PrimaryReasonProps) {
   if (reasons.length === 0) {
@@ -132,7 +89,7 @@ export function formatDaysSinceLastPlacement(
   daysSinceLastPlacement: number | null,
 ): string {
   if (currentlyHasPlacement) {
-    return "—";
+    return "Currently active";
   }
 
   if (daysSinceLastPlacement === null) {
@@ -166,7 +123,7 @@ export function formatRecentEngagement(
       <span className="block">{activeDaysLast365} active days</span>
       <span className="block text-xs text-text-secondary">
         {engagementRateLast365 === null
-          ? "Engagement unavailable"
+          ? "Recent activity unavailable"
           : `${(engagementRateLast365 * 100).toFixed(1)}% of eligible days`}
       </span>
     </span>

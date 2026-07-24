@@ -78,7 +78,7 @@ describe("county detail helpers", () => {
     expect(explanation).toContain("Cook County");
     expect(explanation).toContain("High recruitment attention");
     expect(explanation).toContain("Above the 75th percentile");
-    expect(explanation).toContain("Recruitment attention is highest for ages 13–17");
+    expect(explanation).toContain("Ages 13–17 show the highest recruitment pressure");
   });
 
   it("builds a separate explanation for limited-data counties", () => {

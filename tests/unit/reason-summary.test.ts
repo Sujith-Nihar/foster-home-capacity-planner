@@ -31,7 +31,7 @@ describe("formatOutreachReasonForDisplay", () => {
         "Engagement below 25% with at least 90 eligible licensed days",
         baseContext,
       ),
-    ).toBe("Limited activity during the previous year");
+    ).toBe("Limited placement activity during the previous year");
   });
 
   it("keeps active license timing readable", () => {
@@ -40,6 +40,6 @@ describe("formatOutreachReasonForDisplay", () => {
         "Currently active with license expiring within 60 days",
         { ...baseContext, currentlyHasPlacement: true },
       ),
-    ).toBe("Currently active, but license ends within 60 days");
+    ).toBe("Currently active, with renewal approaching");
   });
 });

@@ -27,7 +27,7 @@ export function AttentionPanel({
   const findings = [
     `${formatCount(retentionSummary.licensesExpiringWithin90Days)} provider licenses end within 90 days.`,
     `${formatCount(retentionDistribution.high)} providers currently meet high outreach criteria.`,
-    `${formatCount(snapshot.highRecruitmentCounties)} counties combine high placement pressure with near-term provider-license exposure.`,
+    `${formatCount(snapshot.highRecruitmentCounties)} counties combine elevated recruitment planning signals with near-term provider-license exposure.`,
   ];
 
   return (

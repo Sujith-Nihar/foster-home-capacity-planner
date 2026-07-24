@@ -12,7 +12,7 @@ test.describe("overview page", () => {
     await expect(page.getByText("Current children in care", { exact: true })).toBeVisible();
     await expect(page.getByText("High outreach", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "What needs attention" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Top recruitment-pressure counties" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Top counties for recruitment review" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "License expirations by month" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Retention outreach priority distribution" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Placement-type context" })).toBeVisible();

@@ -48,7 +48,7 @@ test.describe("retention provider table", () => {
     await expect(table.getByRole("columnheader", { name: "Provider" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Current status" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "License timing" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Recent engagement" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Recent placement activity" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Suggested outreach" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Why review" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Action" })).toBeVisible();

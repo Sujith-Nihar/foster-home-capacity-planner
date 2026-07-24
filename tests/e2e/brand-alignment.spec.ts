@@ -17,7 +17,7 @@ test.describe("brand alignment", () => {
     await expect(
       page.getByRole("heading", { name: /Translate foster-home data into clear action/i }),
     ).toBeVisible();
-    await expect(page.getByText("STATEWIDE CAPACITY OVERVIEW")).toBeVisible();
+    await expect(page.getByText("ILLINOIS CAPACITY OVERVIEW")).toBeVisible();
     await expect(page.getByRole("heading", { name: "What needs attention" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 

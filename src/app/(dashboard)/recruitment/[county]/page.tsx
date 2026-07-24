@@ -39,10 +39,10 @@ export async function generateMetadata({ params }: CountyDetailPageProps): Promi
 
 function countyIntroDescription(countyName: string, priority: string): string {
   if (priority === "Limited data") {
-    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for statewide comparison.`;
+    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for comparison among eligible counties.`;
   }
 
-  return `${countyName} recruitment briefing with age-group pressure, provider base, and retention outreach context.`;
+  return `${countyName} recruitment briefing with age-group indicators, provider base, and retention outreach context.`;
 }
 
 export default async function CountyDetailPage({

@@ -3,7 +3,7 @@ import { Calendar, Clock, MapPin, UserCheck } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
 import { ProviderActivityTimeline } from "@/components/providers/provider-activity-timeline";
-import { ReasonList } from "@/components/reason-list";
+import { ProviderOutreachExplanation } from "@/components/providers/provider-outreach-explanation";
 import {
   BriefingReviewPoints,
   splitBriefingSummary,
@@ -12,7 +12,9 @@ import {
   BriefingSnapshotGrid,
   DecisionBriefingSection,
 } from "@/components/ui/decision-briefing-section";
+import { RETENTION_METRICS } from "@/content/methodology";
 import type { ProviderPageData } from "@/lib/types/domain";
+import { explainOutreachReason } from "@/lib/retention/reason-display";
 import {
   formatBooleanLabel,
   formatCount,
@@ -29,6 +31,17 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
   const { provider, activityPeriods, reviewSummary, currentPreferenceLabel, preferenceContext } =
     data;
   const countyHref = `/recruitment/${encodeURIComponent(provider.county)}`;
+  const outreachReasonContext = {
+    daysSinceLastPlacement: provider.daysSinceLastPlacement,
+    daysUntilExpiration: provider.daysUntilExpiration,
+    currentlyHasPlacement: provider.currentlyHasPlacement,
+    engagementRateLast365: provider.engagementRateLast365,
+    eligibleLicensedDaysLast365: provider.eligibleLicensedDaysLast365,
+    activeDaysLast365: provider.activeDaysLast365,
+  };
+  const explainedOutreachReasons = provider.outreachReasons.map((reason) =>
+    explainOutreachReason(reason, outreachReasonContext),
+  );
 
   return (
     <div className="space-y-8">
@@ -53,9 +66,9 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
             icon={<Clock className="size-4" aria-hidden="true" />}
           />
           <MetricCard
-            label="Engagement rate"
+            label={RETENTION_METRICS.recentEngagement.label}
             value={formatNullablePercent(provider.engagementRateLast365)}
-            helperText="Active days divided by eligible licensed days"
+            helperText={RETENTION_METRICS.recentEngagement.interpretation}
           />
           <MetricCard
             label="County"
@@ -96,10 +109,10 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
             }
           />
           <MetricCard
-            label="Days since last placement"
+            label={RETENTION_METRICS.daysSinceLastPlacement.label}
             value={
               provider.currentlyHasPlacement
-                ? "—"
+                ? "Currently active"
                 : provider.daysSinceLastPlacement === null
                   ? "—"
                   : formatCount(provider.daysSinceLastPlacement)
@@ -117,20 +130,20 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
       <DecisionBriefingSection
         titleId="provider-engagement-heading"
-        title="Engagement metrics"
-        lead="Placement activity during the trailing year and lifetime totals."
+        title="Recent placement activity"
+        lead={`${RETENTION_METRICS.recentActiveDays.explanation} ${RETENTION_METRICS.recentEngagement.limitation}`}
       >
         <BriefingSnapshotGrid className="xl:grid-cols-4">
           <MetricCard
-            label="Total active placement days"
+            label={RETENTION_METRICS.activePlacementDays.label}
             value={formatCount(provider.totalActiveDays)}
           />
           <MetricCard
-            label="Active days last 365"
+            label={RETENTION_METRICS.recentActiveDays.label}
             value={formatCount(provider.activeDaysLast365)}
           />
           <MetricCard
-            label="Eligible licensed days last 365"
+            label={RETENTION_METRICS.eligibleLicensedDays.label}
             value={formatCount(provider.eligibleLicensedDaysLast365)}
           />
           <MetricCard
@@ -140,19 +153,7 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
         </BriefingSnapshotGrid>
       </DecisionBriefingSection>
 
-      <DecisionBriefingSection
-        titleId="provider-outreach-heading"
-        title="Outreach priority"
-        lead="Rule-based outreach signals for staff review. These do not predict provider closure."
-        tone="raised"
-      >
-        <ReasonList
-          title="Triggered outreach reasons"
-          reasons={provider.outreachReasons}
-          emptyMessage="No elevated outreach signals at the reporting date."
-          headingLevel="h3"
-        />
-      </DecisionBriefingSection>
+      <ProviderOutreachExplanation reasons={explainedOutreachReasons} />
 
       <ProviderActivityTimeline activityPeriods={activityPeriods} />
 

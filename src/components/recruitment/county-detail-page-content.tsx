@@ -10,7 +10,8 @@ import {
 import { MetricCard } from "@/components/metric-card";
 import { CountyLimitationsPanel } from "@/components/recruitment/county-limitations-panel";
 import { CountyRetentionTable } from "@/components/recruitment/county-retention-table";
-import { ReasonList } from "@/components/reason-list";
+import { ExplainedReasonList } from "@/components/methodology/explained-reason-list";
+import { MetricHelpTooltip } from "@/components/methodology/metric-help-tooltip";
 import { DataTableShell } from "@/components/data-table-shell";
 import {
   BriefingSnapshotGrid,
@@ -29,7 +30,14 @@ import {
 import { tableColumnClasses } from "@/components/ui/table-utils";
 import type { CountyPageData } from "@/lib/data/counties";
 import { ageGroupSectionLabel } from "@/lib/recruitment/county-detail";
+import { explainRecruitmentReason } from "@/lib/recruitment/reason-display";
 import { MEASURABLE_AGE_GROUP_LABELS } from "@/lib/recruitment/age-groups";
+import {
+  COMPARABLE_COUNTIES,
+  RECRUITMENT_INDICATORS_CAVEAT,
+  RECRUITMENT_METRICS,
+  TOP_25_PERCENT,
+} from "@/content/methodology";
 import {
   formatCount,
   formatCountyName,
@@ -46,7 +54,7 @@ function countyBriefingLead(data: CountyPageData): string {
   const countyName = formatCountyName(data.county.county);
 
   if (data.county.recruitmentPriority === "Limited data") {
-    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for statewide comparison.`;
+    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for comparison among eligible counties.`;
   }
 
   return `${countyName} is classified as ${formatRecruitmentPriorityLabel(data.county.recruitmentPriority)} for recruitment planning at the reporting date.`;
@@ -87,24 +95,24 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             icon={<Users className="size-4" aria-hidden="true" />}
           />
           <MetricCard
-            label="Children per engaged provider"
+            label={RECRUITMENT_METRICS.childrenPerEngagedProvider.label}
             value={formatRatio(county.childrenPerActiveProvider)}
-            helperText="Foster-home children divided by engaged local providers"
+            helperText={RECRUITMENT_METRICS.childrenPerEngagedProvider.interpretation}
           />
           <MetricCard
             label="Highest-pressure age group"
             value={county.highestPressureAgeGroup ?? "—"}
+            helperText={RECRUITMENT_METRICS.ageGroupPressure.interpretation}
           />
           <MetricCard
-            label="Out-of-county foster-home rate"
+            label={RECRUITMENT_METRICS.outOfCountyRate.label}
             value={formatNullablePercent(county.outOfCountyFosterRate)}
-            helperText="Share of foster-home children placed outside the county"
-            icon={<MapPin className="size-4" aria-hidden="true" />}
+            helperText={RECRUITMENT_METRICS.outOfCountyRate.interpretation}
           />
           <MetricCard
-            label="High-priority outreach providers"
+            label="Suggested high outreach providers"
             value={formatCount(county.highRetentionProviders)}
-            helperText="Providers with high retention outreach priority"
+            helperText="Providers with high suggested outreach priority"
           />
         </BriefingSnapshotGrid>
       </DecisionBriefingSection>
@@ -147,10 +155,15 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
                       Children per matching engaged provider
                     </TableHead>
                     <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                      Statewide median
+                      Typical comparable county
                     </TableHead>
                     <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                      Statewide 75th percentile
+                      <span className="inline-flex items-center gap-1">
+                        Top 25% among comparable counties
+                        <MetricHelpTooltip label="What does top 25% mean?">
+                          {TOP_25_PERCENT.fullDefinition}
+                        </MetricHelpTooltip>
+                      </span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -199,14 +212,15 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
       {county.recruitmentReasons.length > 0 ? (
         <DecisionBriefingSection
           titleId="county-priority-reasons-heading"
-          title="Priority factors"
-          lead="Documented recruitment planning signals for this county."
+          title="Why this county warrants review"
+          lead={RECRUITMENT_INDICATORS_CAVEAT}
           tone="raised"
         >
-          <ReasonList
-            title="Readable priority reasons"
-            reasons={county.recruitmentReasons}
+          <ExplainedReasonList
+            title="Contributing indicators"
+            reasons={county.recruitmentReasons.map((reason) => explainRecruitmentReason(reason))}
             headingLevel="h3"
+            footer={`Comparison group: ${COMPARABLE_COUNTIES.comparisonGroupLabel}.`}
           />
         </DecisionBriefingSection>
       ) : null}
@@ -278,11 +292,11 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             icon={<Clock className="size-4" aria-hidden="true" />}
           />
           <MetricCard
-            label="High-priority outreach providers"
+            label="Suggested high outreach providers"
             value={formatCount(county.highRetentionProviders)}
           />
           <MetricCard
-            label="Medium-priority outreach providers"
+            label="Suggested medium outreach providers"
             value={formatCount(county.mediumRetentionProviders)}
           />
         </BriefingSnapshotGrid>

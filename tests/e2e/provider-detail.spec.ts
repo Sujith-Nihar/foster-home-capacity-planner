@@ -9,8 +9,10 @@ test.describe("provider detail page", () => {
     await expect(page.getByRole("heading", { name: "License and placement status" })).toBeVisible();
     await expect(page.getByText("Current preference", { exact: true })).toBeVisible();
     await expect(page.getByText(/Current preference: Ages/i)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Engagement metrics" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Outreach priority" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent placement activity" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Why this provider appears in the outreach list" }),
+    ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Merged activity-period timeline" })).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "What staff may want to review" }),
@@ -23,12 +25,7 @@ test.describe("provider detail page", () => {
   test("shows every triggered outreach reason for a high-priority provider", async ({ page }) => {
     await page.goto("/providers/500021");
 
-    await expect(
-      page.getByRole("listitem").filter({
-        hasText:
-          "Inactive with license expiring within 90 days and inactive for at least 60 days",
-      }),
-    ).toBeVisible();
+    await expect(page.getByText("Inactive and license ends in")).toBeVisible();
     await expect(page.getByText("High outreach priority")).toBeVisible();
   });
 

@@ -12,9 +12,7 @@ test.describe("retention page", () => {
     await expect(page.getByText("Licensed providers", { exact: true })).toBeVisible();
     await expect(page.getByText("High outreach priority", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: /licenses expire within 90 days/i })).toBeVisible();
-    await expect(
-      page.getByText(/Outreach priorities are based on recent activity, engagement and license timing/i),
-    ).toBeVisible();
+    await expect(page.getByRole("note")).toContainText(/rule-based staff-review category/i);
     await expect(
       page.getByRole("heading", { name: "Licensed provider outreach list" }),
     ).toBeVisible();

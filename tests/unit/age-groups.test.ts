@@ -93,8 +93,10 @@ describe("age-group recruitment helpers", () => {
 
     const summary = buildAgeGroupPrioritySummary(countyAgeGroups, benchmarks);
 
-    expect(summary).toContain("Recruitment attention is highest for ages 13–17.");
-    expect(summary).toContain("Ages 6–12 also have more children per matching provider than the statewide median.");
+    expect(summary).toContain("Ages 13–17 show the highest recruitment pressure.");
+    expect(summary).toContain(
+      "Ages 6–12 also have more children per matching engaged provider than the typical comparable county.",
+    );
   });
 
   it("identifies tied highest-pressure age groups", () => {

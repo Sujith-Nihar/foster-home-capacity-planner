@@ -7,30 +7,15 @@ import {
 } from "@/lib/methodology/sections";
 
 describe("methodology content", () => {
-  it("documents every required analytical topic", () => {
+  it("documents the four required analytical sections", () => {
     const sections = buildMethodologySections();
     const titles = sections.map((section) => section.title);
 
     expect(titles).toEqual([
-      "Source datasets",
-      "Reporting date",
-      "Current-child definition",
-      "Latest-placement definition",
-      "Current-placement definition",
-      "Current-license definition",
-      "County normalization",
-      "Missing-age handling",
-      "Interval merging",
-      "Active days",
-      "Recent-window clipping",
-      "Eligible licensed days",
-      "Engagement rate",
-      "Current provider preferences",
-      "Recruitment indicators and priority",
-      "Retention indicators and priority",
-      "Minimum county-volume rules",
-      "Privacy choices",
-      "Limitations",
+      "1. Source-data definitions",
+      "2. Metrics calculated by the application",
+      "3. Planning rules selected for this prototype",
+      "4. Limitations and appropriate use",
     ]);
   });
 
@@ -39,17 +24,21 @@ describe("methodology content", () => {
       expect(METHODOLOGY_CALLOUTS.join(" ")).toContain(phrase);
     }
 
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not available beds/i);
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not a prediction of closure/i);
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not proof that a county is short/i);
+    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/available beds/i);
+    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/does not predict/i);
+    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/prototype planning rule/i);
     expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not automatically assumed suitable/i);
   });
 
   it("anchors definitions to the fixed reporting date", () => {
     const reportingSection = buildMethodologySections().find(
-      (section) => section.id === "reporting-date",
+      (section) => section.id === "source-data-definitions",
     );
 
-    expect(reportingSection?.paragraphs.join(" ")).toContain("July 1, 2026");
+    expect(reportingSection?.paragraphs.join(" ")).toContain("reporting date");
+    const allText = buildMethodologySections()
+      .flatMap((section) => [...section.paragraphs, ...(section.bullets ?? [])])
+      .join(" ");
+    expect(allText).toContain("July 1, 2026");
   });
 });
