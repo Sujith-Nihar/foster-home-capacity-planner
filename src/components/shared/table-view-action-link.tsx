@@ -16,7 +16,7 @@ export function TableViewActionLink({ href, label, className, ariaLabel }: Table
       href={href}
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex h-9 min-h-9 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-[9px] border border-border-subtle bg-surface-raised/60 px-3 text-sm font-medium text-brand-navy",
+        "table-view-action inline-flex h-10 min-h-10 w-max min-w-[128px] cursor-pointer items-center justify-center gap-1 whitespace-nowrap rounded-[10px] border border-border-subtle bg-surface-raised/60 px-4 text-sm font-medium text-brand-navy",
         "hover:border-brand-blue/35 hover:bg-brand-blue/8",
         "focus-visible:border-brand-blue/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/25",
         className,

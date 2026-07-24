@@ -19,7 +19,7 @@ test.describe("retention page", () => {
       page.getByRole("heading", { name: "Licensed provider outreach list" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: /Suggested outreach priority/i }),
+      page.getByRole("columnheader", { name: /Suggested outreach/i }),
     ).toBeVisible();
     await expect(page.getByRole("columnheader", { name: /Why review/i })).toBeVisible();
     await expect(page.getByRole("columnheader", { name: "Action" })).toBeVisible();

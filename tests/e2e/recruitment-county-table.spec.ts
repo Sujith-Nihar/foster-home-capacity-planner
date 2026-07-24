@@ -137,12 +137,23 @@ test.describe("retention table actions", () => {
   test("priority badge and reason do not overlap on high-priority rows", async ({ page }) => {
     const table = page.locator(".table-desktop-only table").first();
     const firstRow = table.locator("tbody tr").first();
-    const badge = firstRow.locator("span").filter({ hasText: /outreach$/i }).first();
-    const reason = firstRow.locator("td").nth(6);
+    const badge = firstRow.getByText(/(High|Medium|Low) outreach/).first();
+    const reason = firstRow
+      .getByText(/Inactive|Limited activity|Currently active|No elevated/)
+      .first();
 
     await expect(badge).toBeVisible();
     await expect(reason).toBeVisible();
     await expectNoOverlap(badge, reason);
+  });
+
+  test("shows fully visible View provider label at desktop widths", async ({ page }) => {
+    const viewProvider = page
+      .locator(".table-desktop-only")
+      .getByRole("link", { name: "View provider" })
+      .first();
+    await expect(viewProvider).toBeVisible();
+    await expectTextFullyVisible(viewProvider);
   });
 });
 

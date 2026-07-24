@@ -1,12 +1,19 @@
 import {
+  deriveAgeGroupPressureFromCountyAgeMetrics,
+  getCachedCountyAgeMetrics,
+  getCachedFilterOptions,
+  getCachedRecruitmentCountyRanking,
+  getCachedReportingDate,
+} from "@/lib/data/cached-snapshot";
+import { timedOperation } from "@/lib/performance/timing";
+import {
   executeSupabaseQuery,
   getActiveReportingDate,
   getServerSupabaseClient,
   mapCountyAgeMetrics,
   mapCountyMetrics,
-  type Database,
 } from "@/lib/supabase/server";
-import { aggregateAgeGroupPressure, partitionRecruitmentCounties, type AgeGroupPressureDto } from "@/lib/recruitment/analytics";
+import { partitionRecruitmentCounties, type AgeGroupPressureDto } from "@/lib/recruitment/analytics";
 import { groupCountyAgeMetricsByCounty, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
 import { sortRecruitmentCounties } from "@/lib/recruitment/query";
 import type { CountyAgeMetricsDto, CountyMetricsDto, FilterOptionsDto, OutreachPriority, RecruitmentPriority } from "@/lib/types/domain";
@@ -16,75 +23,89 @@ import { parseRecruitmentSearchParams } from "@/lib/validation/search-params";
 const RECRUITMENT_LIST_COLUMNS =
   "county, reporting_date, current_children_in_care, current_foster_home_children, current_kin_children, current_nonfamily_children, licensed_providers, active_providers, inactive_providers, children_per_active_provider, out_of_county_foster_count, out_of_county_foster_rate, expiring_90_days, expiring_180_days, high_retention_providers, medium_retention_providers, highest_pressure_age_group, recruitment_priority, recruitment_reasons";
 
-const COUNTY_AGE_PRESSURE_COLUMNS =
+const COUNTY_AGE_COLUMNS =
   "county, age_group, reporting_date, current_foster_home_children, matching_licensed_providers, matching_active_providers, children_per_matching_active_provider";
 
 export async function getFilterOptions(
   reportingDate?: string,
 ): Promise<FilterOptionsDto> {
   const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
-  const supabase = getServerSupabaseClient();
-  const data = await executeSupabaseQuery<
-    Database["public"]["Functions"]["get_application_filter_options"]["Returns"]
-  >("load filter options", async () =>
-    supabase.rpc("get_application_filter_options", {
-      reporting_date_param: activeReportingDate,
-    }),
-  );
+  if (activeReportingDate === (await getCachedReportingDate())) {
+    return getCachedFilterOptions();
+  }
 
-  return {
-    reportingDate: data.reporting_date,
-    counties: data.counties ?? [],
-    recruitmentPriorities: (data.recruitment_priorities ?? []) as RecruitmentPriority[],
-    outreachPriorities: (data.outreach_priorities ?? []) as OutreachPriority[],
-    ageGroups: (data.age_groups ?? []) as AgeGroupLabel[],
-  };
+  return timedOperation(
+    "getFilterOptions",
+    async () => {
+      const supabase = getServerSupabaseClient();
+      const data = await executeSupabaseQuery("load filter options", async () =>
+        supabase.rpc("get_application_filter_options", {
+          reporting_date_param: activeReportingDate,
+        }),
+      );
+
+      return {
+        reportingDate: data.reporting_date,
+        counties: data.counties ?? [],
+        recruitmentPriorities: (data.recruitment_priorities ?? []) as RecruitmentPriority[],
+        outreachPriorities: (data.outreach_priorities ?? []) as OutreachPriority[],
+        ageGroups: (data.age_groups ?? []) as AgeGroupLabel[],
+      };
+    },
+    { cache: "miss" },
+  );
 }
 
 export async function getRecruitmentCounties(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<CountyMetricsDto[]> {
-  const params = parseRecruitmentSearchParams(searchParams);
-  const reportingDate = await getActiveReportingDate();
-  const supabase = getServerSupabaseClient();
+  return timedOperation(
+    "getRecruitmentCounties",
+    async () => {
+      const params = parseRecruitmentSearchParams(searchParams);
+      const reportingDate = await getActiveReportingDate();
+      const supabase = getServerSupabaseClient();
 
-  let query = supabase
-    .from("county_metrics")
-    .select(RECRUITMENT_LIST_COLUMNS)
-    .eq("reporting_date", reportingDate);
+      let query = supabase
+        .from("county_metrics")
+        .select(RECRUITMENT_LIST_COLUMNS)
+        .eq("reporting_date", reportingDate);
 
-  if (params.priority) {
-    query = query.eq("recruitment_priority", params.priority);
-  }
+      if (params.priority) {
+        query = query.eq("recruitment_priority", params.priority);
+      }
 
-  if (params.minFosterChildren !== undefined) {
-    query = query.gte("current_foster_home_children", params.minFosterChildren);
-  }
+      if (params.minFosterChildren !== undefined) {
+        query = query.gte("current_foster_home_children", params.minFosterChildren);
+      }
 
-  if (params.ageGroup) {
-    query = query.eq("highest_pressure_age_group", params.ageGroup);
-  }
+      if (params.ageGroup) {
+        query = query.eq("highest_pressure_age_group", params.ageGroup);
+      }
 
-  if (params.minOutOfCountyRate !== undefined) {
-    query = query.gte("out_of_county_foster_rate", params.minOutOfCountyRate);
-  }
+      if (params.minOutOfCountyRate !== undefined) {
+        query = query.gte("out_of_county_foster_rate", params.minOutOfCountyRate);
+      }
 
-  if (params.maxOutOfCountyRate !== undefined) {
-    query = query.lte("out_of_county_foster_rate", params.maxOutOfCountyRate);
-  }
+      if (params.maxOutOfCountyRate !== undefined) {
+        query = query.lte("out_of_county_foster_rate", params.maxOutOfCountyRate);
+      }
 
-  const sortField =
-    params.sort === "recruitment_priority" ? "children_per_active_provider" : params.sort;
+      const sortField =
+        params.sort === "recruitment_priority" ? "children_per_active_provider" : params.sort;
 
-  const rows = await executeSupabaseQuery("load recruitment counties", async () =>
-    query.order(sortField, {
-      ascending: params.direction === "asc",
-      nullsFirst: false,
-    }),
+      const rows = await executeSupabaseQuery("load recruitment counties", async () =>
+        query.order(sortField, {
+          ascending: params.direction === "asc",
+          nullsFirst: false,
+        }),
+      );
+
+      const counties = rows.map(mapCountyMetrics);
+      return sortRecruitmentCounties(counties, params.sort, params.direction);
+    },
+    { rowCount: (counties) => counties.length, cache: "miss" },
   );
-
-  const counties = rows.map(mapCountyMetrics);
-  return sortRecruitmentCounties(counties, params.sort, params.direction);
 }
 
 export async function getRecruitmentCountyRanking(
@@ -92,6 +113,10 @@ export async function getRecruitmentCountyRanking(
   reportingDate?: string,
 ): Promise<CountyMetricsDto[]> {
   const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  if (!reportingDate || reportingDate === (await getCachedReportingDate())) {
+    return getCachedRecruitmentCountyRanking(limit);
+  }
+
   const supabase = getServerSupabaseClient();
   const rows = await executeSupabaseQuery("load recruitment county ranking", async () =>
     supabase
@@ -106,41 +131,13 @@ export async function getRecruitmentCountyRanking(
   return rows.map(mapCountyMetrics);
 }
 
-export async function getAgeGroupPressureRanking(
-  reportingDate?: string,
-): Promise<AgeGroupPressureDto[]> {
-  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
-  const supabase = getServerSupabaseClient();
-  const rows = await executeSupabaseQuery("load county age pressure metrics", async () =>
-    supabase
-      .from("county_age_metrics")
-      .select(COUNTY_AGE_PRESSURE_COLUMNS)
-      .eq("reporting_date", activeReportingDate),
-  );
-
-  return aggregateAgeGroupPressure(
-    rows.map((row) => {
-      const mapped = mapCountyAgeMetrics(row);
-      return {
-        ageGroup: mapped.ageGroup,
-        currentFosterHomeChildren: mapped.currentFosterHomeChildren,
-        matchingActiveProviders: mapped.matchingActiveProviders,
-        childrenPerMatchingActiveProvider: mapped.childrenPerMatchingActiveProvider,
-      };
-    }),
-  );
-}
-
-async function loadAllCountyAgeMetrics(
-  reportingDate?: string,
-): Promise<CountyAgeMetricsDto[]> {
-  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+async function loadCountyAgeMetrics(reportingDate: string): Promise<CountyAgeMetricsDto[]> {
   const supabase = getServerSupabaseClient();
   const rows = await executeSupabaseQuery("load all county age metrics", async () =>
     supabase
       .from("county_age_metrics")
-      .select(COUNTY_AGE_PRESSURE_COLUMNS)
-      .eq("reporting_date", activeReportingDate)
+      .select(COUNTY_AGE_COLUMNS)
+      .eq("reporting_date", reportingDate)
       .order("county", { ascending: true })
       .order("age_group", { ascending: true }),
   );
@@ -148,29 +145,58 @@ async function loadAllCountyAgeMetrics(
   return rows.map(mapCountyAgeMetrics);
 }
 
+export async function getAgeGroupPressureRanking(
+  reportingDate?: string,
+): Promise<AgeGroupPressureDto[]> {
+  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  const countyAgeMetrics =
+    activeReportingDate === (await getCachedReportingDate())
+      ? await getCachedCountyAgeMetrics()
+      : await loadCountyAgeMetrics(activeReportingDate);
+
+  return deriveAgeGroupPressureFromCountyAgeMetrics(countyAgeMetrics);
+}
+
 export async function getRecruitmentPageData(
   searchParams: Record<string, string | string[] | undefined>,
 ) {
-  const params = parseRecruitmentSearchParams(searchParams);
-  const [counties, filterOptions, ageGroupPressure, allCountyAgeMetrics] = await Promise.all([
-    getRecruitmentCounties(searchParams),
-    getFilterOptions(),
-    getAgeGroupPressureRanking(),
-    loadAllCountyAgeMetrics(),
-  ]);
+  return timedOperation(
+    "getRecruitmentPageData",
+    async () => {
+      const params = parseRecruitmentSearchParams(searchParams);
+      const [counties, filterOptions, allCountyAgeMetrics] = await Promise.all([
+        getRecruitmentCounties(searchParams),
+        getFilterOptions(),
+        getCachedCountyAgeMetrics(),
+      ]);
 
-  const { eligible, limitedData } = partitionRecruitmentCounties(counties);
+      const ageGroupPressure = deriveAgeGroupPressureFromCountyAgeMetrics(allCountyAgeMetrics);
+      const { eligible, limitedData } = partitionRecruitmentCounties(counties);
 
-  return {
-    counties,
-    eligibleCounties: eligible,
-    limitedDataCounties: limitedData,
-    filterOptions,
-    ageGroupPressure,
-    countyAgeMetricsByCounty: groupCountyAgeMetricsByCounty(allCountyAgeMetrics),
-    statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeMetrics),
-    searchParams: params,
-  };
+      return {
+        counties,
+        eligibleCounties: eligible,
+        limitedDataCounties: limitedData,
+        filterOptions,
+        ageGroupPressure,
+        countyAgeMetricsByCounty: groupCountyAgeMetricsByCounty(allCountyAgeMetrics),
+        statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeMetrics),
+        searchParams: params,
+      };
+    },
+    { cache: "miss" },
+  );
 }
 
 export type CountyAgeMetricsByCounty = Map<string, CountyAgeMetricsDto[]>;
+
+export async function getAllCountyAgeMetrics(
+  reportingDate?: string,
+): Promise<CountyAgeMetricsDto[]> {
+  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  if (!reportingDate || activeReportingDate === (await getCachedReportingDate())) {
+    return getCachedCountyAgeMetrics();
+  }
+
+  return loadCountyAgeMetrics(activeReportingDate);
+}

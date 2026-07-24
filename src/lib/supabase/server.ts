@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { cache } from "react";
 
 import type { AgeGroupLabel } from "@/config/metrics";
 import { REPORTING_DATE } from "@/config/metrics";
@@ -97,6 +98,7 @@ export type Database = {
         min_age: number;
         max_age: number;
         outreach_priority: string;
+        outreach_priority_rank?: number;
         outreach_reasons: string[];
       }>;
       provider_activity_periods: TableDefinition<{
@@ -308,21 +310,4 @@ export function mapMonthlyMetrics(row: MonthlyMetricsRow): MonthlyMetricsDto {
   };
 }
 
-export async function getActiveReportingDate(): Promise<string> {
-  const supabase = getServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("system_snapshot")
-    .select("reporting_date")
-    .order("reporting_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw new DataAccessError("Failed to load active reporting date.", {
-      code: "QUERY_ERROR",
-      cause: error,
-    });
-  }
-
-  return data?.reporting_date ?? REPORTING_DATE;
-}
+export const getActiveReportingDate = cache(async (): Promise<string> => REPORTING_DATE);

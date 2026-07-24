@@ -5,29 +5,29 @@ import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-b
 import { RetentionFilterToolbar } from "@/components/retention/retention-filter-toolbar";
 import { RetentionSortHeader } from "@/components/retention/retention-filters";
 import { RetentionPagination } from "@/components/retention/retention-pagination";
+import { StackedTableCell } from "@/components/shared/stacked-table-cell";
 import {
   formatLicenseTiming,
-  formatProviderStatus,
   formatRecentEngagement,
   PrimaryReason,
+  RetentionStatusCell,
+  StatusAndRenewalCell,
 } from "@/components/shared/reason-summary";
 import { TableViewActionLink } from "@/components/shared/table-view-action-link";
 import {
   Table,
   TableBody,
   TableCell,
-  TableCol,
-  TableColgroup,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { TableMobileField, TableMobileItem, TableMobileList } from "@/components/ui/table-mobile-list";
-import { tableColumnClasses, TruncateCell } from "@/components/ui/table-utils";
 import type { FilterOptionsDto, PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
 import {
   formatCompactOutreachPriorityLabel,
   formatCount,
+  formatCountyName,
   formatProviderId,
   formatReportingDate,
 } from "@/lib/utils/formatters";
@@ -41,33 +41,40 @@ type RetentionProviderTableProps = {
   exportQuery: string;
 };
 
-const ROW_CELL = "py-2.5 align-middle";
+const ROW_CELL = "retention-provider-table__row-cell align-middle";
+
+function providerReasonContext(provider: ProviderMetricsDto) {
+  return {
+    daysSinceLastPlacement: provider.daysSinceLastPlacement,
+    daysUntilExpiration: provider.daysUntilExpiration,
+    currentlyHasPlacement: provider.currentlyHasPlacement,
+    engagementRateLast365: provider.engagementRateLast365,
+  };
+}
 
 function RetentionMobileList({ providers }: { providers: ProviderMetricsDto[] }) {
   return (
     <TableMobileList>
       {providers.map((provider) => (
         <TableMobileItem key={provider.providerId}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <Link
-                href={`/providers/${provider.providerId}`}
-                className="font-medium text-brand-navy underline-offset-4 hover:underline"
-              >
-                Provider {formatProviderId(provider.providerId)}
-              </Link>
-              <p className="mt-0.5 text-sm text-text-secondary">{provider.county}</p>
-            </div>
-            <PriorityBadge
-              level={priorityToAttentionLevel(provider.outreachPriority)}
-              label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
-              className="shrink-0 whitespace-nowrap"
-            />
+          <div className="min-w-0">
+            <Link
+              href={`/providers/${provider.providerId}`}
+              className="font-medium text-brand-navy underline-offset-4 hover:underline"
+            >
+              {formatProviderId(provider.providerId)}
+            </Link>
+            <p className="mt-0.5 text-sm text-text-secondary">{formatCountyName(provider.county)}</p>
           </div>
           <dl className="mt-3 space-y-2">
             <TableMobileField
               label="Current status"
-              value={formatProviderStatus(provider.currentlyHasPlacement)}
+              value={
+                <RetentionStatusCell
+                  currentlyHasPlacement={provider.currentlyHasPlacement}
+                  daysSinceLastPlacement={provider.daysSinceLastPlacement}
+                />
+              }
             />
             <TableMobileField
               label="License timing"
@@ -85,11 +92,22 @@ function RetentionMobileList({ providers }: { providers: ProviderMetricsDto[] })
               )}
             />
             <TableMobileField
+              label="Outreach priority"
+              value={
+                <PriorityBadge
+                  level={priorityToAttentionLevel(provider.outreachPriority)}
+                  label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
+                  className="w-fit whitespace-nowrap"
+                />
+              }
+            />
+            <TableMobileField
               label="Why review"
               value={
                 <PrimaryReason
                   reasons={provider.outreachReasons}
-                  moreOnPageLabel="provider page"
+                  context={providerReasonContext(provider)}
+                  providerId={provider.providerId}
                 />
               }
             />
@@ -157,106 +175,114 @@ export function RetentionProviderTable({
         <>
           <RetentionMobileList providers={providers} />
 
-          <div className="table-desktop-only min-w-0 data-table-viewport--scroll">
-            <Table className="min-w-0">
-              <TableColgroup>
-                <TableCol style={{ width: "10%" }} />
-                <TableCol className={tableColumnClasses.narrowHidden} style={{ width: "9%" }} />
-                <TableCol style={{ width: "11%" }} />
-                <TableCol style={{ width: "15%" }} />
-                <TableCol style={{ width: "16%" }} />
-                <TableCol style={{ width: "13%" }} />
-                <TableCol style={{ width: "18%" }} />
-                <TableCol style={{ width: "10%" }} />
-              </TableColgroup>
+          <div className="table-desktop-only min-w-0">
+            <Table className="retention-provider-table w-full min-w-0 table-fixed">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${ROW_CELL} w-[14%] xl:w-[13%]`}>
                     <RetentionSortHeader
                       label="Provider"
                       sortKey="provider_id"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} ${tableColumnClasses.narrowHidden}`}>
-                    <RetentionSortHeader label="County" sortKey="county" searchParams={searchParams} />
-                  </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${ROW_CELL} hidden w-[11%] xl:table-cell`}>
                     <RetentionSortHeader
                       label="Current status"
                       sortKey="currently_has_placement"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${ROW_CELL} hidden w-[14%] xl:table-cell`}>
                     License timing
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${ROW_CELL} w-[18%] xl:hidden`}>
+                    Status and renewal
+                  </TableHead>
+                  <TableHead scope="col" className={`${ROW_CELL} w-[18%] xl:w-[16%]`}>
                     Recent engagement
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} min-w-0`}>
+                  <TableHead scope="col" className={`${ROW_CELL} min-w-0 w-[16%] xl:w-[16%]`}>
                     <RetentionSortHeader
-                      label="Suggested outreach priority"
+                      label="Suggested outreach"
                       sortKey="outreach_priority"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${ROW_CELL} w-[20%] xl:w-[19%]`}>
                     Why review
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead
+                    scope="col"
+                    className={`${ROW_CELL} retention-provider-table__action-cell w-[14%] xl:w-[10%]`}
+                  >
                     Action
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {providers.map((provider) => (
-                  <TableRow key={provider.providerId}>
+                  <TableRow key={provider.providerId} className="retention-provider-table__row">
                     <TableCell className={`${ROW_CELL} min-w-0`}>
-                      <Link
-                        href={`/providers/${provider.providerId}`}
-                        className="font-medium text-brand-navy underline-offset-4 hover:underline"
-                      >
-                        {formatProviderId(provider.providerId)}
-                      </Link>
+                      <StackedTableCell
+                        primary={
+                          <Link
+                            href={`/providers/${provider.providerId}`}
+                            className="font-medium text-brand-navy underline-offset-4 hover:underline"
+                          >
+                            {formatProviderId(provider.providerId)}
+                          </Link>
+                        }
+                        secondary={formatCountyName(provider.county)}
+                      />
                     </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0 ${tableColumnClasses.narrowHidden}`}>
-                      <TruncateCell lines={1}>{provider.county}</TruncateCell>
+                    <TableCell className={`${ROW_CELL} min-w-0 hidden xl:table-cell`}>
+                      <RetentionStatusCell
+                        currentlyHasPlacement={provider.currentlyHasPlacement}
+                        daysSinceLastPlacement={provider.daysSinceLastPlacement}
+                      />
                     </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0 whitespace-nowrap`}>
-                      {formatProviderStatus(provider.currentlyHasPlacement)}
-                    </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                    <TableCell className={`${ROW_CELL} min-w-0 hidden xl:table-cell`}>
                       {formatLicenseTiming(
                         provider.licenseEndDate,
                         provider.daysUntilExpiration,
                         formatReportingDate,
                       )}
                     </TableCell>
+                    <TableCell className={`${ROW_CELL} min-w-0 xl:hidden`}>
+                      <StatusAndRenewalCell
+                        currentlyHasPlacement={provider.currentlyHasPlacement}
+                        daysSinceLastPlacement={provider.daysSinceLastPlacement}
+                        licenseEndDate={provider.licenseEndDate}
+                        daysUntilExpiration={provider.daysUntilExpiration}
+                        formatDate={formatReportingDate}
+                      />
+                    </TableCell>
                     <TableCell className={`${ROW_CELL} min-w-0`}>
                       {formatRecentEngagement(
                         provider.activeDaysLast365,
                         provider.engagementRateLast365,
-                        { hideSecondaryOnNarrow: true },
                       )}
                     </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0`}>
-                      <div className="w-fit max-w-full">
+                    <TableCell className={`${ROW_CELL} min-w-0 overflow-hidden`}>
+                      <div className="max-w-full">
                         <PriorityBadge
                           level={priorityToAttentionLevel(provider.outreachPriority)}
                           label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
-                          className="whitespace-nowrap"
+                          className="max-w-full whitespace-nowrap"
                         />
                       </div>
                     </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                    <TableCell className={`${ROW_CELL} min-w-0 break-words`}>
                       <PrimaryReason
                         reasons={provider.outreachReasons}
-                        moreOnPageLabel="provider page"
-                        hideMoreOnNarrow
+                        context={providerReasonContext(provider)}
+                        providerId={provider.providerId}
                       />
                     </TableCell>
-                    <TableCell className={`${ROW_CELL} min-w-0`}>
+                    <TableCell
+                      className={`${ROW_CELL} retention-provider-table__action-cell min-w-0`}
+                    >
                       <TableViewActionLink
                         href={`/providers/${provider.providerId}`}
                         label="View provider"

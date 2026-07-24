@@ -31,14 +31,12 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
 
     node.classList.add("section-reveal--enhanced");
 
-    let observer: IntersectionObserver | undefined;
-
     const reveal = () => {
       node.classList.add("section-reveal--visible");
-      observer?.disconnect();
+      observer.disconnect();
     };
 
-    observer = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
           reveal();
@@ -55,7 +53,7 @@ export function SectionReveal({ children, className, delayMs = 0 }: SectionRevea
       }
     });
 
-    return () => observer?.disconnect();
+    return () => observer.disconnect();
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 import { RecruitmentPageContent } from "@/components/recruitment/recruitment-page-content";
 import { getRecruitmentPageData } from "@/lib/data/recruitment";
+import { setPerformanceRoute } from "@/lib/performance/timing";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,7 @@ type RecruitmentPageProps = {
 };
 
 export default async function RecruitmentPage({ searchParams }: RecruitmentPageProps) {
+  setPerformanceRoute("/recruitment");
   const resolvedSearchParams = await searchParams;
   const data = await getRecruitmentPageData(resolvedSearchParams);
 

@@ -34,7 +34,7 @@ test.describe("table accessibility", () => {
     await page.goto("/retention");
     await expect(page.getByRole("columnheader", { name: /Provider/i }).first()).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: /Suggested outreach priority/i }),
+      page.getByRole("columnheader", { name: /Suggested outreach/i }),
     ).toBeVisible();
     await expect(page.getByRole("columnheader", { name: /Why review/i })).toBeVisible();
     await expect(page.getByRole("columnheader", { name: "Action" })).toBeVisible();

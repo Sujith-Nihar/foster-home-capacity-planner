@@ -1,10 +1,15 @@
 import {
+  getCachedFilterOptions,
+  getCachedReportingDate,
+  getCachedRetentionSummaryMetrics,
+} from "@/lib/data/cached-snapshot";
+import { timedOperation } from "@/lib/performance/timing";
+import {
   getActiveReportingDate,
   getServerSupabaseClient,
   mapProviderMetrics,
 } from "@/lib/supabase/server";
 import { wrapDataAccessError } from "@/lib/supabase/errors";
-import { getFilterOptions } from "@/lib/data/recruitment";
 import { sortRetentionProviders } from "@/lib/retention/query";
 import type {
   PaginatedResult,
@@ -136,13 +141,21 @@ export async function getRetentionSummaryMetrics(
   reportingDate?: string,
 ): Promise<RetentionSummaryDto> {
   const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
-  const [currentlyLicensedProviders, currentlyActiveProviders, licensesExpiringWithin90Days, highOutreachPriorityProviders] =
-    await Promise.all([
-      countRetentionProviders(activeReportingDate),
-      countRetentionProviders(activeReportingDate, { currentlyHasPlacement: true }),
-      countRetentionProviders(activeReportingDate, { maxDaysUntilExpiration: 90 }),
-      countRetentionProviders(activeReportingDate, { outreachPriority: "High" }),
-    ]);
+  if (!reportingDate || activeReportingDate === (await getCachedReportingDate())) {
+    return getCachedRetentionSummaryMetrics();
+  }
+
+  const [
+    currentlyLicensedProviders,
+    currentlyActiveProviders,
+    licensesExpiringWithin90Days,
+    highOutreachPriorityProviders,
+  ] = await Promise.all([
+    countRetentionProviders(activeReportingDate),
+    countRetentionProviders(activeReportingDate, { currentlyHasPlacement: true }),
+    countRetentionProviders(activeReportingDate, { maxDaysUntilExpiration: 90 }),
+    countRetentionProviders(activeReportingDate, { outreachPriority: "High" }),
+  ]);
 
   return {
     currentlyLicensedProviders,
@@ -151,6 +164,87 @@ export async function getRetentionSummaryMetrics(
     licensesExpiringWithin90Days,
     highOutreachPriorityProviders,
   };
+}
+
+async function listRetentionProviders(
+  params: RetentionSearchParams,
+): Promise<PaginatedResult<ProviderMetricsDto>> {
+  return timedOperation(
+    "listRetentionProviders",
+    async () => {
+      const reportingDate = await getActiveReportingDate();
+      const supabase = getServerSupabaseClient();
+      const from = (params.page - 1) * params.pageSize;
+      const to = from + params.pageSize - 1;
+
+      const buildQuery = () =>
+        applyRetentionFilters(
+          supabase.from("provider_metrics").select(RETENTION_LIST_COLUMNS, { count: "exact" }),
+          params,
+          reportingDate,
+        );
+
+      if (params.sort === "outreach_priority") {
+        const rankedResult = await buildQuery()
+          .order("outreach_priority_rank", {
+            ascending: params.direction === "asc",
+            nullsFirst: false,
+          })
+          .order("provider_id", { ascending: true })
+          .range(from, to);
+
+        if (!rankedResult.error) {
+          const totalCount = rankedResult.count ?? 0;
+          return {
+            items: (rankedResult.data ?? []).map(mapProviderMetrics),
+            page: params.page,
+            pageSize: params.pageSize,
+            totalCount,
+            totalPages: totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize),
+          };
+        }
+
+        const fallbackResult = await buildQuery();
+        if (fallbackResult.error) {
+          throw wrapDataAccessError("load retention providers", fallbackResult.error);
+        }
+
+        const sortedItems = sortRetentionProviders(
+          (fallbackResult.data ?? []).map(mapProviderMetrics),
+          params.sort,
+          params.direction,
+        );
+        const totalCount = fallbackResult.count ?? sortedItems.length;
+
+        return {
+          items: sortedItems.slice(from, to + 1),
+          page: params.page,
+          pageSize: params.pageSize,
+          totalCount,
+          totalPages: totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize),
+        };
+      }
+
+      const { data, error, count } = await buildQuery()
+        .order(params.sort, { ascending: params.direction === "asc", nullsFirst: false })
+        .range(from, to);
+
+      if (error) {
+        throw wrapDataAccessError("load retention providers", error);
+      }
+
+      const totalCount = count ?? 0;
+
+      return {
+        items: (data ?? []).map(mapProviderMetrics),
+        page: params.page,
+        pageSize: params.pageSize,
+        totalCount,
+        totalPages: totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize),
+      };
+    },
+    { rowCount: (result) => result.items.length, cache: "miss" },
+  );
 }
 
 export async function getRetentionProviders(
@@ -165,64 +259,6 @@ export async function getRetentionExportProviders(
   return listRetentionProviders(parseRetentionExportSearchParams(searchParams));
 }
 
-async function listRetentionProviders(
-  params: RetentionSearchParams,
-): Promise<PaginatedResult<ProviderMetricsDto>> {
-  const reportingDate = await getActiveReportingDate();
-  const supabase = getServerSupabaseClient();
-  const from = (params.page - 1) * params.pageSize;
-  const to = from + params.pageSize - 1;
-
-  const baseQuery = applyRetentionFilters(
-    supabase.from("provider_metrics").select(RETENTION_LIST_COLUMNS, { count: "exact" }),
-    params,
-    reportingDate,
-  );
-
-  if (params.sort === "outreach_priority") {
-    const { data, error, count } = await baseQuery;
-
-    if (error) {
-      throw wrapDataAccessError("load retention providers", error);
-    }
-
-    const sortedItems = sortRetentionProviders(
-      (data ?? []).map(mapProviderMetrics),
-      params.sort,
-      params.direction,
-    );
-    const totalCount = count ?? sortedItems.length;
-    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize);
-
-    return {
-      items: sortedItems.slice(from, to + 1),
-      page: params.page,
-      pageSize: params.pageSize,
-      totalCount,
-      totalPages,
-    };
-  }
-
-  const { data, error, count } = await baseQuery
-    .order(params.sort, { ascending: params.direction === "asc", nullsFirst: false })
-    .range(from, to);
-
-  if (error) {
-    throw wrapDataAccessError("load retention providers", error);
-  }
-
-  const totalCount = count ?? 0;
-  const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize);
-
-  return {
-    items: (data ?? []).map(mapProviderMetrics),
-    page: params.page,
-    pageSize: params.pageSize,
-    totalCount,
-    totalPages,
-  };
-}
-
 export async function getRetentionProvidersForCounty(
   county: string,
   searchParams: Record<string, string | string[] | undefined>,
@@ -233,26 +269,45 @@ export async function getRetentionProvidersForCounty(
   const from = (params.page - 1) * params.pageSize;
   const to = from + params.pageSize - 1;
 
-  const baseQuery = applyRetentionFilters(
-    supabase.from("provider_metrics").select(RETENTION_LIST_COLUMNS, { count: "exact" }),
-    params,
-    reportingDate,
-    county,
-  );
+  const buildQuery = () =>
+    applyRetentionFilters(
+      supabase.from("provider_metrics").select(RETENTION_LIST_COLUMNS, { count: "exact" }),
+      params,
+      reportingDate,
+      county,
+    );
 
   if (params.sort === "outreach_priority") {
-    const { data, error, count } = await baseQuery;
+    const rankedResult = await buildQuery()
+      .order("outreach_priority_rank", {
+        ascending: params.direction === "asc",
+        nullsFirst: false,
+      })
+      .order("provider_id", { ascending: true })
+      .range(from, to);
 
-    if (error) {
-      throw wrapDataAccessError("load retention providers", error);
+    if (!rankedResult.error) {
+      const totalCount = rankedResult.count ?? 0;
+      return {
+        items: (rankedResult.data ?? []).map(mapProviderMetrics),
+        page: params.page,
+        pageSize: params.pageSize,
+        totalCount,
+        totalPages: totalCount === 0 ? 0 : Math.ceil(totalCount / params.pageSize),
+      };
+    }
+
+    const fallbackResult = await buildQuery();
+    if (fallbackResult.error) {
+      throw wrapDataAccessError("load retention providers", fallbackResult.error);
     }
 
     const sortedItems = sortRetentionProviders(
-      (data ?? []).map(mapProviderMetrics),
+      (fallbackResult.data ?? []).map(mapProviderMetrics),
       params.sort,
       params.direction,
     );
-    const totalCount = count ?? sortedItems.length;
+    const totalCount = fallbackResult.count ?? sortedItems.length;
 
     return {
       items: sortedItems.slice(from, to + 1),
@@ -263,7 +318,7 @@ export async function getRetentionProvidersForCounty(
     };
   }
 
-  const { data, error, count } = await baseQuery
+  const { data, error, count } = await buildQuery()
     .order(params.sort, { ascending: params.direction === "asc", nullsFirst: false })
     .range(from, to);
 
@@ -293,6 +348,11 @@ export async function getRetentionPriorityDistribution(
   reportingDate?: string,
 ): Promise<RetentionPriorityDistributionDto> {
   const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  if (!reportingDate || activeReportingDate === (await getCachedReportingDate())) {
+    const { getCachedRetentionPriorityDistribution } = await import("@/lib/data/cached-snapshot");
+    return getCachedRetentionPriorityDistribution();
+  }
+
   const [high, medium, low] = await Promise.all([
     countByOutreachPriority("High", activeReportingDate),
     countByOutreachPriority("Medium", activeReportingDate),
@@ -305,16 +365,22 @@ export async function getRetentionPriorityDistribution(
 export async function getRetentionPageData(
   searchParams: Record<string, string | string[] | undefined>,
 ) {
-  const [providers, filterOptions, summary] = await Promise.all([
-    getRetentionProviders(searchParams),
-    getFilterOptions(),
-    getRetentionSummaryMetrics(),
-  ]);
+  return timedOperation(
+    "getRetentionPageData",
+    async () => {
+      const [providers, filterOptions, summary] = await Promise.all([
+        getRetentionProviders(searchParams),
+        getCachedFilterOptions(),
+        getCachedRetentionSummaryMetrics(),
+      ]);
 
-  return {
-    providers,
-    filterOptions,
-    summary,
-    searchParams: parseRetentionSearchParams(searchParams),
-  };
+      return {
+        providers,
+        filterOptions,
+        summary,
+        searchParams: parseRetentionSearchParams(searchParams),
+      };
+    },
+    { cache: "miss" },
+  );
 }

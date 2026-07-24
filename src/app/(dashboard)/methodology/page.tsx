@@ -1,10 +1,12 @@
 import { MethodologyPageContent } from "@/components/methodology/methodology-page-content";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { getMethodologyPageData } from "@/lib/data/methodology";
+import { setPerformanceRoute } from "@/lib/performance/timing";
 
 export const dynamic = "force-dynamic";
 
 export default async function MethodologyPage() {
+  setPerformanceRoute("/methodology");
   const data = await getMethodologyPageData();
 
   return (

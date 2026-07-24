@@ -1,13 +1,12 @@
 import {
-  getServerSupabaseClient,
-  executeSupabaseQuery,
-  getActiveReportingDate,
-  mapCountyMetrics,
-  mapDatasetMetadata,
-  mapMonthlyMetrics,
-  mapSystemSnapshot,
-  type Database,
-} from "@/lib/supabase/server";
+  getCachedLargestCounties,
+  getCachedMonthlyMetrics,
+  getCachedRecruitmentCountyRanking,
+  getCachedRetentionPriorityDistribution,
+  getCachedRetentionSummaryMetrics,
+  getCachedSystemSnapshot,
+} from "@/lib/data/cached-snapshot";
+import { timedOperation } from "@/lib/performance/timing";
 import type {
   CountyMetricsDto,
   DatasetMetadataDto,
@@ -17,31 +16,29 @@ import type {
   SystemSnapshotDto,
 } from "@/lib/types/domain";
 import { formatCount, formatPercent } from "@/lib/utils/formatters";
-import { getRecruitmentCountyRanking } from "@/lib/data/recruitment";
-import { getRetentionPriorityDistribution, getRetentionSummaryMetrics } from "@/lib/data/retention";
+import {
+  executeSupabaseQuery,
+  getServerSupabaseClient,
+  type Database,
+} from "@/lib/supabase/server";
 
 export async function getDatasetMetadata(): Promise<DatasetMetadataDto> {
-  const supabase = getServerSupabaseClient();
-  const row = await executeSupabaseQuery<Database["public"]["Tables"]["dataset_metadata"]["Row"]>(
-    "load dataset metadata",
-    async () =>
-      supabase
-        .from("dataset_metadata")
-        .select(
-          "dataset_version, reporting_date, generated_at, source_hash, etl_version, provider_count, child_count, placement_count",
-        )
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-  );
-
-  return mapDatasetMetadata(row);
+  const { getCachedDatasetMetadata } = await import("@/lib/data/cached-snapshot");
+  return getCachedDatasetMetadata();
 }
 
 export async function getSystemSnapshot(
   reportingDate?: string,
 ): Promise<SystemSnapshotDto> {
-  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  if (!reportingDate) {
+    return getCachedSystemSnapshot();
+  }
+
+  const { getCachedReportingDate } = await import("@/lib/data/cached-snapshot");
+  if (reportingDate === (await getCachedReportingDate())) {
+    return getCachedSystemSnapshot();
+  }
+
   const supabase = getServerSupabaseClient();
   const row = await executeSupabaseQuery<Database["public"]["Tables"]["system_snapshot"]["Row"]>(
     "load system snapshot",
@@ -51,33 +48,31 @@ export async function getSystemSnapshot(
         .select(
           "reporting_date, current_children_in_care, current_foster_home_children, current_kin_children, current_nonfamily_children, currently_licensed_providers, currently_active_providers, high_recruitment_counties, high_retention_providers",
         )
-        .eq("reporting_date", activeReportingDate)
+        .eq("reporting_date", reportingDate)
         .maybeSingle(),
   );
 
+  const { mapSystemSnapshot } = await import("@/lib/supabase/server");
   return mapSystemSnapshot(row);
 }
 
 export async function getMonthlyMetrics(limit = 24): Promise<MonthlyMetricsDto[]> {
-  const supabase = getServerSupabaseClient();
-  const rows = await executeSupabaseQuery("load monthly metrics", async () =>
-    supabase
-      .from("monthly_metrics")
-      .select(
-        "month, new_license_starts, license_expirations, active_provider_count, foster_home_placement_starts",
-      )
-      .order("month", { ascending: false })
-      .limit(limit),
-  );
-
-  return rows.map(mapMonthlyMetrics).reverse();
+  return getCachedMonthlyMetrics(limit);
 }
 
 export async function getLargestCountiesByFosterPlacements(
   limit = 5,
   reportingDate?: string,
 ): Promise<CountyMetricsDto[]> {
-  const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
+  if (!reportingDate) {
+    return getCachedLargestCounties(limit);
+  }
+
+  const { getCachedReportingDate } = await import("@/lib/data/cached-snapshot");
+  if (reportingDate === (await getCachedReportingDate())) {
+    return getCachedLargestCounties(limit);
+  }
+
   const supabase = getServerSupabaseClient();
   const rows = await executeSupabaseQuery("load largest counties by foster placements", async () =>
     supabase
@@ -85,11 +80,12 @@ export async function getLargestCountiesByFosterPlacements(
       .select(
         "county, reporting_date, current_children_in_care, current_foster_home_children, current_kin_children, current_nonfamily_children, licensed_providers, active_providers, inactive_providers, children_per_active_provider, out_of_county_foster_count, out_of_county_foster_rate, expiring_90_days, expiring_180_days, high_retention_providers, medium_retention_providers, highest_pressure_age_group, recruitment_priority, recruitment_reasons",
       )
-      .eq("reporting_date", activeReportingDate)
+      .eq("reporting_date", reportingDate)
       .order("current_foster_home_children", { ascending: false })
       .limit(limit),
   );
 
+  const { mapCountyMetrics } = await import("@/lib/supabase/server");
   return rows.map(mapCountyMetrics);
 }
 
@@ -154,36 +150,50 @@ export async function getOverviewInsights(): Promise<OverviewInsightsDto> {
   });
 }
 
+async function getRecruitmentCountyRanking(limit: number) {
+  return getCachedRecruitmentCountyRanking(limit);
+}
+
+async function getRetentionPriorityDistribution() {
+  return getCachedRetentionPriorityDistribution();
+}
+
 export async function getOverviewPageData() {
-  const [
-    snapshot,
-    monthlyMetrics,
-    topRecruitmentCounties,
-    retentionDistribution,
-    largestCounties,
-    retentionSummary,
-  ] = await Promise.all([
-    getSystemSnapshot(),
-    getMonthlyMetrics(24),
-    getRecruitmentCountyRanking(10),
-    getRetentionPriorityDistribution(),
-    getLargestCountiesByFosterPlacements(5),
-    getRetentionSummaryMetrics(),
-  ]);
+  return timedOperation(
+    "getOverviewPageData",
+    async () => {
+      const [
+        snapshot,
+        monthlyMetrics,
+        topRecruitmentCounties,
+        retentionDistribution,
+        largestCounties,
+        retentionSummary,
+      ] = await Promise.all([
+        getCachedSystemSnapshot(),
+        getCachedMonthlyMetrics(24),
+        getCachedRecruitmentCountyRanking(10),
+        getCachedRetentionPriorityDistribution(),
+        getCachedLargestCounties(5),
+        getCachedRetentionSummaryMetrics(),
+      ]);
 
-  const insights = buildOverviewInsights({
-    snapshot,
-    topRecruitmentCounties,
-    retentionDistribution,
-  });
+      const insights = buildOverviewInsights({
+        snapshot,
+        topRecruitmentCounties,
+        retentionDistribution,
+      });
 
-  return {
-    snapshot,
-    monthlyMetrics,
-    topRecruitmentCounties,
-    retentionDistribution,
-    largestCounties,
-    retentionSummary,
-    insights,
-  };
+      return {
+        snapshot,
+        monthlyMetrics,
+        topRecruitmentCounties,
+        retentionDistribution,
+        largestCounties,
+        retentionSummary,
+        insights,
+      };
+    },
+    { cache: "hit" },
+  );
 }
