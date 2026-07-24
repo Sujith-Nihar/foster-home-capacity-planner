@@ -6,7 +6,7 @@ test.describe("foundation routes", () => {
     await page.goto("/");
 
     await expect(
-      page.getByRole("heading", { name: "Overview", exact: true }),
+      page.getByRole("heading", { name: /Translate foster-home data into clear action/i }),
     ).toBeVisible();
 
     const robots = await page.locator('meta[name="robots"]').getAttribute("content");
@@ -17,14 +17,42 @@ test.describe("foundation routes", () => {
   test("primary navigation routes are reachable", async ({ page }) => {
     await page.goto("/");
 
-    for (const label of ["Recruitment", "Retention", "Methodology"]) {
-      await page.getByRole("link", { name: label, exact: true }).click();
-      await expect(page.getByRole("heading", { name: label, exact: true })).toBeVisible();
+    const routes = [
+      {
+        label: "Recruitment",
+        heading: "Focus recruitment where children and communities need it most.",
+      },
+      {
+        label: "Retention",
+        heading: "Support the foster homes already serving Illinois families.",
+      },
+      {
+        label: "Methodology",
+        heading: "Understand how metrics are defined and what they can support.",
+      },
+    ] as const;
+
+    for (const route of routes) {
+      await page.getByRole("link", { name: route.label, exact: true }).click();
+      await expect(page.getByRole("heading", { name: new RegExp(route.heading.replace(/\.$/, ""), "i") })).toBeVisible();
     }
   });
 
   test("overview passes basic axe checks", async ({ page }) => {
     await page.goto("/");
+    await page.getByRole("heading", { level: 1 }).first().waitFor();
+
+    const reveals = page.locator(".section-reveal--enhanced");
+    const count = await reveals.count();
+    for (let index = 0; index < count; index += 1) {
+      await reveals.nth(index).scrollIntoViewIfNeeded();
+    }
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll(".section-reveal--enhanced")].every((element) =>
+        element.classList.contains("section-reveal--visible"),
+      ),
+    );
+    await page.evaluate(() => window.scrollTo(0, 0));
 
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
     expect(accessibilityScanResults.violations).toEqual([]);

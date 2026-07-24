@@ -4,7 +4,11 @@ test.describe("retention page", () => {
   test("renders KPI cards, decision-support callout, and provider table", async ({ page }) => {
     await page.goto("/retention");
 
-    await expect(page.getByRole("heading", { name: "Retention", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /Support the foster homes already serving Illinois families/i,
+      }),
+    ).toBeVisible();
     await expect(page.getByText("Licensed providers", { exact: true })).toBeVisible();
     await expect(page.getByText("High outreach priority", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: /licenses expire within 90 days/i })).toBeVisible();

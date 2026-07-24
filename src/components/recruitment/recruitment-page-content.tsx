@@ -38,11 +38,10 @@ export function RecruitmentPageContent({
   return (
     <div className="space-y-8">
       <PageIntroduction
-        title="Recruitment"
         eyebrow="RECRUITMENT"
         headline="Focus recruitment where children and communities need it most."
         highlightPhrase="need it most"
-        description="County-level foster home recruitment planning priorities based on current placement pressure."
+        description="Compare provider-base pressure, placement location and current age preferences across Illinois counties."
         aside={
           <div className="metric-card-surface p-5">
             <p className="eyebrow-label text-text-tertiary">Featured metric</p>

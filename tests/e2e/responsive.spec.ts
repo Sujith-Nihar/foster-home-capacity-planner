@@ -27,7 +27,9 @@ for (const viewport of VIEWPORTS) {
 
     test("renders overview and navigation without horizontal overflow", async ({ page }) => {
       await page.goto("/");
-      await expect(page.getByRole("heading", { name: "Overview", exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: /Translate foster-home data into clear action/i }),
+      ).toBeVisible();
       await expectNoHorizontalOverflow(page);
     });
 
@@ -56,7 +58,11 @@ test.describe("desktop horizontal overflow at 1440px", () => {
 
   test("recruitment table fits without page-level horizontal scroll", async ({ page }) => {
     await page.goto("/recruitment");
-    await expect(page.getByRole("heading", { name: "Recruitment", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /Focus recruitment where children and communities need it most/i,
+      }),
+    ).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });

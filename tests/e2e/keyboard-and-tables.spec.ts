@@ -21,7 +21,11 @@ test.describe("keyboard navigation", () => {
     await recruitmentLink.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/recruitment$/);
-    await expect(page.getByRole("heading", { name: "Recruitment", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: /Focus recruitment where children and communities need it most/i,
+      }),
+    ).toBeVisible();
   });
 });
 

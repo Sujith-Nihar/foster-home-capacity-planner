@@ -95,12 +95,12 @@ export function PlacementTypeChart({ snapshot }: PlacementTypeChartProps) {
           <CartesianGrid stroke="var(--border-default)" vertical={false} />
           <XAxis
             dataKey="type"
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickLine={false}
             axisLine={{ stroke: "var(--border-default)" }}
           />
           <YAxis
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickLine={false}
             axisLine={{ stroke: "var(--border-default)" }}
             tickFormatter={(value: number) => formatCount(value)}

@@ -87,14 +87,14 @@ export function RecruitmentScatterChart({ counties }: RecruitmentScatterChartPro
             type="number"
             dataKey="x"
             name="Children per active provider"
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickFormatter={(value: number) => formatRatio(value)}
           />
           <YAxis
             type="number"
             dataKey="y"
             name="Out-of-county rate"
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickFormatter={(value: number) => formatNullablePercent(value)}
           />
           <ZAxis type="number" dataKey="z" range={[40, 400]} name="Foster-home children" />

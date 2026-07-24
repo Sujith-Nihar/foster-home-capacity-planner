@@ -14,6 +14,23 @@ test.describe("accessibility", () => {
   for (const route of MAJOR_ROUTES) {
     test(`passes axe checks on ${route}`, async ({ page }) => {
       await page.goto(route);
+
+      await page.getByRole("heading", { level: 1 }).first().waitFor();
+
+      if (route === "/") {
+        const reveals = page.locator(".section-reveal--enhanced");
+        const count = await reveals.count();
+        for (let index = 0; index < count; index += 1) {
+          await reveals.nth(index).scrollIntoViewIfNeeded();
+        }
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll(".section-reveal--enhanced")].every((element) =>
+            element.classList.contains("section-reveal--visible"),
+          ),
+        );
+      }
+
+      await page.evaluate(() => window.scrollTo(0, 0));
       const results = await new AxeBuilder({ page }).analyze();
       expect(results.violations).toEqual([]);
     });

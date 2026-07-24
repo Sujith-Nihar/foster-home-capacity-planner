@@ -34,11 +34,10 @@ export function RetentionPageContent({
   return (
     <div className="space-y-8">
       <PageIntroduction
-        title="Retention"
         eyebrow="RETENTION"
-        headline="Support and retain the foster homes already serving Illinois families."
-        highlightPhrase="foster homes"
-        description="Identify providers who may benefit from outreach based on recent activity, engagement and upcoming license renewal."
+        headline="Support the foster homes already serving Illinois families."
+        highlightPhrase="support the foster homes"
+        description="Identify licensed providers who may benefit from outreach based on activity, engagement and license timing."
         actions={[{ label: "View expiring licenses", href: "/retention?expiration=within_90" }]}
       />
 

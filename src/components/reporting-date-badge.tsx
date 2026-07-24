@@ -23,7 +23,7 @@ export function ReportingDateBadge({
       <CalendarDays className="size-4 shrink-0 text-text-tertiary" aria-hidden="true" />
       <span>
         Reporting date:{" "}
-        <time dateTime={reportingDate} className="font-medium tabular-nums text-text-primary">
+        <time dateTime={reportingDate} className="font-semibold tabular-nums text-text-primary">
           {formatReportingDate(reportingDate)}
         </time>
       </span>

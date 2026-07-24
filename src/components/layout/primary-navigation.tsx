@@ -61,13 +61,11 @@ export function PrimaryNavigation({
   const isHorizontal = orientation === "horizontal";
 
   return (
-    <nav aria-label="Primary" className={cn("relative", className)}>
+    <nav aria-label="Primary navigation" className={cn("relative", className)}>
       <ul
         ref={navRef}
         className={cn(
-          isHorizontal
-            ? "flex items-center gap-1"
-            : "flex flex-col gap-1",
+          isHorizontal ? "app-header-nav" : "flex flex-col gap-1",
         )}
       >
         {PRIMARY_NAV_ITEMS.map((item) => {
@@ -80,11 +78,11 @@ export function PrimaryNavigation({
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative inline-flex items-center rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  isHorizontal ? "h-10" : "h-11 w-full",
+                  "app-header-nav__link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  isHorizontal ? "app-header-nav__link--horizontal" : "app-header-nav__link--vertical",
                   active
-                    ? "font-medium text-brand-navy"
-                    : "font-normal text-text-secondary hover:text-text-primary",
+                    ? "app-header-nav__link--active"
+                    : "app-header-nav__link--inactive",
                 )}
               >
                 {item.label}
@@ -95,7 +93,7 @@ export function PrimaryNavigation({
       </ul>
       {isHorizontal ? (
         <span
-          className="nav-tab-underline"
+          className="app-header-nav__underline"
           style={{
             width: underline.width,
             transform: `translateX(${underline.left}px)`,

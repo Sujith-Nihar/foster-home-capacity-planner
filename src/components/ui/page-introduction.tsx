@@ -10,7 +10,7 @@ type PageIntroductionAction = {
 };
 
 type PageIntroductionProps = {
-  title: string;
+  title?: string;
   eyebrow: string;
   headline?: string;
   highlightPhrase?: string;
@@ -18,6 +18,7 @@ type PageIntroductionProps = {
   actions?: PageIntroductionAction[];
   aside?: ReactNode;
   className?: string;
+  variant?: "hero" | "operational";
 };
 
 export function PageIntroduction({
@@ -29,15 +30,18 @@ export function PageIntroduction({
   actions,
   aside,
   className,
+  variant = "operational",
 }: PageIntroductionProps) {
-  const displayHeadline = headline ?? title;
+  const displayHeadline = headline ?? title ?? "";
+  const isHero = variant === "hero";
 
   function renderHeadline() {
     if (!highlightPhrase || !displayHeadline.includes(highlightPhrase)) {
       return displayHeadline;
     }
 
-    const [before, after] = displayHeadline.split(highlightPhrase);
+    const [before, ...rest] = displayHeadline.split(highlightPhrase);
+    const after = rest.join(highlightPhrase);
 
     return (
       <>
@@ -52,36 +56,37 @@ export function PageIntroduction({
   }
 
   return (
-    <section className={cn("page-intro section-enter", className)} aria-labelledby="page-intro-title">
+    <section
+      className={cn(
+        "page-intro",
+        isHero ? "page-intro--hero" : "page-intro--operational",
+        className,
+      )}
+    >
       <div
         className={cn(
           "grid w-full gap-6",
           aside ? "lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center" : "",
+          isHero && !aside && "mx-auto max-w-3xl",
         )}
       >
-        <div className="space-y-3">
+        <div className={cn("space-y-4", isHero && "flex flex-col items-center")}>
           <p className="eyebrow-label">{eyebrow}</p>
-          <h1
-            id="page-intro-title"
-            className="text-lg font-medium tracking-tight text-brand-navy"
-          >
-            {title}
+          <h1 id="page-intro-title" className="page-intro-headline">
+            {renderHeadline()}
           </h1>
-          {headline ? (
-            <p className="page-intro-headline">{renderHeadline()}</p>
+          {description ? (
+            <p className={cn("page-intro-description", isHero && "text-center")}>{description}</p>
           ) : null}
-          {description ? <p className="page-intro-description">{description}</p> : null}
           {actions && actions.length > 0 ? (
-            <div className="flex flex-wrap gap-3 pt-1">
+            <div className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}>
               {actions.map((action, index) => (
                 <Link
                   key={action.href}
                   href={action.href}
                   className={cn(
-                    "inline-flex h-10 items-center rounded-full px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    index === 0
-                      ? "bg-brand-navy text-white hover:bg-brand-navy-dark"
-                      : "border border-border-default bg-surface-raised text-text-primary hover:bg-surface-tint",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    index === 0 ? "fi-btn-primary" : "fi-btn-secondary",
                   )}
                 >
                   {action.label}

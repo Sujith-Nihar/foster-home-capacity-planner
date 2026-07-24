@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type SectionTone = "default" | "raised" | "tint" | "attention";
+type SectionTone = "default" | "raised" | "tint" | "attention" | "dark";
 
 type SectionShellProps = {
   children: ReactNode;
@@ -18,6 +18,7 @@ const toneClasses: Record<SectionTone, string> = {
   tint: "rounded-[var(--radius-hero)] bg-surface-tint p-6 sm:p-8",
   attention:
     "rounded-[var(--radius-hero)] border border-status-medium-border bg-attention-ivory p-6 sm:p-8",
+  dark: "fi-dark-section px-0 py-10 sm:py-14",
 };
 
 export function SectionShell({
@@ -33,7 +34,7 @@ export function SectionShell({
       id={id}
       aria-labelledby={ariaLabelledBy}
       aria-label={ariaLabel}
-      className={cn("section-enter", toneClasses[tone], className)}
+      className={cn(toneClasses[tone], className)}
     >
       {children}
     </section>
@@ -46,6 +47,7 @@ type SectionHeadingProps = {
   eyebrow?: string;
   className?: string;
   titleId?: string;
+  inverted?: boolean;
 };
 
 export function SectionHeading({
@@ -54,14 +56,34 @@ export function SectionHeading({
   eyebrow,
   className,
   titleId,
+  inverted = false,
 }: SectionHeadingProps) {
   return (
     <div className={cn("mb-5 space-y-2", className)}>
-      {eyebrow ? <p className="eyebrow-label text-text-tertiary">{eyebrow}</p> : null}
-      <h2 id={titleId} className="text-xl font-medium tracking-tight text-text-primary sm:text-2xl">
+      {eyebrow ? (
+        <p className={cn("eyebrow-label", inverted ? "text-white/72" : "text-text-tertiary")}>
+          {eyebrow}
+        </p>
+      ) : null}
+      <h2
+        id={titleId}
+        className={cn(
+          "text-[clamp(1.625rem,2.5vw,2.125rem)] font-medium tracking-tight",
+          inverted ? "text-white" : "text-text-primary",
+        )}
+      >
         {title}
       </h2>
-      {description ? <p className="max-w-3xl text-sm leading-6 text-text-secondary">{description}</p> : null}
+      {description ? (
+        <p
+          className={cn(
+            "max-w-3xl text-base leading-relaxed",
+            inverted ? "text-white/78" : "text-text-secondary",
+          )}
+        >
+          {description}
+        </p>
+      ) : null}
     </div>
   );
 }

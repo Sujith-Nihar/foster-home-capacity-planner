@@ -74,14 +74,14 @@ export function AgeGroupPressureChart({ data }: AgeGroupPressureChartProps) {
           <CartesianGrid stroke="var(--border-default)" horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickFormatter={(value: number) => formatRatio(value)}
           />
           <YAxis
             type="category"
             dataKey="ageGroup"
             width={72}
-            tick={{ fill: "var(--text-tertiary)", fontSize: 12 }}
+            tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
           />
           <Tooltip content={<ChartTooltip />} />
           <Bar
