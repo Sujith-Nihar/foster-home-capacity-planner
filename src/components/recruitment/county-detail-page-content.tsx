@@ -10,25 +10,25 @@ import {
 import { MetricCard } from "@/components/metric-card";
 import { CountyLimitationsPanel } from "@/components/recruitment/county-limitations-panel";
 import { CountyRetentionTable } from "@/components/recruitment/county-retention-table";
-import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { ReasonList } from "@/components/reason-list";
 import { DataTableShell } from "@/components/data-table-shell";
 import {
   Table,
   TableBody,
   TableCell,
+  TableCol,
+  TableColgroup,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { tableColumnClasses } from "@/components/ui/table-utils";
 import type { CountyPageData } from "@/lib/data/counties";
 import { ageGroupSectionLabel } from "@/lib/recruitment/county-detail";
 import {
   formatCount,
-  formatCountyName,
   formatNullablePercent,
   formatRatio,
-  formatRecruitmentPriorityLabel,
 } from "@/lib/utils/formatters";
 
 type CountyDetailPageContentProps = {
@@ -36,34 +36,13 @@ type CountyDetailPageContentProps = {
 };
 
 export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) {
-  const { county, ageGroups, retentionProviders, retentionPagination, priorityExplanation, limitations } =
-    data;
+  const { county, ageGroups, retentionProviders, retentionPagination, limitations } = data;
 
   return (
     <div className="space-y-8">
-      <section
-        aria-labelledby="county-summary-heading"
-        className="section-enter overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised p-6 sm:p-8"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <p className="eyebrow-label text-text-tertiary">County executive summary</p>
-            <h2 id="county-summary-heading" className="text-2xl font-medium tracking-tight text-text-primary">
-              {formatCountyName(county.county)}
-            </h2>
-          </div>
-          <PriorityBadge
-            level={priorityToAttentionLevel(county.recruitmentPriority)}
-            label={formatRecruitmentPriorityLabel(county.recruitmentPriority)}
-          />
-        </div>
-        <p className="mt-4 text-sm leading-6 text-text-secondary">{priorityExplanation}</p>
-        {county.recruitmentReasons.length > 0 ? (
-          <div className="mt-4">
-            <ReasonList title="Readable priority reasons" reasons={county.recruitmentReasons} />
-          </div>
-        ) : null}
-      </section>
+      {county.recruitmentReasons.length > 0 ? (
+        <ReasonList title="Readable priority reasons" reasons={county.recruitmentReasons} headingLevel="h2" />
+      ) : null}
 
       <section aria-labelledby="county-demand-heading" className="space-y-4">
         <h2 id="county-demand-heading" className="text-lg font-semibold text-text-primary">
@@ -177,44 +156,53 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
               No age-group pressure metrics are available for this county.
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead scope="col">Age group</TableHead>
-                  <TableHead scope="col" className="text-right">
-                    Foster-home children
-                  </TableHead>
-                  <TableHead scope="col" className="text-right">
-                    Matching licensed providers
-                  </TableHead>
-                  <TableHead scope="col" className="text-right">
-                    Matching active providers
-                  </TableHead>
-                  <TableHead scope="col" className="text-right">
-                    Children per matching active provider
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ageGroups.map((group) => (
-                  <TableRow key={group.ageGroup}>
-                    <TableCell>{ageGroupSectionLabel(group.ageGroup)}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCount(group.currentFosterHomeChildren)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCount(group.matchingLicensedProviders)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCount(group.matchingActiveProviders)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatRatio(group.childrenPerMatchingActiveProvider)}
-                    </TableCell>
+            <div className="data-table-viewport--scroll">
+              <Table>
+                <TableColgroup>
+                  <TableCol style={{ width: "24%" }} />
+                  <TableCol style={{ width: "16%" }} />
+                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "20%" }} />
+                  <TableCol className={tableColumnClasses.tabletHidden} style={{ width: "20%" }} />
+                  <TableCol style={{ width: "20%" }} />
+                </TableColgroup>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead scope="col">Age group</TableHead>
+                    <TableHead scope="col" className={tableColumnClasses.numeric}>
+                      Foster-home children
+                    </TableHead>
+                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                      Licensed providers
+                    </TableHead>
+                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                      Active providers
+                    </TableHead>
+                    <TableHead scope="col" className={tableColumnClasses.numeric}>
+                      Children per provider
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {ageGroups.map((group) => (
+                    <TableRow key={group.ageGroup}>
+                      <TableCell>{ageGroupSectionLabel(group.ageGroup)}</TableCell>
+                      <TableCell className={tableColumnClasses.numeric}>
+                        {formatCount(group.currentFosterHomeChildren)}
+                      </TableCell>
+                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                        {formatCount(group.matchingLicensedProviders)}
+                      </TableCell>
+                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
+                        {formatCount(group.matchingActiveProviders)}
+                      </TableCell>
+                      <TableCell className={tableColumnClasses.numeric}>
+                        {formatRatio(group.childrenPerMatchingActiveProvider)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </DataTableShell>
       </section>

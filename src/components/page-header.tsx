@@ -11,6 +11,7 @@ type PageHeaderProps = {
   actions?: ReactNode;
   className?: string;
   eyebrow?: string;
+  status?: ReactNode;
 };
 
 export function PageHeader({
@@ -20,11 +21,12 @@ export function PageHeader({
   actions,
   className,
   eyebrow,
+  status,
 }: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "section-enter mb-8 overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised p-6 sm:p-8",
+        "section-enter mb-8 border-b border-border-subtle pb-6",
         className,
       )}
     >
@@ -32,16 +34,21 @@ export function PageHeader({
         <Breadcrumbs items={breadcrumbs} className="mb-4" />
       ) : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          {eyebrow ? <p className="eyebrow-label text-text-tertiary">{eyebrow}</p> : null}
-          <h1 className="text-3xl font-medium tracking-tight text-text-primary sm:text-4xl">{title}</h1>
+        <div className="space-y-3">
+          {eyebrow ? <p className="eyebrow-label">{eyebrow}</p> : null}
+          <h1 className="max-w-3xl text-2xl font-medium tracking-tight text-text-primary sm:text-3xl">
+            {title}
+          </h1>
           {description ? (
-            <p className="max-w-3xl text-sm leading-6 text-text-secondary sm:text-[15px]">
+            <p className="max-w-2xl text-sm leading-6 text-text-secondary sm:text-[15px]">
               {description}
             </p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+          {status}
+          {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+        </div>
       </div>
     </header>
   );

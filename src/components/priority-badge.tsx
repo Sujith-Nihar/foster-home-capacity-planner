@@ -37,7 +37,7 @@ const LEVEL_CONFIG: Record<
   },
   limited: {
     icon: CircleHelp,
-    className: "border-border-strong bg-muted text-text-secondary [&>svg]:text-text-tertiary",
+    className: "border-border-strong bg-muted text-text-primary [&>svg]:text-text-secondary",
   },
 };
 

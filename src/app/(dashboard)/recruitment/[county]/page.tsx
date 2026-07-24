@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import { MethodologyLink } from "@/components/methodology-link";
 import { PageHeader } from "@/components/page-header";
+import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
 import { CountyNotFound } from "@/components/recruitment/county-not-found";
 import { APP_TITLE } from "@/config/navigation";
 import { getCountyPageData } from "@/lib/data/counties";
 import { breadcrumbCounty } from "@/lib/navigation/breadcrumbs";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
-import { formatCountyName } from "@/lib/utils/formatters";
+import { formatCountyName, formatRecruitmentPriorityLabel } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,16 @@ export default async function CountyDetailPage({
   return (
     <>
       <PageHeader
+        eyebrow="COUNTY BRIEFING"
         title={displayName}
-        description="County recruitment context, age-group pressure, and linked retention outreach providers."
+        description={data.priorityExplanation}
         breadcrumbs={breadcrumbCounty(displayName)}
+        status={
+          <PriorityBadge
+            level={priorityToAttentionLevel(data.county.recruitmentPriority)}
+            label={formatRecruitmentPriorityLabel(data.county.recruitmentPriority)}
+          />
+        }
       />
       <CountyDetailPageContent data={data} />
       <div className="mt-8">

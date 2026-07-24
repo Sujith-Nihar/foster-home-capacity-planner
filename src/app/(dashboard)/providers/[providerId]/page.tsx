@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import { MethodologyLink } from "@/components/methodology-link";
 import { PageHeader } from "@/components/page-header";
+import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
 import { ProviderNotFound } from "@/components/providers/provider-not-found";
 import { APP_TITLE } from "@/config/navigation";
 import { getProviderPageData } from "@/lib/data/providers";
 import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
 import { parseProviderRouteId } from "@/lib/navigation/providers";
-import { formatProviderId } from "@/lib/utils/formatters";
+import { formatOutreachPriorityLabel, formatProviderId } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +45,16 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
   return (
     <>
       <PageHeader
+        eyebrow="PROVIDER BRIEFING"
         title={`Provider ${formatProviderId(data.provider.providerId)}`}
         description="License status, recent activity, and outreach priority context for a single licensed provider."
         breadcrumbs={breadcrumbProvider(String(data.provider.providerId))}
+        status={
+          <PriorityBadge
+            level={priorityToAttentionLevel(data.provider.outreachPriority)}
+            label={formatOutreachPriorityLabel(data.provider.outreachPriority)}
+          />
+        }
       />
       <ProviderDetailPageContent data={data} />
       <div className="mt-8">

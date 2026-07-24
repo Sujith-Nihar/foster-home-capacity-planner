@@ -7,6 +7,7 @@ type ReasonListProps = {
   reasons: string[];
   emptyMessage?: string;
   className?: string;
+  headingLevel?: "h2" | "h3";
 };
 
 export function ReasonList({
@@ -14,16 +15,19 @@ export function ReasonList({
   reasons,
   emptyMessage = "No contributing factors recorded.",
   className,
+  headingLevel = "h3",
 }: ReasonListProps) {
+  const HeadingTag = headingLevel;
+
   return (
     <section className={cn("space-y-2", className)} aria-labelledby="reason-list-heading">
-      <h3
+      <HeadingTag
         id="reason-list-heading"
         className="flex items-center gap-2 text-sm font-medium text-text-primary"
       >
         <ListChecks className="size-4 text-text-tertiary" aria-hidden="true" />
         {title}
-      </h3>
+      </HeadingTag>
       {reasons.length > 0 ? (
         <ul className="list-disc space-y-1 pl-5 text-sm text-text-secondary">
           {reasons.map((reason) => (

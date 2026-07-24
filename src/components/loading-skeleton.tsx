@@ -16,6 +16,7 @@ export function LoadingSkeleton({ className, rows = 3 }: LoadingSkeletonProps) {
       aria-busy="true"
       aria-live="polite"
       aria-label="Loading content"
+      role="status"
     >
       <SkeletonBlock className="h-8 w-48" />
       <SkeletonBlock className="h-4 w-full max-w-xl" />

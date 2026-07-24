@@ -65,7 +65,7 @@ export function AttentionPanel({
             </Link>
             <Link
               href="/recruitment"
-              className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium text-accent-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium text-brand-navy underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Explore recruitment needs
             </Link>
@@ -75,19 +75,19 @@ export function AttentionPanel({
           <p className="eyebrow-label text-text-tertiary">Supporting signals</p>
           <dl className="mt-4 space-y-4">
             <div>
-              <dt className="text-xs text-text-tertiary">Licenses expiring ≤ 90 days</dt>
+              <dt className="text-xs text-text-secondary">Licenses expiring ≤ 90 days</dt>
               <dd className="mt-1 text-2xl font-semibold tabular-nums text-text-primary">
                 {formatCount(retentionSummary.licensesExpiringWithin90Days)}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-text-tertiary">High outreach priority</dt>
+              <dt className="text-xs text-text-secondary">High outreach priority</dt>
               <dd className="mt-1 text-2xl font-semibold tabular-nums text-text-primary">
                 {formatCount(retentionDistribution.high)}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-text-tertiary">High recruitment counties</dt>
+              <dt className="text-xs text-text-secondary">High recruitment counties</dt>
               <dd className="mt-1 text-2xl font-semibold tabular-nums text-text-primary">
                 {formatCount(snapshot.highRecruitmentCounties)}
               </dd>

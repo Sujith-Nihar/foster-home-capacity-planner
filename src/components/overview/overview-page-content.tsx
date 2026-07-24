@@ -4,9 +4,9 @@ import { PlacementTypeChart } from "@/components/charts/placement-type-chart";
 import { RetentionDistributionChart } from "@/components/charts/retention-distribution-chart";
 import { MethodologyLink } from "@/components/methodology-link";
 import { AttentionPanel } from "@/components/overview/attention-panel";
-import { OverviewBentoGrid } from "@/components/overview/overview-bento-grid";
-import { OverviewHero } from "@/components/overview/overview-hero";
+import { OverviewMetricsGrid } from "@/components/overview/overview-metrics-grid";
 import { RecruitmentCountiesSection } from "@/components/overview/recruitment-counties-section";
+import { PageIntroduction } from "@/components/ui/page-introduction";
 import { SectionHeading, SectionShell } from "@/components/ui/section-shell";
 import type {
   CountyMetricsDto,
@@ -37,12 +37,20 @@ export function OverviewPageContent({
   largestCounties,
 }: OverviewPageContentProps) {
   return (
-    <div className="space-y-6">
-      <OverviewHero snapshot={snapshot} />
+    <div className="space-y-8">
+      <PageIntroduction
+        title="Overview"
+        eyebrow="STATEWIDE OVERVIEW"
+        headline="Translate foster-home data into clear action."
+        highlightPhrase="clear action"
+        description="Understand recruitment pressure, provider engagement and upcoming license exposure across Illinois."
+        actions={[
+          { label: "Review recruitment", href: "/recruitment" },
+          { label: "Review retention", href: "/retention" },
+        ]}
+      />
 
-      <SectionShell tone="tint">
-        <OverviewBentoGrid snapshot={snapshot} />
-      </SectionShell>
+      <OverviewMetricsGrid snapshot={snapshot} />
 
       <AttentionPanel
         insights={insights}

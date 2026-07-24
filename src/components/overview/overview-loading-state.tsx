@@ -2,7 +2,7 @@ import { MetricCardSkeleton } from "@/components/loading-skeleton";
 
 export function OverviewLoadingState() {
   return (
-    <div className="space-y-8" aria-busy="true" aria-live="polite" aria-label="Loading overview">
+    <div className="space-y-8" aria-busy="true" aria-live="polite" aria-label="Loading overview" role="status">
       <div className="space-y-4">
         <div className="h-6 w-40 rounded-md bg-muted" aria-hidden="true" />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

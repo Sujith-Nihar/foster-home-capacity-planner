@@ -54,7 +54,7 @@ function MetricCardContent({
           {value}
         </p>
         {helperText ? (
-          <p className="line-clamp-2 text-xs leading-5 text-text-tertiary">{helperText}</p>
+          <p className="line-clamp-2 text-xs leading-5 text-text-secondary">{helperText}</p>
         ) : null}
       </CardContent>
     </>
@@ -71,7 +71,7 @@ export function MetricCard({
   variant = "default",
 }: MetricCardProps) {
   const cardClassName = cn(
-    "h-full rounded-lg shadow-none ring-0",
+    "metric-card-surface interactive-lift h-full",
     variantStyles[variant],
     className,
   );
@@ -80,11 +80,11 @@ export function MetricCard({
     return (
       <Link
         href={href}
-        className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Card
           size="sm"
-          className={cn(cardClassName, "transition-colors hover:border-border-strong hover:bg-muted/20")}
+          className={cn(cardClassName, "shadow-none ring-0 hover:border-border-strong")}
         >
           <MetricCardContent
             label={label}
@@ -99,7 +99,7 @@ export function MetricCard({
   }
 
   return (
-    <Card size="sm" className={cardClassName}>
+    <Card size="sm" className={cn(cardClassName, "shadow-none ring-0")}>
       <MetricCardContent
         label={label}
         value={value}

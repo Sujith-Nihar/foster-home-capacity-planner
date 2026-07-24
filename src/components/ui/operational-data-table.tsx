@@ -3,11 +3,10 @@ import type { ReactNode } from "react";
 import { DataTableFrame } from "@/components/ui/data-table-frame";
 import { cn } from "@/lib/utils";
 
-type DataTableShellProps = {
+type OperationalDataTableProps = {
   title?: string;
   titleId?: string;
   description?: string;
-  filters?: ReactNode;
   toolbar?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
@@ -15,23 +14,21 @@ type DataTableShellProps = {
   className?: string;
 };
 
-export function DataTableShell({
+export function OperationalDataTable({
   title,
   titleId,
   description,
-  filters,
   toolbar,
   actions,
   children,
   footer,
   className,
-}: DataTableShellProps) {
+}: OperationalDataTableProps) {
   return (
     <DataTableFrame
       title={title}
       titleId={titleId}
       description={description}
-      filters={filters}
       toolbar={toolbar}
       actions={actions}
       footer={footer}

@@ -3,7 +3,6 @@ import { Calendar, Clock, MapPin, UserCheck } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
 import { ProviderActivityTimeline } from "@/components/providers/provider-activity-timeline";
-import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import { ReasonList } from "@/components/reason-list";
 import type { ProviderPageData } from "@/lib/types/domain";
 import {
@@ -12,8 +11,6 @@ import {
   formatCount,
   formatCountyName,
   formatNullablePercent,
-  formatOutreachPriorityLabel,
-  formatProviderId,
   formatReportingDate,
 } from "@/lib/utils/formatters";
 
@@ -27,33 +24,16 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
   return (
     <div className="space-y-8">
-      <section
-        aria-labelledby="provider-summary-heading"
-        className="section-enter overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised p-6 sm:p-8"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <p className="eyebrow-label text-text-tertiary">Provider executive summary</p>
-            <h2 id="provider-summary-heading" className="text-2xl font-medium tracking-tight text-text-primary">
-              Provider {formatProviderId(provider.providerId)}
-            </h2>
-            <p className="text-sm text-text-secondary">
-              <MapPin className="mr-1 inline size-4 text-text-tertiary" aria-hidden="true" />
-              County:{" "}
-              <Link
-                href={countyHref}
-                className="font-medium text-accent-brand underline-offset-4 hover:underline"
-              >
-                {formatCountyName(provider.county)}
-              </Link>
-            </p>
-          </div>
-          <PriorityBadge
-            level={priorityToAttentionLevel(provider.outreachPriority)}
-            label={formatOutreachPriorityLabel(provider.outreachPriority)}
-          />
-        </div>
-      </section>
+      <p className="text-sm text-text-secondary">
+        <MapPin className="mr-1 inline size-4 text-text-tertiary" aria-hidden="true" />
+        County:{" "}
+        <Link
+          href={countyHref}
+          className="font-medium text-brand-navy underline-offset-4 hover:underline"
+        >
+          {formatCountyName(provider.county)}
+        </Link>
+      </p>
 
       <section aria-labelledby="provider-license-heading" className="space-y-4">
         <h2 id="provider-license-heading" className="text-lg font-semibold text-text-primary">
@@ -154,18 +134,18 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
       <section
         aria-labelledby="provider-review-heading"
-        className="rounded-lg border border-border-default bg-surface-raised p-6"
+        className="rounded-2xl border border-border-subtle bg-warm-surface p-6"
       >
         <h2 id="provider-review-heading" className="text-lg font-semibold text-text-primary">
           What staff may want to review
         </h2>
-        <p className="mt-3 text-sm leading-6 text-text-secondary">{reviewSummary}</p>
+        <p className="mt-3 text-sm leading-6 text-text-primary">{reviewSummary}</p>
       </section>
 
       <p className="text-sm text-text-secondary">
         <Link
           href={countyHref}
-          className="font-medium text-accent-brand underline-offset-4 hover:underline"
+          className="font-medium text-brand-navy underline-offset-4 hover:underline"
         >
           View {formatCountyName(provider.county)} recruitment context
         </Link>

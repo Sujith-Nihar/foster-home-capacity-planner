@@ -16,7 +16,7 @@ export function MethodologyLink({
     <Link
       href="/methodology"
       className={cn(
-        "inline-flex items-center gap-2 text-sm font-medium text-accent-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "inline-flex items-center gap-2 text-sm font-medium text-brand-navy underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
     >
