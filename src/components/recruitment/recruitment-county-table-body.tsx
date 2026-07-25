@@ -37,7 +37,8 @@ import {
 } from "@/lib/utils/formatters";
 import type { RecruitmentSearchParams } from "@/lib/validation/search-params";
 
-const ROW_CELL = "px-3 py-3 align-top";
+const HEADER_CELL = "operational-table-head-cell px-4 py-4 align-top sm:px-5";
+const ROW_CELL = "operational-table-row-cell px-4 py-4 align-top sm:px-5";
 const CHILDREN_PER_PROVIDER_HELP =
   "Foster-home children divided by engaged local providers. This describes placement pressure, not available beds or vacancies.";
 
@@ -188,46 +189,46 @@ export function RecruitmentCountyTableBody({
         <Table className="w-full min-w-0 table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead scope="col" className={`${ROW_CELL} w-[15%]`}>
+              <TableHead scope="col" className={`${HEADER_CELL} w-[15%]`}>
                 County
               </TableHead>
-              <TableHead scope="col" className={`${ROW_CELL} w-[20%]`}>
+              <TableHead scope="col" className={`${HEADER_CELL} w-[20%]`}>
                 <RecruitmentSortHeader
                   label="Attention"
                   sortKey="recruitment_priority"
                   searchParams={searchParams}
                 />
               </TableHead>
-              <TableHead scope="col" className={`${ROW_CELL} w-[17%]`}>
+              <TableHead scope="col" className={`${HEADER_CELL} w-[17%]`}>
                 Provider base
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${ROW_CELL} w-[19%] hidden xl:table-cell`}
+                className={`${HEADER_CELL} w-[19%] hidden xl:table-cell`}
               >
                 Placement pressure
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${ROW_CELL} w-[13%] hidden xl:table-cell`}
+                className={`${HEADER_CELL} w-[13%] hidden xl:table-cell`}
               >
                 Age focus
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${ROW_CELL} w-[29%] xl:hidden`}
+                className={`${HEADER_CELL} w-[29%] xl:hidden`}
               >
                 Pressure and age focus
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${ROW_CELL} w-[16%] hidden xl:table-cell`}
+                className={`${HEADER_CELL} w-[16%] hidden xl:table-cell`}
               >
                 Renewal and action
               </TableHead>
               <TableHead
                 scope="col"
-                className={`${ROW_CELL} w-[11%] xl:hidden`}
+                className={`${HEADER_CELL} w-[11%] xl:hidden`}
               >
                 Action
               </TableHead>

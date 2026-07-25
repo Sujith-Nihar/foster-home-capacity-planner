@@ -3,11 +3,11 @@ import { Info } from "lucide-react";
 import { AgeGroupPressureChart } from "@/components/charts/age-group-pressure-chart";
 import { RecruitmentScatterChart } from "@/components/charts/recruitment-scatter-chart";
 import { MethodologyLink } from "@/components/methodology-link";
-import { RecruitmentAttentionHelp } from "@/components/methodology/recruitment-attention-help";
+import { OperationalTableHeader } from "@/components/operational/operational-filter-panel";
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
 import { PageIntroduction } from "@/components/ui/page-introduction";
-import { COMPARABLE_COUNTIES, RECRUITMENT_METRICS } from "@/content/methodology";
+import { RECRUITMENT_METRICS } from "@/content/methodology";
 import type { CountyAgeMetricsByCounty } from "@/lib/data/recruitment";
 import type { AgeGroupPressureDto } from "@/lib/recruitment/analytics";
 import { buildRecruitmentQueryString } from "@/lib/recruitment/query";
@@ -57,8 +57,6 @@ export function RecruitmentPageContent({
         }
       />
 
-      <RecruitmentAttentionHelp />
-
       <div
         className="flex items-start gap-3 rounded-2xl border border-border-subtle bg-surface-raised px-4 py-3 text-sm text-text-secondary"
         role="note"
@@ -71,15 +69,15 @@ export function RecruitmentPageContent({
         counties={eligibleCounties}
         countyAgeMetricsByCounty={countyAgeMetricsByCounty}
         searchParams={searchParams}
-        title="County recruitment planning priorities"
-        titleId="recruitment-county-table-heading"
-        description={`Eligible counties meeting minimum volume rules for comparative ${RECRUITMENT_METRICS.recruitmentAttention.label.toLowerCase()}. ${COMPARABLE_COUNTIES.explanation}`}
         emptyMessage="No eligible counties match the current filters."
-        filters={
+        header={
           <RecruitmentFilters
             filterOptions={filterOptions}
             searchParams={searchParams}
             exportQuery={exportQuery}
+            title="County recruitment planning priorities"
+            titleId="recruitment-county-table-heading"
+            totalCount={eligibleCounties.length}
           />
         }
         footer={`Showing ${eligibleCounties.length} eligible ${
@@ -96,10 +94,14 @@ export function RecruitmentPageContent({
         counties={limitedDataCounties}
         countyAgeMetricsByCounty={countyAgeMetricsByCounty}
         searchParams={searchParams}
-        title="Limited-data counties"
-        titleId="limited-data-counties-heading"
-        description="Counties below minimum foster-home children or engaged-provider volume thresholds are shown separately and excluded from comparative scatter analysis."
         emptyMessage="No limited-data counties match the current filters."
+        header={
+          <OperationalTableHeader
+            title="Limited-data counties"
+            titleId="limited-data-counties-heading"
+            description="Counties below minimum foster-home children or engaged-provider volume thresholds are shown separately and excluded from comparative scatter analysis."
+          />
+        }
         footer={`Showing ${limitedDataCounties.length} limited-data ${
           limitedDataCounties.length === 1 ? "county" : "counties"
         }.`}

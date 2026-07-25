@@ -8,6 +8,7 @@ type OperationalDataTableProps = {
   titleId?: string;
   description?: string;
   toolbar?: ReactNode;
+  header?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -19,6 +20,7 @@ export function OperationalDataTable({
   titleId,
   description,
   toolbar,
+  header,
   actions,
   children,
   footer,
@@ -30,6 +32,7 @@ export function OperationalDataTable({
       titleId={titleId}
       description={description}
       toolbar={toolbar}
+      header={header}
       actions={actions}
       footer={footer}
       className={cn(className)}

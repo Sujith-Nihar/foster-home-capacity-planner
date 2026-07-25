@@ -1,7 +1,6 @@
 import { Info } from "lucide-react";
 
 import { MethodologyLink } from "@/components/methodology-link";
-import { OutreachPriorityHelp } from "@/components/methodology/outreach-priority-help";
 import {
   RetentionExpirationPanel,
   RetentionKpiGrid,
@@ -46,8 +45,6 @@ export function RetentionPageContent({
       <RetentionKpiGrid summary={summary} />
 
       <RetentionExpirationPanel summary={summary} />
-
-      <OutreachPriorityHelp />
 
       <div
         className="flex items-start gap-3 rounded-2xl border border-border-subtle bg-surface-raised px-4 py-3 text-sm text-text-secondary"

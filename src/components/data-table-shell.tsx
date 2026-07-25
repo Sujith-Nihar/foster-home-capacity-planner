@@ -8,6 +8,7 @@ type DataTableShellProps = {
   titleId?: string;
   description?: string;
   filters?: ReactNode;
+  header?: ReactNode;
   toolbar?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
@@ -20,6 +21,7 @@ export function DataTableShell({
   titleId,
   description,
   filters,
+  header,
   toolbar,
   actions,
   children,
@@ -32,6 +34,7 @@ export function DataTableShell({
       titleId={titleId}
       description={description}
       filters={filters}
+      header={header}
       toolbar={toolbar}
       actions={actions}
       footer={footer}

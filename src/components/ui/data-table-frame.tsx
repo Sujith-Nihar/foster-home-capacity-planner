@@ -8,6 +8,7 @@ type DataTableFrameProps = {
   description?: string;
   toolbar?: ReactNode;
   filters?: ReactNode;
+  header?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -20,42 +21,46 @@ export function DataTableFrame({
   description,
   toolbar,
   filters,
+  header,
   actions,
   children,
   footer,
   className,
 }: DataTableFrameProps) {
-  const hasHeader = Boolean(title || description || toolbar || filters || actions);
+  const operationalHeader = header ?? filters ?? toolbar;
+  const hasLegacyHeader = Boolean(title || description || actions);
+  const hasHeader = Boolean(operationalHeader || hasLegacyHeader);
 
   return (
-    <section className={cn("data-table-frame min-w-0 w-full", className)}>
+    <section className={cn("data-table-frame operational-data-surface min-w-0 w-full", className)}>
       {hasHeader ? (
-        <div className="space-y-3 border-b border-border-subtle px-4 py-4 sm:px-5 sm:py-4">
-          {(title || description || actions) && (
-            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              {title || description ? (
-                <div className="min-w-0 space-y-1">
-                  {title ? (
-                    <h2
-                      id={titleId}
-                      className="text-base font-medium tracking-tight text-text-primary sm:text-lg"
-                    >
-                      {title}
-                    </h2>
+        <>
+          {operationalHeader}
+          {!operationalHeader && hasLegacyHeader ? (
+            <div className="operational-filter-panel">
+              {(title || description || actions) && (
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  {title || description ? (
+                    <div className="min-w-0">
+                      {title ? (
+                        <h2 id={titleId} className="operational-filter-panel__title">
+                          {title}
+                        </h2>
+                      ) : null}
+                      {description ? (
+                        <p className="operational-filter-panel__description">{description}</p>
+                      ) : null}
+                    </div>
                   ) : null}
-                  {description ? (
-                    <p className="text-sm text-text-secondary">{description}</p>
+                  {actions ? (
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
                   ) : null}
                 </div>
-              ) : null}
-              {actions ? (
-                <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-              ) : null}
+              )}
             </div>
-          )}
-          {toolbar}
-          {filters}
-        </div>
+          ) : null}
+          <div className="operational-data-surface__divider" aria-hidden="true" />
+        </>
       ) : null}
       <div className="data-table-viewport min-w-0">{children}</div>
       {footer ? (

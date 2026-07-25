@@ -44,7 +44,8 @@ type RetentionProviderTableProps = {
   exportQuery: string;
 };
 
-const ROW_CELL = "retention-provider-table__row-cell align-middle";
+const HEADER_CELL = "operational-table-head-cell retention-provider-table__row-cell align-middle";
+const ROW_CELL = "operational-table-row-cell retention-provider-table__row-cell align-middle";
 
 function providerReasonContext(provider: ProviderMetricsDto) {
   return {
@@ -141,15 +142,14 @@ export function RetentionProviderTable({
   return (
     <OperationalDataTable
       className="retention-data-table"
-      title="Licensed provider outreach list"
-      titleId="retention-provider-table-heading"
-      description={`Review licensed providers by ${RETENTION_METRICS.outreachPriority.label.toLowerCase()}, placement activity, and license timing.`}
-      toolbar={
+      header={
         <RetentionFilterToolbar
           filterOptions={filterOptions}
           searchParams={searchParams}
           exportQuery={exportQuery}
           totalCount={pagination.totalCount}
+          title="Licensed provider outreach list"
+          titleId="retention-provider-table-heading"
         />
       }
       footer={
@@ -193,40 +193,40 @@ export function RetentionProviderTable({
               </TableColgroup>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${HEADER_CELL}`}>
                     <RetentionSortHeader
                       label="Provider"
                       sortKey="provider_id"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} retention-col--split-cell`}>
+                  <TableHead scope="col" className={`${HEADER_CELL} retention-col--split-cell`}>
                     <RetentionSortHeader
                       label="Current status"
                       sortKey="currently_has_placement"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} retention-col--split-cell`}>
+                  <TableHead scope="col" className={`${HEADER_CELL} retention-col--split-cell`}>
                     License timing
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} retention-col--combined-cell`}>
+                  <TableHead scope="col" className={`${HEADER_CELL} retention-col--combined-cell`}>
                     Status and license
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${HEADER_CELL}`}>
                     {RETENTION_METRICS.recentEngagement.label}
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} min-w-0`}>
+                  <TableHead scope="col" className={`${HEADER_CELL} min-w-0`}>
                     <RetentionSortHeader
                       label="Suggested outreach"
                       sortKey="outreach_priority"
                       searchParams={searchParams}
                     />
                   </TableHead>
-                  <TableHead scope="col" className={ROW_CELL}>
+                  <TableHead scope="col" className={`${HEADER_CELL}`}>
                     Why review
                   </TableHead>
-                  <TableHead scope="col" className={`${ROW_CELL} retention-provider-table__action-cell`}>
+                  <TableHead scope="col" className={`${HEADER_CELL} retention-provider-table__action-cell`}>
                     Action
                   </TableHead>
                 </TableRow>

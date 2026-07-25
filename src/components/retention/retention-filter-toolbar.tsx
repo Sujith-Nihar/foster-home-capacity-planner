@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { SlidersHorizontal } from "lucide-react";
 
 import { ActiveFilterChips } from "@/components/retention/active-filter-chips";
-import { AdvancedFilterSheet } from "@/components/retention/advanced-filter-sheet";
-import { Button } from "@/components/ui/button";
+import {
+  OperationalFilterField,
+  OperationalFilterGrid,
+  OperationalFilterPanel,
+  OPERATIONAL_FILTER_CONTROL_CLASS,
+} from "@/components/operational/operational-filter-panel";
+import { OperationalMethodologyLink } from "@/components/operational/operational-methodology-link";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,12 +20,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  RETENTION_METRICS,
+  RETENTION_OUTREACH_HELP,
+  RETENTION_OUTREACH_RULES,
+} from "@/content/methodology";
 import { buildRetentionQueryString } from "@/lib/retention/query";
 import type { FilterOptionsDto } from "@/lib/types/domain";
-import { formatCount } from "@/lib/utils/formatters";
 import {
   OUTREACH_PRIORITIES,
   RETENTION_ACTIVITY_FILTERS,
+  RETENTION_EXPIRATION_FILTERS,
   type RetentionSearchParams,
 } from "@/lib/validation/search-params";
 
@@ -30,6 +39,8 @@ type RetentionFilterToolbarProps = {
   searchParams: RetentionSearchParams;
   exportQuery: string;
   totalCount: number;
+  title: string;
+  titleId: string;
 };
 
 const ALL_FILTER_VALUE = "all";
@@ -38,6 +49,14 @@ const ACTIVITY_LABELS: Record<(typeof RETENTION_ACTIVITY_FILTERS)[number], strin
   all: "All providers",
   active: "Currently active",
   inactive: "Currently inactive",
+};
+
+const EXPIRATION_LABELS: Record<(typeof RETENTION_EXPIRATION_FILTERS)[number], string> = {
+  all: "Any expiration window",
+  within_30: "Within 30 days",
+  within_60: "Within 60 days",
+  within_90: "Within 90 days",
+  within_180: "Within 180 days",
 };
 
 function decimalToPercent(value: number | undefined): string {
@@ -58,15 +77,28 @@ function percentToDecimal(value: string): number | undefined {
   return parsed / 100;
 }
 
+function hasAdvancedFilters(searchParams: RetentionSearchParams): boolean {
+  return (
+    searchParams.expiration !== "all" ||
+    searchParams.minInactivityDays !== undefined ||
+    searchParams.minEngagement !== undefined ||
+    searchParams.maxEngagement !== undefined ||
+    searchParams.minAge !== undefined ||
+    searchParams.maxAge !== undefined
+  );
+}
+
 export function RetentionFilterToolbar({
   filterOptions,
   searchParams,
   exportQuery,
   totalCount,
+  title,
+  titleId,
 }: RetentionFilterToolbarProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(hasAdvancedFilters(searchParams));
 
   const [providerId, setProviderId] = useState(searchParams.providerId?.toString() ?? "");
   const [county, setCounty] = useState(searchParams.county ?? ALL_FILTER_VALUE);
@@ -124,6 +156,7 @@ export function RetentionFilterToolbar({
     setMaxEngagementPercent("");
     setMinAge("");
     setMaxAge("");
+    setMoreFiltersOpen(false);
 
     startTransition(() => {
       router.push(
@@ -162,26 +195,57 @@ export function RetentionFilterToolbar({
   }, [searchParams]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="min-w-[140px] flex-1 space-y-1.5 text-sm">
-            <span className="text-xs font-medium text-text-secondary">Provider search</span>
+    <OperationalFilterPanel
+      title={title}
+      titleId={titleId}
+      description={
+        <>
+          Review licensed providers by {RETENTION_METRICS.outreachPriority.label.toLowerCase()},
+          placement activity, and license timing.
+          <OperationalMethodologyLink title={RETENTION_OUTREACH_HELP.title}>
+            <p>{RETENTION_OUTREACH_HELP.explanation}</p>
+            <div>
+              <p className="font-medium text-text-primary">High outreach</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {RETENTION_OUTREACH_RULES.high.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-medium text-text-primary">Medium outreach</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {RETENTION_OUTREACH_RULES.medium.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
+              </ul>
+            </div>
+            <p>{RETENTION_METRICS.outreachPriority.limitation}</p>
+            <Link
+              href="/methodology#prototype-planning-rules"
+              className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
+            >
+              View full methodology
+            </Link>
+          </OperationalMethodologyLink>
+        </>
+      }
+      primaryFilters={
+        <OperationalFilterGrid>
+          <OperationalFilterField label="Provider search">
             <Input
-              type="number"
-              min={1}
-              step={1}
+              type="search"
+              inputMode="numeric"
               value={providerId}
-              onChange={(event) => setProviderId(event.target.value)}
+              onChange={(event) => setProviderId(event.target.value.replace(/\D/g, ""))}
               placeholder="Provider ID"
-              className="h-9"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
-          </label>
+          </OperationalFilterField>
 
-          <label className="min-w-[140px] flex-1 space-y-1.5 text-sm">
-            <span className="text-xs font-medium text-text-secondary">County</span>
+          <OperationalFilterField label="County">
             <Select value={county} onValueChange={(value) => setCounty(value ?? ALL_FILTER_VALUE)}>
-              <SelectTrigger className="h-9 w-full">
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All counties" />
               </SelectTrigger>
               <SelectContent>
@@ -193,15 +257,14 @@ export function RetentionFilterToolbar({
                 ))}
               </SelectContent>
             </Select>
-          </label>
+          </OperationalFilterField>
 
-          <label className="min-w-[140px] flex-1 space-y-1.5 text-sm">
-            <span className="text-xs font-medium text-text-secondary">Outreach priority</span>
+          <OperationalFilterField label="Outreach priority">
             <Select
               value={priority}
               onValueChange={(value) => setPriority(value ?? ALL_FILTER_VALUE)}
             >
-              <SelectTrigger className="h-9 w-full">
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All priorities" />
               </SelectTrigger>
               <SelectContent>
@@ -213,17 +276,16 @@ export function RetentionFilterToolbar({
                 ))}
               </SelectContent>
             </Select>
-          </label>
+          </OperationalFilterField>
 
-          <label className="min-w-[140px] flex-1 space-y-1.5 text-sm">
-            <span className="text-xs font-medium text-text-secondary">Current activity</span>
+          <OperationalFilterField label="Current activity">
             <Select
               value={activity}
               onValueChange={(value) =>
                 setActivity((value ?? "all") as RetentionSearchParams["activity"])
               }
             >
-              <SelectTrigger className="h-9 w-full">
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All providers" />
               </SelectTrigger>
               <SelectContent>
@@ -234,100 +296,118 @@ export function RetentionFilterToolbar({
                 ))}
               </SelectContent>
             </Select>
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9"
-              onClick={() => setAdvancedOpen(true)}
-            >
-              <SlidersHorizontal className="size-3.5" aria-hidden="true" />
-              More filters
-              {advancedFilterCount > 0 ? (
-                <span className="ml-1 rounded-full bg-brand-blue-soft px-1.5 text-xs font-medium text-brand-navy">
-                  {advancedFilterCount}
-                </span>
-              ) : null}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="h-9"
-              onClick={applyFilters}
-              disabled={isPending}
-            >
-              Apply
-            </Button>
-            {hasActiveFilters ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-9"
-                onClick={clearFilters}
-                disabled={isPending}
-              >
-                Clear
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="h-9"
-              nativeButton={false}
-              render={
-                <Link
-                  href={`/api/exports/retention${exportQuery ? `?${exportQuery}` : ""}`}
-                  prefetch={false}
-                />
+          </OperationalFilterField>
+        </OperationalFilterGrid>
+      }
+      advancedFilters={
+        <>
+          <OperationalFilterField label="License expiration window">
+            <Select
+              value={expiration}
+              onValueChange={(value) =>
+                setExpiration((value ?? "all") as RetentionSearchParams["expiration"])
               }
             >
-              Export CSV
-            </Button>
-          </div>
-        </div>
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
+                <SelectValue placeholder="Any expiration window" />
+              </SelectTrigger>
+              <SelectContent>
+                {RETENTION_EXPIRATION_FILTERS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {EXPIRATION_LABELS[item]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </OperationalFilterField>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-text-secondary">
-          <p>
-            <span className="font-medium text-text-primary">{formatCount(totalCount)}</span>{" "}
-            {totalCount === 1 ? "provider" : "providers"} match
-          </p>
-        </div>
-      </div>
+          <OperationalFilterField label="Minimum days since last placement">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={minInactivityDays}
+              onChange={(event) => setMinInactivityDays(event.target.value)}
+              placeholder="e.g. 90"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
+            />
+          </OperationalFilterField>
 
-      {hasActiveFilters ? (
-        <ActiveFilterChips
-          searchParams={searchParams}
-          filterOptions={filterOptions}
-          onClearAll={clearFilters}
-        />
-      ) : null}
+          <OperationalFilterField label="Engagement rate range (%)">
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={minEngagementPercent}
+                onChange={(event) => setMinEngagementPercent(event.target.value)}
+                placeholder="Min %"
+                aria-label="Minimum engagement rate percent"
+                className={OPERATIONAL_FILTER_CONTROL_CLASS}
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={maxEngagementPercent}
+                onChange={(event) => setMaxEngagementPercent(event.target.value)}
+                placeholder="Max %"
+                aria-label="Maximum engagement rate percent"
+                className={OPERATIONAL_FILTER_CONTROL_CLASS}
+              />
+            </div>
+          </OperationalFilterField>
 
-      <AdvancedFilterSheet
-        open={advancedOpen}
-        onOpenChange={setAdvancedOpen}
-        expiration={expiration}
-        onExpirationChange={setExpiration}
-        minInactivityDays={minInactivityDays}
-        onMinInactivityDaysChange={setMinInactivityDays}
-        minEngagementPercent={minEngagementPercent}
-        onMinEngagementPercentChange={setMinEngagementPercent}
-        maxEngagementPercent={maxEngagementPercent}
-        onMaxEngagementPercentChange={setMaxEngagementPercent}
-        minAge={minAge}
-        onMinAgeChange={setMinAge}
-        maxAge={maxAge}
-        onMaxAgeChange={setMaxAge}
-        onApply={() => {
-          applyFilters();
-          setAdvancedOpen(false);
-        }}
-        onClear={clearFilters}
-      />
-    </div>
+          <OperationalFilterField label="Preferred child age range">
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                type="number"
+                min={0}
+                max={21}
+                step={1}
+                value={minAge}
+                onChange={(event) => setMinAge(event.target.value)}
+                placeholder="Min age"
+                aria-label="Minimum preferred child age"
+                className={OPERATIONAL_FILTER_CONTROL_CLASS}
+              />
+              <Input
+                type="number"
+                min={0}
+                max={21}
+                step={1}
+                value={maxAge}
+                onChange={(event) => setMaxAge(event.target.value)}
+                placeholder="Max age"
+                aria-label="Maximum preferred child age"
+                className={OPERATIONAL_FILTER_CONTROL_CLASS}
+              />
+            </div>
+          </OperationalFilterField>
+        </>
+      }
+      moreFiltersOpen={moreFiltersOpen}
+      onMoreFiltersToggle={() => setMoreFiltersOpen((open) => !open)}
+      advancedFilterCount={advancedFilterCount}
+      activeFilterChips={
+        hasActiveFilters ? (
+          <ActiveFilterChips
+            searchParams={searchParams}
+            filterOptions={filterOptions}
+            onClearAll={clearFilters}
+          />
+        ) : null
+      }
+      onApply={applyFilters}
+      onClear={clearFilters}
+      exportHref={`/api/exports/retention${exportQuery ? `?${exportQuery}` : ""}`}
+      isPending={isPending}
+      resultCount={totalCount}
+      resultNoun="provider"
+      resultNounPlural="providers"
+      advancedFiltersId="retention-advanced-filters"
+    />
   );
 }

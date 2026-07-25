@@ -30,7 +30,7 @@
     "current_nonfamily_children": 40
   },
   "etl_version": "1.0.0",
-  "generated_at": "2026-07-24T20:44:40.203231+00:00",
+  "generated_at": "2026-07-25T18:51:13.381059+00:00",
   "input_row_counts": {
     "children": 16139,
     "placements": 51994,

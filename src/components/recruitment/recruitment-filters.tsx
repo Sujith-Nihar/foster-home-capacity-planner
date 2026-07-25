@@ -3,9 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import {
+  OperationalFilterField,
+  OperationalFilterGrid,
+  OperationalFilterPanel,
+  OPERATIONAL_FILTER_CONTROL_CLASS,
+} from "@/components/operational/operational-filter-panel";
+import { OperationalMethodologyLink } from "@/components/operational/operational-methodology-link";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,6 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  COMPARABLE_COUNTIES,
+  RECRUITMENT_ATTENTION_HELP,
+  RECRUITMENT_METRICS,
+} from "@/content/methodology";
 import type { FilterOptionsDto } from "@/lib/types/domain";
 import { buildRecruitmentQueryString, buildRecruitmentSortHref } from "@/lib/recruitment/query";
 import {
@@ -27,6 +38,9 @@ type RecruitmentFiltersProps = {
   filterOptions: FilterOptionsDto;
   searchParams: RecruitmentSearchParams;
   exportQuery: string;
+  title: string;
+  titleId: string;
+  totalCount: number;
 };
 
 const ALL_FILTER_VALUE = "all";
@@ -76,10 +90,20 @@ function resolveOutOfCountyPreset(
   return preset?.value ?? "custom";
 }
 
+function hasAdvancedFilters(searchParams: RecruitmentSearchParams): boolean {
+  return (
+    resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
+    "custom"
+  );
+}
+
 export function RecruitmentFilters({
   filterOptions,
   searchParams,
   exportQuery,
+  title,
+  titleId,
+  totalCount,
 }: RecruitmentFiltersProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -97,15 +121,21 @@ export function RecruitmentFilters({
   const [customMaxOutOfCountyPercent, setCustomMaxOutOfCountyPercent] = useState(
     decimalToPercentInput(searchParams.maxOutOfCountyRate),
   );
-  const [showMoreFilters, setShowMoreFilters] = useState(
-    resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
-      "custom",
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState(
+    hasAdvancedFilters(searchParams) || outOfCountyPreset === "custom",
   );
 
   const selectedPreset = useMemo(
     () => OUT_OF_COUNTY_PRESETS.find((item) => item.value === outOfCountyPreset),
     [outOfCountyPreset],
   );
+
+  const advancedFilterCount = useMemo(() => {
+    if (outOfCountyPreset === "custom") {
+      return 1;
+    }
+    return hasAdvancedFilters(searchParams) ? 1 : 0;
+  }, [outOfCountyPreset, searchParams]);
 
   function resolveOutOfCountyRates(): {
     minOutOfCountyRate?: number;
@@ -147,7 +177,7 @@ export function RecruitmentFilters({
     setOutOfCountyPreset("any");
     setCustomMinOutOfCountyPercent("");
     setCustomMaxOutOfCountyPercent("");
-    setShowMoreFilters(false);
+    setMoreFiltersOpen(false);
     startTransition(() => {
       router.push(
         `/recruitment${buildRecruitmentQueryString({
@@ -159,84 +189,120 @@ export function RecruitmentFilters({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <label className="space-y-2 text-sm">
-          <span className="font-medium text-text-primary">Recruitment priority</span>
-          <Select value={priority} onValueChange={(value) => setPriority(value ?? ALL_FILTER_VALUE)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All priorities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>All priorities</SelectItem>
-              {RECRUITMENT_PRIORITIES.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-
-        <label className="space-y-2 text-sm">
-          <span className="font-medium text-text-primary">Minimum foster-home children</span>
-          <Input
-            type="number"
-            min={0}
-            step={1}
-            value={minFosterChildren}
-            onChange={(event) => setMinFosterChildren(event.target.value)}
-            placeholder="e.g. 10"
-          />
-        </label>
-
-        <label className="space-y-2 text-sm">
-          <span className="font-medium text-text-primary">Highest-pressure age group</span>
-          <Select value={ageGroup} onValueChange={(value) => setAgeGroup(value ?? ALL_FILTER_VALUE)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All age groups" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>All age groups</SelectItem>
-              {(filterOptions.ageGroups.length > 0 ? filterOptions.ageGroups : AGE_GROUP_LABELS).map(
-                (item) => (
+    <OperationalFilterPanel
+      title={title}
+      titleId={titleId}
+      description={
+        <>
+          Eligible counties meeting minimum volume rules for comparative{" "}
+          {RECRUITMENT_METRICS.recruitmentAttention.label.toLowerCase()}.{" "}
+          {COMPARABLE_COUNTIES.explanation.split(".")[0]}.
+          <OperationalMethodologyLink title={RECRUITMENT_ATTENTION_HELP.title}>
+            <div>
+              <p className="font-medium text-text-primary">Three indicators</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {RECRUITMENT_ATTENTION_HELP.indicators.map((indicator) => (
+                  <li key={indicator}>{indicator}</li>
+                ))}
+              </ul>
+            </div>
+            <p>
+              <span className="font-medium text-text-primary">Comparison group: </span>
+              {RECRUITMENT_ATTENTION_HELP.comparisonGroup}
+            </p>
+            <div>
+              <p className="font-medium text-text-primary">Planning rules</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                <li>High: {RECRUITMENT_ATTENTION_HELP.highRule}</li>
+                <li>Medium: {RECRUITMENT_ATTENTION_HELP.mediumRule}</li>
+              </ul>
+            </div>
+            <p>{RECRUITMENT_ATTENTION_HELP.caveat}</p>
+            <Link
+              href="/methodology#prototype-planning-rules"
+              className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
+            >
+              View full methodology
+            </Link>
+          </OperationalMethodologyLink>
+        </>
+      }
+      primaryFilters={
+        <OperationalFilterGrid>
+          <OperationalFilterField label="Recruitment priority">
+            <Select value={priority} onValueChange={(value) => setPriority(value ?? ALL_FILTER_VALUE)}>
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
+                <SelectValue placeholder="All priorities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_FILTER_VALUE}>All priorities</SelectItem>
+                {RECRUITMENT_PRIORITIES.map((item) => (
                   <SelectItem key={item} value={item}>
                     {item}
                   </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-        </label>
+                ))}
+              </SelectContent>
+            </Select>
+          </OperationalFilterField>
 
-        <label className="space-y-2 text-sm">
-          <span className="font-medium text-text-primary">Out-of-county rate</span>
-          <Select
-            value={outOfCountyPreset}
-            onValueChange={(value) => {
-              const next = (value ?? "any") as (typeof OUT_OF_COUNTY_PRESETS)[number]["value"];
-              setOutOfCountyPreset(next);
-              setShowMoreFilters(next === "custom");
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Any rate" />
-            </SelectTrigger>
-            <SelectContent>
-              {OUT_OF_COUNTY_PRESETS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-      </div>
+          <OperationalFilterField label="Minimum foster-home children">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={minFosterChildren}
+              onChange={(event) => setMinFosterChildren(event.target.value)}
+              placeholder="e.g. 10"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
+            />
+          </OperationalFilterField>
 
-      {showMoreFilters || outOfCountyPreset === "custom" ? (
-        <div className="grid gap-4 rounded-xl border border-border-subtle bg-surface-tint/30 p-4 md:grid-cols-2">
-          <label className="space-y-2 text-sm">
-            <span className="font-medium text-text-primary">Minimum out-of-county rate (%)</span>
+          <OperationalFilterField label="Highest-pressure age group">
+            <Select value={ageGroup} onValueChange={(value) => setAgeGroup(value ?? ALL_FILTER_VALUE)}>
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
+                <SelectValue placeholder="All age groups" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_FILTER_VALUE}>All age groups</SelectItem>
+                {(filterOptions.ageGroups.length > 0 ? filterOptions.ageGroups : AGE_GROUP_LABELS).map(
+                  (item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          </OperationalFilterField>
+
+          <OperationalFilterField label="Out-of-county rate">
+            <Select
+              value={outOfCountyPreset}
+              onValueChange={(value) => {
+                const next = (value ?? "any") as (typeof OUT_OF_COUNTY_PRESETS)[number]["value"];
+                setOutOfCountyPreset(next);
+                if (next === "custom") {
+                  setMoreFiltersOpen(true);
+                }
+              }}
+            >
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
+                <SelectValue placeholder="Any rate" />
+              </SelectTrigger>
+              <SelectContent>
+                {OUT_OF_COUNTY_PRESETS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </OperationalFilterField>
+        </OperationalFilterGrid>
+      }
+      advancedFilters={
+        <>
+          <OperationalFilterField label="Minimum out-of-county rate (%)">
             <Input
               type="number"
               min={0}
@@ -245,10 +311,10 @@ export function RecruitmentFilters({
               value={customMinOutOfCountyPercent}
               onChange={(event) => setCustomMinOutOfCountyPercent(event.target.value)}
               placeholder="0%–100%"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
-          </label>
-          <label className="space-y-2 text-sm">
-            <span className="font-medium text-text-primary">Maximum out-of-county rate (%)</span>
+          </OperationalFilterField>
+          <OperationalFilterField label="Maximum out-of-county rate (%)">
             <Input
               type="number"
               min={0}
@@ -257,42 +323,23 @@ export function RecruitmentFilters({
               value={customMaxOutOfCountyPercent}
               onChange={(event) => setCustomMaxOutOfCountyPercent(event.target.value)}
               placeholder="0%–100%"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
-          </label>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-navy hover:underline"
-          onClick={() => setShowMoreFilters(true)}
-        >
-          More filters
-          <ChevronDown className="size-4" aria-hidden="true" />
-        </button>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" onClick={applyFilters} disabled={isPending}>
-          Apply filters
-        </Button>
-        <Button type="button" variant="outline" onClick={clearFilters} disabled={isPending}>
-          Clear filters
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          nativeButton={false}
-          render={
-            <Link
-              href={`/api/exports/recruitment${exportQuery ? `?${exportQuery}` : ""}`}
-              prefetch={false}
-            />
-          }
-        >
-          Export CSV
-        </Button>
-      </div>
-    </div>
+          </OperationalFilterField>
+        </>
+      }
+      moreFiltersOpen={moreFiltersOpen}
+      onMoreFiltersToggle={() => setMoreFiltersOpen((open) => !open)}
+      advancedFilterCount={advancedFilterCount}
+      onApply={applyFilters}
+      onClear={clearFilters}
+      exportHref={`/api/exports/recruitment${exportQuery ? `?${exportQuery}` : ""}`}
+      isPending={isPending}
+      resultCount={totalCount}
+      resultNoun="county"
+      resultNounPlural="counties"
+      advancedFiltersId="recruitment-advanced-filters"
+    />
   );
 }
 

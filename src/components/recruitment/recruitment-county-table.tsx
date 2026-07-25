@@ -10,11 +10,8 @@ type RecruitmentCountyTableProps = {
   counties: CountyMetricsDto[];
   countyAgeMetricsByCounty: CountyAgeMetricsByCounty;
   searchParams: RecruitmentSearchParams;
-  title: string;
-  titleId: string;
-  description: string;
+  header?: ReactNode;
   emptyMessage: string;
-  filters?: ReactNode;
   footer?: ReactNode;
 };
 
@@ -28,23 +25,14 @@ export function RecruitmentCountyTable({
   counties,
   countyAgeMetricsByCounty,
   searchParams,
-  title,
-  titleId,
-  description,
+  header,
   emptyMessage,
-  filters,
   footer,
 }: RecruitmentCountyTableProps) {
   const countyAgeMetricsRecord = toCountyAgeMetricsRecord(countyAgeMetricsByCounty);
 
   return (
-    <DataTableShell
-      title={title}
-      titleId={titleId}
-      description={description}
-      filters={filters}
-      footer={footer}
-    >
+    <DataTableShell header={header} footer={footer}>
       {counties.length === 0 ? (
         <p className="px-4 py-6 text-sm text-text-secondary" role="status">
           {emptyMessage}
