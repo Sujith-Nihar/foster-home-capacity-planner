@@ -53,6 +53,8 @@ describe("recruitment filters and sorting", () => {
       maxOutOfCountyRate: 0.5,
       sort: "expiring_90_days",
       direction: "asc",
+      page: 1,
+      pageSize: 20,
     });
   });
 

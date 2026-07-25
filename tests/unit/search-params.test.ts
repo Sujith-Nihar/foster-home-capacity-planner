@@ -20,6 +20,8 @@ describe("recruitment search params", () => {
       comparisonStatus: "eligible",
       sort: "children_per_active_provider",
       direction: "desc",
+      page: 1,
+      pageSize: 20,
     });
   });
 
@@ -35,6 +37,8 @@ describe("recruitment search params", () => {
       comparisonStatus: "eligible",
       sort: "out_of_county_foster_rate",
       direction: "asc",
+      page: 1,
+      pageSize: 20,
     });
   });
 

@@ -1,7 +1,8 @@
 import { OperationalResultCount } from "@/components/operational/operational-result-count";
 import { RecruitmentCountyTableBody } from "@/components/recruitment/recruitment-county-table-body";
+import { RecruitmentPagination } from "@/components/recruitment/recruitment-pagination";
 import type { CountyAgeMetricsByCounty } from "@/lib/data/recruitment";
-import { getRecruitmentCounties } from "@/lib/data/recruitment";
+import { getRecruitmentCountiesPaginated } from "@/lib/data/recruitment";
 import { groupCountyAgeMetricsByCounty } from "@/lib/recruitment/age-groups";
 import { getCachedCountyAgeMetrics } from "@/lib/data/cached-snapshot";
 import { parseRecruitmentSearchParams } from "@/lib/validation/search-params";
@@ -18,16 +19,16 @@ function toCountyAgeMetricsRecord(
 
 export async function RecruitmentCountyResults({ searchParams }: RecruitmentCountyResultsProps) {
   const params = parseRecruitmentSearchParams(searchParams);
-  const [counties, allCountyAgeMetrics] = await Promise.all([
-    getRecruitmentCounties(searchParams),
+  const [pagination, allCountyAgeMetrics] = await Promise.all([
+    getRecruitmentCountiesPaginated(searchParams),
     getCachedCountyAgeMetrics(),
   ]);
   const countyAgeMetricsByCounty = groupCountyAgeMetricsByCounty(allCountyAgeMetrics);
   const countyAgeMetricsRecord = toCountyAgeMetricsRecord(countyAgeMetricsByCounty);
 
-  if (counties.length === 0) {
+  if (pagination.totalCount === 0) {
     return (
-      <div className="space-y-3 px-4 py-2">
+      <div className="space-y-3 px-4 py-2" aria-busy="false">
         <OperationalResultCount totalCount={0} noun="county" nounPlural="counties" />
         <p className="px-0 py-4 text-sm text-text-secondary" role="status">
           No counties match the selected filters.
@@ -37,14 +38,25 @@ export async function RecruitmentCountyResults({ searchParams }: RecruitmentCoun
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" aria-busy="false">
       <div className="px-4 pt-2">
-        <OperationalResultCount totalCount={counties.length} noun="county" nounPlural="counties" />
+        <OperationalResultCount
+          totalCount={pagination.totalCount}
+          noun="county"
+          nounPlural="counties"
+        />
       </div>
       <RecruitmentCountyTableBody
-        counties={counties}
+        counties={pagination.items}
         countyAgeMetricsByCounty={countyAgeMetricsRecord}
         searchParams={params}
+      />
+      <RecruitmentPagination
+        searchParams={params}
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        totalPages={pagination.totalPages}
+        totalCount={pagination.totalCount}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { AgeGroupLabel } from "@/config/metrics";
 import type { SortDirection } from "@/lib/types/domain";
+import { RECRUITMENT_PAGE_SIZE_OPTIONS, RECRUITMENT_DEFAULT_PAGE_SIZE } from "@/lib/pagination/constants";
 import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 
 export const SORT_DIRECTIONS = ["asc", "desc"] as const satisfies readonly SortDirection[];
@@ -86,6 +87,16 @@ export const recruitmentSearchSchema = z
     maxOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),
     sort: z.enum(RECRUITMENT_SORT_FIELDS).default("children_per_active_provider"),
     direction: z.enum(SORT_DIRECTIONS).default("desc"),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce
+      .number()
+      .int()
+      .transform((value) =>
+        (RECRUITMENT_PAGE_SIZE_OPTIONS as readonly number[]).includes(value)
+          ? value
+          : RECRUITMENT_DEFAULT_PAGE_SIZE,
+      )
+      .default(RECRUITMENT_DEFAULT_PAGE_SIZE),
   })
   .superRefine((value, context) => {
     if (

@@ -89,7 +89,7 @@ export function OperationalFilterPanel({
 
   return (
     <div className="operational-filter-panel">
-      <h2 id={titleId} className="operational-filter-panel__title">
+      <h2 id={titleId} className="operational-filter-panel__title" tabIndex={titleId ? -1 : undefined}>
         {title}
       </h2>
       <div className="operational-filter-panel__description">{description}</div>
@@ -146,6 +146,7 @@ export function OperationalFilterPanel({
                 href={exportHref}
                 prefetch={false}
                 className="operational-filter-btn operational-filter-btn--export"
+                title="Exports all counties matching the applied filters. Pagination is not applied to CSV export."
               >
                 Export CSV
               </Link>
@@ -177,6 +178,7 @@ export function OperationalFilterPanel({
                 href={exportHref}
                 prefetch={false}
                 className="operational-filter-btn operational-filter-btn--export"
+                title="Exports all counties matching the applied filters. Pagination is not applied to CSV export."
               >
                 Export CSV
               </Link>

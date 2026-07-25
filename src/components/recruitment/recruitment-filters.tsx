@@ -191,6 +191,8 @@ export function RecruitmentFilters({
     return {
       sort: searchParams.sort,
       direction: searchParams.direction,
+      pageSize: searchParams.pageSize,
+      page: 1,
       county: county || undefined,
       priority:
         draft.priority !== ALL_FILTER_VALUE
@@ -226,6 +228,7 @@ export function RecruitmentFilters({
       buildRecruitmentQueryString({
         sort: searchParams.sort,
         direction: searchParams.direction,
+        pageSize: searchParams.pageSize,
       }),
     );
   }

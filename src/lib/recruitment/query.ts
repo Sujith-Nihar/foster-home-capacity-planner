@@ -2,6 +2,7 @@ import {
   getSuggestedRecruitmentAttention,
   type SuggestedRecruitmentAttention,
 } from "@/lib/recruitment/classification";
+import { RECRUITMENT_DEFAULT_PAGE_SIZE } from "@/lib/pagination/constants";
 import type { RecruitmentPriority, SortDirection } from "@/lib/types/domain";
 import type { RecruitmentSearchParams } from "@/lib/validation/search-params";
 
@@ -55,6 +56,12 @@ export function buildRecruitmentQueryString(
   if (params.maxOutOfCountyRate !== undefined) {
     search.set("maxOutOfCountyRate", String(params.maxOutOfCountyRate));
   }
+  if (params.page !== undefined && params.page > 1) {
+    search.set("page", String(params.page));
+  }
+  if (params.pageSize !== undefined && params.pageSize !== RECRUITMENT_DEFAULT_PAGE_SIZE) {
+    search.set("pageSize", String(params.pageSize));
+  }
   search.set("sort", params.sort);
   search.set("direction", params.direction);
 
@@ -73,5 +80,27 @@ export function buildRecruitmentSortHref(
     ...current,
     sort,
     direction,
+    page: 1,
+  })}`;
+}
+
+export function buildRecruitmentPageHref(
+  current: RecruitmentSearchParams,
+  page: number,
+): string {
+  return `/recruitment${buildRecruitmentQueryString({
+    ...current,
+    page,
+  })}`;
+}
+
+export function buildRecruitmentPageSizeHref(
+  current: RecruitmentSearchParams,
+  pageSize: number,
+): string {
+  return `/recruitment${buildRecruitmentQueryString({
+    ...current,
+    page: 1,
+    pageSize,
   })}`;
 }

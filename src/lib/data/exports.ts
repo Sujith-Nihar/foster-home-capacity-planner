@@ -1,4 +1,4 @@
-import { getRecruitmentCounties } from "@/lib/data/recruitment";
+import { getRecruitmentCountiesForExport } from "@/lib/data/recruitment";
 import { getRetentionExportProviders } from "@/lib/data/retention";
 import {
   buildDataSufficiencyReason,
@@ -114,7 +114,7 @@ export function mapRetentionExportRows(providers: ProviderMetricsDto[]): Retenti
 export async function getRecruitmentExportData(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<{ rows: RecruitmentExportRow[]; totalCount: number }> {
-  const counties = await getRecruitmentCounties(searchParams);
+  const counties = await getRecruitmentCountiesForExport(searchParams);
   return {
     rows: mapRecruitmentExportRows(counties).slice(0, MAX_EXPORT_ROWS),
     totalCount: counties.length,

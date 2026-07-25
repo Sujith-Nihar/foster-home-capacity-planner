@@ -12,7 +12,7 @@ import { PageIntroduction } from "@/components/ui/page-introduction";
 import { RECRUITMENT_METRICS } from "@/content/methodology";
 import { getCachedCountyAgeMetrics } from "@/lib/data/cached-snapshot";
 import { deriveAgeGroupPressureFromCountyAgeMetrics } from "@/lib/data/cached-snapshot";
-import { getRecruitmentCounties } from "@/lib/data/recruitment";
+import { getRecruitmentCountiesForExport } from "@/lib/data/recruitment";
 import { buildRecruitmentResultsKey } from "@/lib/filters/operational-results-key";
 import { partitionRecruitmentCounties } from "@/lib/recruitment/analytics";
 import { buildRecruitmentQueryString } from "@/lib/recruitment/query";
@@ -33,7 +33,7 @@ async function RecruitmentChartsSection({
   searchParams: Record<string, string | string[] | undefined>;
 }) {
   const [counties, allCountyAgeMetrics] = await Promise.all([
-    getRecruitmentCounties(searchParams),
+    getRecruitmentCountiesForExport(searchParams),
     getCachedCountyAgeMetrics(),
   ]);
   const { eligible } = partitionRecruitmentCounties(counties);

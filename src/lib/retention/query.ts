@@ -100,3 +100,14 @@ export function buildRetentionPageHref(
     page,
   })}`;
 }
+
+export function buildRetentionPageSizeHref(
+  current: RetentionSearchParams,
+  pageSize: number,
+): string {
+  return `/retention${buildRetentionQueryString({
+    ...current,
+    page: 1,
+    pageSize,
+  })}`;
+}
