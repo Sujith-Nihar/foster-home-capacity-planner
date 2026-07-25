@@ -31,9 +31,11 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   },
 ] as const;
 
-export const APP_BRAND_NAME = "Foster Capacity Planner" as const;
+export const APP_NAME = "Foster Home Capacity Planner" as const;
 
-export const APP_TITLE = "Foster Home Capacity Planner" as const;
+export const APP_BRAND_NAME = "Capacity Planner" as const;
+
+export const APP_TITLE = "Foster Home Capacity Planner | Foster Insights" as const;
 
 export const APP_DESCRIPTION =
-  "Decision-support tool for Illinois DCFS foster home recruitment and retention planning." as const;
+  "Illinois foster-home recruitment and provider-retention planning workspace." as const;

@@ -60,7 +60,8 @@ The application serves a **fixed reporting snapshot through July 1, 2026**. To k
 - **Provider filtering, sorting, and pagination stay on the server** so tables do not download the full provider list.
 - **Retention priority sorting uses `outreach_priority_rank`** in PostgreSQL, with a safe in-memory fallback until the migration is applied.
 - **Structured performance logging** can be enabled for JSON timing output per server operation.
-- **Production routes can be measured** with `npm run benchmark:routes` after `npm run build` and `npm run start`.
+- **Production routes can be measured** with `npm run benchmark:routes` after `npm run build` and `npm run start` (core, county, provider, and not-found samples).
+- **Foster Insights favicon** uses the cropped `fi` magnifying-glass mark from the official logo (`scripts/generate-favicon.py`).
 
 Full details, migration notes, and benchmark methodology: [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
 

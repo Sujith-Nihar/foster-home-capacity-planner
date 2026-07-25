@@ -6,10 +6,11 @@ import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-b
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
 import { CountyNotFound } from "@/components/recruitment/county-not-found";
 import { PageIntroduction } from "@/components/ui/page-introduction";
-import { APP_TITLE } from "@/config/navigation";
+import { APP_NAME } from "@/config/navigation";
 import { getCountyPageData } from "@/lib/data/counties";
 import { breadcrumbCounty } from "@/lib/navigation/breadcrumbs";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
+import { setPerformanceRoute } from "@/lib/performance/timing";
 import { formatCountyName, formatRecruitmentPriorityLabel } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
@@ -25,14 +26,14 @@ export async function generateMetadata({ params }: CountyDetailPageProps): Promi
 
   if (!normalizedCounty) {
     return {
-      title: `County not found | ${APP_TITLE}`,
+      title: `County not found | ${APP_NAME}`,
     };
   }
 
   const displayName = formatCountyName(normalizedCounty);
 
   return {
-    title: `${displayName} recruitment | ${APP_TITLE}`,
+    title: `${displayName} recruitment | ${APP_NAME}`,
     description: `Recruitment planning context, age-group pressure, and retention outreach providers for ${displayName}.`,
   };
 }
@@ -49,6 +50,7 @@ export default async function CountyDetailPage({
   params,
   searchParams,
 }: CountyDetailPageProps) {
+  setPerformanceRoute("/recruitment/[county]");
   const { county } = await params;
   const resolvedSearchParams = await searchParams;
   const data = await getCountyPageData(county, resolvedSearchParams);

@@ -18,8 +18,10 @@ Because the dataset is frozen for this build, stable aggregate reads are wrapped
 
 - System snapshot and monthly metrics
 - County recruitment ranking and largest-county lists
-- Shared county-age metrics (used by recruitment and overview)
+- Shared county-age metrics (used by recruitment, overview, and county detail)
+- Per-county metrics for detail pages (`getCachedCountyMetricsByName`)
 - Filter options and retention summary counts
+- Provider activity timelines per provider ID
 
 Filtered table pages (`/recruitment`, `/retention`) remain dynamic and are not fully page-cached.
 
@@ -40,8 +42,70 @@ Independent server operations are fetched with `Promise.all` in page data loader
 | `/` | `getOverviewPageData()` | Snapshot, monthly metrics, rankings, retention summary |
 | `/recruitment` | `getRecruitmentPageData()` | County list, filter options, shared county-age metrics |
 | `/retention` | `getRetentionPageData()` | Paginated providers, cached filter options, cached summary KPIs |
+| `/recruitment/[county]` | `getCountyPageData()` | Cached county row, cached county-age metrics, county retention preview |
+| `/providers/[providerId]` | `getProviderPageData()` | Provider row, cached activity timeline, cached county context (parallel) |
 
-This reduces wall-clock latency compared with sequential awaits.
+## County and provider detail loaders
+
+County detail pages load three independent datasets in parallel:
+
+1. **County metric lookup** — cached per county via `getCachedCountyMetricsByName()`
+2. **County age-group lookup** — shared cached `getCachedCountyAgeMetrics()` with in-memory county filter
+3. **County retention summary lookup** — paginated provider preview for the county table
+
+Provider detail pages fetch the provider row first, then load activity timeline and county context in parallel. Activity periods are cached per provider ID for the fixed reporting snapshot.
+
+Structured timing operations:
+
+| Route | Operations logged |
+| --- | --- |
+| `/recruitment/[county]` | `getCountyDetailPageData`, `county metric lookup`, `county age-group lookup`, `county retention summary lookup` |
+| `/providers/[providerId]` | `getProviderDetailPageData`, `provider metric lookup`, `provider activity timeline lookup`, `provider county-context lookup` |
+
+## Loading boundaries and prefetch strategy
+
+Dynamic detail routes include restrained loading shells:
+
+- `src/app/(dashboard)/recruitment/[county]/loading.tsx`
+- `src/app/(dashboard)/providers/[providerId]/loading.tsx`
+
+Shells show breadcrumb, title, metric, and section placeholders with `motion-safe:animate-pulse` (disabled under `prefers-reduced-motion`).
+
+**Prefetch strategy:** rely on default Next.js `<Link>` prefetch for visible table actions. No bulk prefetch of all county or provider routes. Loading boundaries allow route shells to stream while Supabase queries resolve.
+
+## Static generation decision
+
+`generateStaticParams` for all ~102 counties was **not implemented** because county detail pages accept search parameters for the embedded retention provider table (pagination, sort, filters). Pre-generating every provider route was also rejected to avoid large build artifacts (~3,000+ pages).
+
+The fixed snapshot instead uses long-lived `unstable_cache` helpers keyed by reporting date, county, and provider ID.
+
+## Favicon and browser metadata
+
+| File | Size | Purpose |
+| --- | --- | --- |
+| `src/app/icon.png` | 512×512 | App icon / manifest |
+| `src/app/apple-icon.png` | 180×180 | Apple touch icon |
+| `src/app/favicon.ico` | 16/32/48 | Browser tab icon |
+
+Source: cropped `fi` magnifying-glass symbol from `public/brand/foster-insights-logo.webp` via `scripts/generate-favicon.py` (~12% transparent padding).
+
+The previous black triangle came from the default `src/app/favicon.ico` shipped with the Next.js starter template.
+
+### Verifying favicon changes
+
+Browsers cache favicons aggressively. After regenerating icons:
+
+```bash
+rm -rf .next
+npm run build
+npm run start
+```
+
+Then open the site in a **new incognito window** or clear site data before checking the tab icon.
+
+Default document title: `Foster Home Capacity Planner | Foster Insights`.
+
+## Production route benchmark
 
 ## Retention sorting and pagination
 
@@ -100,21 +164,38 @@ Optional environment variables:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `BENCHMARK_BASE_URL` | `http://127.0.0.1:3000` | Target origin |
+| `BENCHMARK_REQUESTS` | `3` | Requests per route |
 
 The script issues three requests per route. The first request is treated as **cold**; the average of the next two is **warm**.
 
-Routes measured: `/`, `/recruitment`, `/retention`, `/methodology`.
+Route samples are configured in `scripts/benchmark-routes.config.mjs`:
 
-### Representative local production run
+- Core: `/`, `/recruitment`, `/retention`, `/methodology`
+- Counties: `Cook`, `Champaign`, `DeKalb`, `Alexander` (limited-data sample)
+- Providers: active `500001`, inactive `500021`, multi-reason `500024`
+- Not found: invalid county and provider routes
 
-The table below was captured on **July 24, 2026** against `npm run start` on this repository with Supabase credentials configured locally. Timings vary with network latency to Supabase, process cold start, and whether `outreach_priority_rank` is present.
+### Representative local production run (July 25, 2026)
+
+Captured against `npm run start` with local Supabase credentials. Timings vary with network latency and process warmth.
 
 | Route | Cold (ms) | Warm avg (ms) |
 | --- | ---: | ---: |
-| `/` | 245 | 29 |
-| `/recruitment` | 605 | 236 |
-| `/retention` | 157 | 134 |
-| `/methodology` | 20 | 12 |
+| `/` | 49 | 20 |
+| `/recruitment` | 388 | 222 |
+| `/retention` | 177 | 118 |
+| `/methodology` | 11 | 11 |
+| `/recruitment/Cook` | 119 | 96 |
+| `/recruitment/Champaign` | 114 | 91 |
+| `/recruitment/DeKalb` | 109 | 97 |
+| `/recruitment/Alexander` (limited data) | 112 | 212 |
+| `/providers/500001` (active) | 97 | 258 |
+| `/providers/500021` (inactive) | 97 | 109 |
+| `/providers/500024` (multi-reason) | 87 | 130 |
+
+**Slowest county server operation (warm):** `county retention summary lookup` (~76–170 ms) — paginated provider preview for the embedded retention table.
+
+**Slowest provider server operation (warm):** `provider metric lookup` (~72–133 ms) — single-row `provider_metrics` fetch; county context and activity timeline are cached hits after warm-up.
 
 **Notes:**
 
@@ -143,3 +224,6 @@ Performance work did not alter:
 | Overview loader | `src/lib/data/overview.ts` |
 | Priority-rank migration | `supabase/migrations/20260724150000_add_provider_outreach_priority_rank.sql` |
 | Benchmark script | `scripts/benchmark-production-routes.mjs` |
+| Benchmark route config | `scripts/benchmark-routes.config.mjs` |
+| Favicon generator | `scripts/generate-favicon.py` |
+| Web manifest | `src/app/manifest.ts` |

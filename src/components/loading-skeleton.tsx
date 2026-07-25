@@ -6,7 +6,7 @@ type LoadingSkeletonProps = {
 };
 
 function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={cn("rounded-md bg-muted", className)} aria-hidden="true" />;
+  return <div className={cn("rounded-md bg-muted motion-safe:animate-pulse", className)} aria-hidden="true" />;
 }
 
 export function LoadingSkeleton({ className, rows = 3 }: LoadingSkeletonProps) {

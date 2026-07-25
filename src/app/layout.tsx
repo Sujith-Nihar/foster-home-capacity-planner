@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 
-import { APP_DESCRIPTION, APP_TITLE } from "@/config/navigation";
+import { APP_DESCRIPTION, APP_NAME, APP_TITLE } from "@/config/navigation";
 import { REPORTING_DATE } from "@/config/metrics";
 
 import "./globals.css";
@@ -14,8 +14,12 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: APP_TITLE,
+  title: {
+    default: APP_TITLE,
+    template: `%s | ${APP_NAME}`,
+  },
   description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
   robots: {
     index: false,
     follow: false,

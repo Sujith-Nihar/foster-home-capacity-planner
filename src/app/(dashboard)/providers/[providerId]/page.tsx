@@ -6,10 +6,11 @@ import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-b
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
 import { ProviderNotFound } from "@/components/providers/provider-not-found";
 import { PageIntroduction } from "@/components/ui/page-introduction";
-import { APP_TITLE } from "@/config/navigation";
+import { APP_NAME } from "@/config/navigation";
 import { getProviderPageData } from "@/lib/data/providers";
 import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
 import { parseProviderRouteId } from "@/lib/navigation/providers";
+import { setPerformanceRoute } from "@/lib/performance/timing";
 import { formatOutreachPriorityLabel, formatProviderId } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
@@ -24,18 +25,19 @@ export async function generateMetadata({ params }: ProviderDetailPageProps): Pro
 
   if (normalizedProviderId === null) {
     return {
-      title: `Provider not found | ${APP_TITLE}`,
+      title: `Provider not found | ${APP_NAME}`,
     };
   }
 
   return {
-    title: `Provider ${formatProviderId(normalizedProviderId)} | ${APP_TITLE}`,
+    title: `Provider ${formatProviderId(normalizedProviderId)} | ${APP_NAME}`,
     description:
       "License status, engagement metrics, outreach priority reasons, and placement activity for a single licensed provider.",
   };
 }
 
 export default async function ProviderDetailPage({ params }: ProviderDetailPageProps) {
+  setPerformanceRoute("/providers/[providerId]");
   const { providerId } = await params;
   const data = await getProviderPageData(providerId);
 

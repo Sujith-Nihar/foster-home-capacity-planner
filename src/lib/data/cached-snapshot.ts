@@ -30,8 +30,10 @@ import type {
 const SNAPSHOT_CACHE_TAG = "foster-snapshot";
 const SNAPSHOT_REVALIDATE_SECONDS = 60 * 60 * 24 * 365;
 
-const COUNTY_LIST_COLUMNS =
+const COUNTY_DETAIL_COLUMNS =
   "county, reporting_date, current_children_in_care, current_foster_home_children, current_kin_children, current_nonfamily_children, licensed_providers, active_providers, inactive_providers, children_per_active_provider, out_of_county_foster_count, out_of_county_foster_rate, expiring_90_days, expiring_180_days, high_retention_providers, medium_retention_providers, highest_pressure_age_group, recruitment_priority, recruitment_reasons";
+
+const COUNTY_LIST_COLUMNS = COUNTY_DETAIL_COLUMNS;
 
 const COUNTY_AGE_COLUMNS =
   "county, age_group, reporting_date, current_foster_home_children, matching_licensed_providers, matching_active_providers, children_per_matching_active_provider";
@@ -133,6 +135,25 @@ async function loadLargestCounties(
   );
 
   return rows.map(mapCountyMetrics);
+}
+
+async function loadCountyMetricsByName(
+  county: string,
+  reportingDate: string,
+): Promise<CountyMetricsDto> {
+  const supabase = getServerSupabaseClient();
+  const row = await executeSupabaseQuery<Database["public"]["Tables"]["county_metrics"]["Row"]>(
+    `load county metrics for ${county}`,
+    async () =>
+      supabase
+        .from("county_metrics")
+        .select(COUNTY_DETAIL_COLUMNS)
+        .eq("reporting_date", reportingDate)
+        .eq("county", county)
+        .maybeSingle(),
+  );
+
+  return mapCountyMetrics(row);
 }
 
 async function loadFilterOptions(reportingDate: string): Promise<FilterOptionsDto> {
@@ -252,6 +273,14 @@ export const getCachedCountyAgeMetrics = unstable_cache(
   ["foster-county-age-metrics", REPORTING_DATE],
   { revalidate: SNAPSHOT_REVALIDATE_SECONDS, tags: [SNAPSHOT_CACHE_TAG] },
 );
+
+export async function getCachedCountyMetricsByName(county: string): Promise<CountyMetricsDto> {
+  return unstable_cache(
+    async () => loadCountyMetricsByName(county, REPORTING_DATE),
+    ["foster-county-metrics-by-name", REPORTING_DATE, county],
+    { revalidate: SNAPSHOT_REVALIDATE_SECONDS, tags: [SNAPSHOT_CACHE_TAG] },
+  )();
+}
 
 export const getCachedRecruitmentCountyRanking = unstable_cache(
   async (limit: number) => loadRecruitmentCountyRanking(REPORTING_DATE, limit),

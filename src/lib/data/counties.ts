@@ -6,7 +6,11 @@ import {
   type Database,
 } from "@/lib/supabase/server";
 import { DataAccessError } from "@/lib/supabase/errors";
-import { getAllCountyAgeMetrics } from "@/lib/data/recruitment";
+import {
+  getCachedCountyAgeMetrics,
+  getCachedCountyMetricsByName,
+  getCachedReportingDate,
+} from "@/lib/data/cached-snapshot";
 import { getRetentionProvidersForCounty } from "@/lib/data/retention";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
 import {
@@ -18,6 +22,7 @@ import {
   computeStatewideAgeGroupBenchmarks,
   type StatewideAgeGroupBenchmark,
 } from "@/lib/recruitment/age-groups";
+import { timedOperation } from "@/lib/performance/timing";
 import type { CountyAgeMetricsDto, CountyMetricsDto, PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
 
 const COUNTY_DETAIL_COLUMNS =
@@ -38,19 +43,33 @@ export async function getCountyMetricsByName(
   reportingDate?: string,
 ) {
   const activeReportingDate = reportingDate ?? (await getActiveReportingDate());
-  const supabase = getServerSupabaseClient();
-  const row = await executeSupabaseQuery<Database["public"]["Tables"]["county_metrics"]["Row"]>(
-    `load county metrics for ${county}`,
-    async () =>
-      supabase
-        .from("county_metrics")
-        .select(COUNTY_DETAIL_COLUMNS)
-        .eq("reporting_date", activeReportingDate)
-        .eq("county", county)
-        .maybeSingle(),
-  );
+  if (!reportingDate || activeReportingDate === (await getCachedReportingDate())) {
+    return timedOperation(
+      "county metric lookup",
+      () => getCachedCountyMetricsByName(county),
+      { cache: "hit" },
+    );
+  }
 
-  return mapCountyMetrics(row);
+  const supabase = getServerSupabaseClient();
+  return timedOperation(
+    "county metric lookup",
+    async () => {
+      const row = await executeSupabaseQuery<Database["public"]["Tables"]["county_metrics"]["Row"]>(
+        `load county metrics for ${county}`,
+        async () =>
+          supabase
+            .from("county_metrics")
+            .select(COUNTY_DETAIL_COLUMNS)
+            .eq("reporting_date", activeReportingDate)
+            .eq("county", county)
+            .maybeSingle(),
+      );
+
+      return mapCountyMetrics(row);
+    },
+    { cache: "miss" },
+  );
 }
 
 export async function getCountyAgeMetrics(
@@ -78,6 +97,22 @@ export async function getCountyAgeMetrics(
   return rows.map(mapCountyAgeMetrics);
 }
 
+async function loadCountyAgeMetricsForDetail() {
+  const reportingDate = await getActiveReportingDate();
+  if (reportingDate === (await getCachedReportingDate())) {
+    return timedOperation("county age-group lookup", () => getCachedCountyAgeMetrics(), {
+      cache: "hit",
+      rowCount: (rows) => rows.length,
+    });
+  }
+
+  const { getAllCountyAgeMetrics } = await import("@/lib/data/recruitment");
+  return timedOperation("county age-group lookup", () => getAllCountyAgeMetrics(reportingDate), {
+    cache: "miss",
+    rowCount: (rows) => rows.length,
+  });
+}
+
 export async function getCountyPageData(
   countyParam: string,
   searchParams: Record<string, string | string[] | undefined> = {},
@@ -87,35 +122,53 @@ export async function getCountyPageData(
     return null;
   }
 
-  try {
-    const [countyMetrics, allCountyAgeGroups, retentionProviders] = await Promise.all([
-      getCountyMetricsByName(county),
-      getAllCountyAgeMetrics(),
-      getRetentionProvidersForCounty(county, {
-        ...searchParams,
-        pageSize: searchParams.pageSize ?? "10",
-        sort: searchParams.sort ?? "outreach_priority",
-        direction: searchParams.direction ?? "asc",
-      }),
-    ]);
+  return timedOperation(
+    "getCountyDetailPageData",
+    async () => {
+      try {
+        const [countyMetrics, allCountyAgeGroups, retentionProviders] = await Promise.all([
+          getCountyMetricsByName(county),
+          loadCountyAgeMetricsForDetail(),
+          timedOperation(
+            "county retention summary lookup",
+            () =>
+              getRetentionProvidersForCounty(county, {
+                ...searchParams,
+                pageSize: searchParams.pageSize ?? "10",
+                sort: searchParams.sort ?? "outreach_priority",
+                direction: searchParams.direction ?? "asc",
+              }),
+            {
+              rowCount: (result) => result.items.length,
+              cache: "miss",
+            },
+          ),
+        ]);
 
-    const ageGroups = orderCountyAgeGroups(
-      allCountyAgeGroups.filter((row) => row.county === county),
-    );
+        const ageGroups = orderCountyAgeGroups(
+          allCountyAgeGroups.filter((row) => row.county === county),
+        );
 
-    return {
-      county: countyMetrics,
-      ageGroups,
-      statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeGroups),
-      retentionProviders: retentionProviders.items,
-      retentionPagination: retentionProviders,
-      priorityExplanation: buildCountyPriorityExplanation(countyMetrics, ageGroups, allCountyAgeGroups),
-      limitations: buildCountyLimitations(countyMetrics),
-    };
-  } catch (error) {
-    if (error instanceof DataAccessError && error.code === "NOT_FOUND") {
-      return null;
-    }
-    throw error;
-  }
+        return {
+          county: countyMetrics,
+          ageGroups,
+          statewideAgeGroupBenchmarks: computeStatewideAgeGroupBenchmarks(allCountyAgeGroups),
+          retentionProviders: retentionProviders.items,
+          retentionPagination: retentionProviders,
+          priorityExplanation: buildCountyPriorityExplanation(
+            countyMetrics,
+            ageGroups,
+            allCountyAgeGroups,
+          ),
+          limitations: buildCountyLimitations(countyMetrics),
+        };
+      } catch (error) {
+        if (error instanceof DataAccessError && error.code === "NOT_FOUND") {
+          return null;
+        }
+        throw error;
+      }
+    },
+    { cache: "n/a" },
+  );
 }
