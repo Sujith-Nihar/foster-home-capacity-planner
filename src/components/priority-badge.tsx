@@ -63,13 +63,13 @@ export function PriorityBadge({ level, label, className }: PriorityBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium",
+        "priority-badge",
         config.className,
         className,
       )}
     >
-      <Icon className="size-3.5 shrink-0" aria-hidden="true" />
-      <span>{label}</span>
+      <Icon className="priority-badge__icon" aria-hidden="true" />
+      <span className="priority-badge__label">{label}</span>
     </span>
   );
 }

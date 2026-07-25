@@ -94,7 +94,6 @@ function RetentionMobileList({ providers }: { providers: ProviderMetricsDto[] })
                 <PriorityBadge
                   level={priorityToAttentionLevel(provider.outreachPriority)}
                   label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
-                  className="w-fit whitespace-nowrap"
                 />
               }
             />
@@ -225,11 +224,10 @@ export function RetentionProviderTableContent({
                     provider.engagementRateLast365,
                   )}
                 </TableCell>
-                <TableCell className={`${ROW_CELL} min-w-0`}>
+                <TableCell className={`${ROW_CELL} min-w-0 retention-col--outreach-cell`}>
                   <PriorityBadge
                     level={priorityToAttentionLevel(provider.outreachPriority)}
                     label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
-                    className="w-fit max-w-full whitespace-nowrap"
                   />
                 </TableCell>
                 <TableCell className={`${ROW_CELL} min-w-0`}>

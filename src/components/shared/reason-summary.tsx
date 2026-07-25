@@ -32,7 +32,9 @@ export function PrimaryReason({ reasons, context, providerId, className }: Prima
 
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="text-sm leading-snug text-text-primary">{primary}</p>
+      <p className="text-sm leading-snug text-text-primary" title={primary}>
+        {primary}
+      </p>
       {additional.length > 0 ? (
         providerId ? (
           <Link

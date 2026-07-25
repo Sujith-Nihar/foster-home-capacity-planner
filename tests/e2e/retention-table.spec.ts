@@ -2,6 +2,66 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 
 const DESKTOP_VIEWPORTS = [1600, 1440, 1280, 1100, 1024] as const;
 const MOBILE_VIEWPORTS = [768, 390] as const;
+const BADGE_CELL_TOLERANCE = 2;
+
+async function expectBadgeContentsContained(badge: Locator) {
+  const metrics = await badge.evaluate((node) => {
+    const badgeRect = node.getBoundingClientRect();
+    const icon = node.querySelector(".priority-badge__icon, svg");
+    const label = node.querySelector(".priority-badge__label");
+
+    function isContained(child: Element | null) {
+      if (!child) {
+        return true;
+      }
+      const rect = child.getBoundingClientRect();
+      return (
+        rect.left >= badgeRect.left - 0.5 &&
+        rect.top >= badgeRect.top - 0.5 &&
+        rect.right <= badgeRect.right + 0.5 &&
+        rect.bottom <= badgeRect.bottom + 0.5
+      );
+    }
+
+    return {
+      badgeWidth: badgeRect.width,
+      badgeHeight: badgeRect.height,
+      iconContained: isContained(icon),
+      labelContained: isContained(label),
+    };
+  });
+
+  expect(metrics.badgeWidth).toBeGreaterThan(0);
+  expect(metrics.badgeHeight).toBeGreaterThanOrEqual(38 - 1);
+  expect(metrics.iconContained).toBe(true);
+  expect(metrics.labelContained).toBe(true);
+}
+
+async function expectBadgeInsideOutreachCell(row: Locator) {
+  const cell = row.locator("td.retention-col--outreach-cell");
+  const badge = cell.locator(".priority-badge").first();
+  await expect(badge).toBeVisible();
+  await expectBadgeContentsContained(badge);
+
+  const boxes = await badge.evaluate((badgeNode) => {
+    const cellNode = badgeNode.closest("td");
+    if (!cellNode) {
+      return null;
+    }
+    const badgeRect = badgeNode.getBoundingClientRect();
+    const cellRect = cellNode.getBoundingClientRect();
+    return {
+      badgeRight: badgeRect.right,
+      cellRight: cellRect.right,
+      badgeLeft: badgeRect.left,
+      cellLeft: cellRect.left,
+    };
+  });
+
+  expect(boxes).not.toBeNull();
+  expect(boxes!.badgeLeft).toBeGreaterThanOrEqual(boxes!.cellLeft - BADGE_CELL_TOLERANCE);
+  expect(boxes!.badgeRight).toBeLessThanOrEqual(boxes!.cellRight + BADGE_CELL_TOLERANCE);
+}
 
 async function expectNoDocumentHorizontalOverflow(page: Page) {
   const metrics = await page.evaluate(() => ({
@@ -90,6 +150,14 @@ test.describe("retention provider table", () => {
     );
     await expect(whyReview).toHaveCount(0);
   });
+
+  test("keeps outreach badge text inside badge bounds", async ({ page }) => {
+    await page.goto("/retention?priority=Medium&pageSize=10");
+    const row = retentionTable(page).locator(".table-desktop-only tbody tr").first();
+    await expect(row).toBeVisible();
+    await expect(row.locator(".priority-badge")).toContainText(/Medium outreach/i);
+    await expectBadgeInsideOutreachCell(row);
+  });
 });
 
 for (const width of DESKTOP_VIEWPORTS) {
@@ -109,6 +177,11 @@ for (const width of DESKTOP_VIEWPORTS) {
       await expectLocatorInsideContainer(viewProvider, retentionTableViewport(page));
       await expectLocatorInsideContainer(table, retentionContentContainer(page));
       await expectNoDocumentHorizontalOverflow(page);
+
+      const outreachRow = table.locator(".table-desktop-only tbody tr").first();
+      if ((await outreachRow.locator(".priority-badge").count()) > 0) {
+        await expectBadgeInsideOutreachCell(outreachRow);
+      }
     });
   });
 }
