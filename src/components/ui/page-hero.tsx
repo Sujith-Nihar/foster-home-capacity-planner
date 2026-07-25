@@ -33,7 +33,7 @@ export function PageHero({
 
   if (isExecutive) {
     return (
-      <section className={cn("overview-hero section-enter px-6 py-14 sm:px-8 lg:px-10 lg:py-16", className)}>
+      <section className={cn("overview-hero px-6 py-14 sm:px-8 lg:px-10 lg:py-16", className)}>
         <h1 className="sr-only">{title}</h1>
         <div
           className={cn(
@@ -71,7 +71,7 @@ export function PageHero({
   return (
     <section
       className={cn(
-        "section-enter overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised px-6 py-6 sm:px-8",
+        "overflow-hidden rounded-[var(--radius-hero)] border border-border-subtle bg-surface-raised px-6 py-6 sm:px-8",
         className,
       )}
     >

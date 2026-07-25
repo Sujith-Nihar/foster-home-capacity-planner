@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { MOTION_DELAY_MS } from "@/lib/motion/tokens";
 import { cn } from "@/lib/utils";
 
 type SectionRevealProps = {
@@ -23,6 +24,7 @@ export function SectionReveal({
   delayMs = 0,
 }: SectionRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const cappedDelayMs = Math.min(delayMs, MOTION_DELAY_MS.sectionMax);
 
   useEffect(() => {
     const node = ref.current;
@@ -68,7 +70,11 @@ export function SectionReveal({
     <div
       ref={ref}
       className={cn("fi-section-reveal fi-section-reveal--visible", delayClassName, className)}
-      style={!delayClassName && delayMs > 0 ? { transitionDelay: `${delayMs}ms` } : undefined}
+      style={
+        !delayClassName && cappedDelayMs > 0
+          ? { transitionDelay: `${cappedDelayMs}ms` }
+          : undefined
+      }
     >
       {children}
     </div>

@@ -13,6 +13,7 @@ import { CountyRetentionTable } from "@/components/recruitment/county-retention-
 import { ExplainedReasonList } from "@/components/methodology/explained-reason-list";
 import { MetricHelpTooltip } from "@/components/methodology/metric-help-tooltip";
 import { DataTableShell } from "@/components/data-table-shell";
+import { SectionReveal } from "@/components/ui/section-reveal";
 import {
   BriefingSnapshotGrid,
   DecisionBriefingSection,
@@ -76,11 +77,12 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
 
   return (
     <div className="space-y-8">
-      <DecisionBriefingSection
-        titleId="county-snapshot-heading"
-        title="County snapshot"
-        lead={countyBriefingLead(data)}
-      >
+      <SectionReveal>
+        <DecisionBriefingSection
+          titleId="county-snapshot-heading"
+          title="County snapshot"
+          lead={countyBriefingLead(data)}
+        >
         <BriefingSnapshotGrid>
           <MetricCard
             label="Current foster-home children"
@@ -115,9 +117,11 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             helperText="Providers with high suggested outreach priority"
           />
         </BriefingSnapshotGrid>
-      </DecisionBriefingSection>
+        </DecisionBriefingSection>
+      </SectionReveal>
 
-      <section aria-labelledby="county-age-pressure-heading">
+      <SectionReveal delayMs={40}>
+        <section aria-labelledby="county-age-pressure-heading">
         <DataTableShell
           titleId="county-age-pressure-heading"
           title="Age-group recruitment comparison"
@@ -207,7 +211,8 @@ export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) 
             </div>
           )}
         </DataTableShell>
-      </section>
+        </section>
+      </SectionReveal>
 
       {county.recruitmentReasons.length > 0 ? (
         <DecisionBriefingSection

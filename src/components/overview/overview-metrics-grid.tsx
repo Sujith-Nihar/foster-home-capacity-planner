@@ -49,7 +49,7 @@ export function OverviewMetricsGrid({ snapshot }: OverviewMetricsGridProps) {
         </h2>
       </SectionReveal>
 
-      <SectionReveal className="overview-metrics__grid">
+      <SectionReveal delayMs={80} className="overview-metrics__grid">
         <article className="overview-metric-card overview-metric-card--featured min-w-0">
           <p className="overview-metric-card__label">Current children in care</p>
           <p className="overview-metric-card__value overview-metric-card__value--featured">

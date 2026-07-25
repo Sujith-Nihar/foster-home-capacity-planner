@@ -34,11 +34,11 @@ export function AttentionPanel({
     <SectionShell tone="dark" aria-labelledby="attention-panel-heading">
       <div className="content-container">
         <div className="mx-auto max-w-3xl space-y-6 text-center sm:text-left">
-          <TextReveal as="h2" id="attention-panel-heading" className="eyebrow-label text-white/80">
+          <TextReveal as="h2" id="attention-panel-heading" variant="heading" className="eyebrow-label text-white/80" immediate>
             What needs attention
           </TextReveal>
 
-          <SectionReveal delayClassName="fi-reveal-delay-content">
+          <SectionReveal delayMs={40}>
             <ul className="space-y-3 text-base leading-relaxed text-white/78">
               {findings.map((finding) => (
                 <li key={finding} className="flex gap-3 sm:items-start">
@@ -52,7 +52,7 @@ export function AttentionPanel({
             </ul>
           </SectionReveal>
 
-          <SectionReveal delayClassName="fi-reveal-delay-actions">
+          <SectionReveal delayMs={80}>
             <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
               <Link href="/retention?priority=High" className="fi-btn-dark-primary">
                 Review retention

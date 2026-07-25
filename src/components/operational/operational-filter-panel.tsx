@@ -170,14 +170,18 @@ export function OperationalFilterPanel({
           </div>
         )}
 
-        {advancedFilters && moreFiltersOpen ? (
+        {advancedFilters ? (
           <div
             id={advancedFiltersId}
             className={cn(
-              "operational-filter-advanced operational-filter-advanced--open operational-filter-advanced--animated",
+              "operational-filter-advanced",
+              moreFiltersOpen && "operational-filter-advanced--open",
             )}
+            inert={moreFiltersOpen ? undefined : true}
           >
-            <OperationalFilterGrid>{advancedFilters}</OperationalFilterGrid>
+            <div className="operational-filter-advanced__inner">
+              <OperationalFilterGrid>{advancedFilters}</OperationalFilterGrid>
+            </div>
           </div>
         ) : null}
 

@@ -12,6 +12,7 @@ import {
   BriefingSnapshotGrid,
   DecisionBriefingSection,
 } from "@/components/ui/decision-briefing-section";
+import { SectionReveal } from "@/components/ui/section-reveal";
 import { RETENTION_METRICS } from "@/content/methodology";
 import type { ProviderPageData } from "@/lib/types/domain";
 import { explainOutreachReason } from "@/lib/retention/reason-display";
@@ -45,11 +46,12 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
   return (
     <div className="space-y-8">
-      <DecisionBriefingSection
-        titleId="provider-snapshot-heading"
-        title="Provider snapshot"
-        lead={`Licensed provider in ${formatCountyName(provider.county)} at the reporting date.`}
-      >
+      <SectionReveal>
+        <DecisionBriefingSection
+          titleId="provider-snapshot-heading"
+          title="Provider snapshot"
+          lead={`Licensed provider in ${formatCountyName(provider.county)} at the reporting date.`}
+        >
         <BriefingSnapshotGrid className="xl:grid-cols-4">
           <MetricCard
             label="Current placement status"
@@ -83,7 +85,8 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
             icon={<MapPin className="size-4" aria-hidden="true" />}
           />
         </BriefingSnapshotGrid>
-      </DecisionBriefingSection>
+        </DecisionBriefingSection>
+      </SectionReveal>
 
       <DecisionBriefingSection
         titleId="provider-license-heading"
@@ -155,7 +158,9 @@ export function ProviderDetailPageContent({ data }: ProviderDetailPageContentPro
 
       <ProviderOutreachExplanation reasons={explainedOutreachReasons} />
 
-      <ProviderActivityTimeline activityPeriods={activityPeriods} />
+      <SectionReveal delayMs={40}>
+        <ProviderActivityTimeline activityPeriods={activityPeriods} />
+      </SectionReveal>
 
       <BriefingReviewPoints
         titleId="provider-review-heading"

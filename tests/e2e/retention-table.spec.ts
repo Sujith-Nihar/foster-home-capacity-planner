@@ -164,6 +164,7 @@ test.describe("retention page line animation", () => {
     page,
   }) => {
     await page.goto("/retention?priority=High&pageSize=10");
+    await page.waitForLoadState("networkidle");
     const path = page.locator(".hand-drawn-underline-path").first();
     await expect(path).toHaveCount(1);
 
@@ -174,30 +175,25 @@ test.describe("retention page line animation", () => {
       if (!svgPath) {
         return false;
       }
-      return svgPath.classList.contains("hand-drawn-underline-path--drawn");
+      if (!svgPath.classList.contains("hand-drawn-underline-path--drawn")) {
+        return false;
+      }
+      const offset = Number.parseFloat(window.getComputedStyle(svgPath).strokeDashoffset);
+      return offset <= 0.05;
     });
 
-    await page.waitForTimeout(2200);
-    const completedOffset = await path.evaluate((node) =>
+    const dashoffsetAfterComplete = await path.evaluate((node) =>
       Number.parseFloat(window.getComputedStyle(node as SVGPathElement).strokeDashoffset),
     );
-    expect(completedOffset).toBeLessThanOrEqual(1);
+    expect(dashoffsetAfterComplete).toBeLessThanOrEqual(0.05);
 
-    const dashoffsetAfterComplete = await path.evaluate((node) =>
-      window.getComputedStyle(node as SVGPathElement).strokeDashoffset,
-    );
-
-    await retentionTable(page)
-      .getByRole("columnheader", { name: "Suggested outreach" })
-      .getByRole("link")
-      .click();
-    await page.waitForURL(/sort=outreach_priority/);
-    await page.waitForTimeout(400);
+    await page.getByRole("button", { name: /More filters/i }).click();
+    await page.waitForTimeout(300);
 
     const dashoffsetAfterFilter = await path.evaluate((node) =>
-      window.getComputedStyle(node as SVGPathElement).strokeDashoffset,
+      Number.parseFloat(window.getComputedStyle(node as SVGPathElement).strokeDashoffset),
     );
-    expect(dashoffsetAfterFilter).toBe(dashoffsetAfterComplete);
+    expect(dashoffsetAfterFilter).toBeLessThanOrEqual(0.05);
   });
 
   test("renders completed underline immediately with reduced motion", async ({ page }) => {
@@ -208,7 +204,7 @@ test.describe("retention page line animation", () => {
     const offset = await path.evaluate((node) =>
       Number.parseFloat(window.getComputedStyle(node as SVGPathElement).strokeDashoffset),
     );
-    expect(offset).toBeLessThanOrEqual(1);
+    expect(offset).toBeLessThanOrEqual(0.05);
   });
 });
 

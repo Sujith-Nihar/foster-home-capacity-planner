@@ -89,32 +89,17 @@ export function PageIntroduction({
         )}
       >
         <div className={cn("space-y-4", isHero && "flex flex-col items-center")}>
-          <TextReveal
-            as="p"
-            className={cn("eyebrow-label", "page-intro-eyebrow-reveal")}
-            delayClassName="fi-reveal-delay-eyebrow"
-            immediate
-          >
+          <TextReveal as="p" variant="eyebrow" className="eyebrow-label" immediate>
             {eyebrow}
           </TextReveal>
-          <TextReveal
-            as="h1"
-            id="page-intro-title"
-            className={cn("page-intro-headline", "page-intro-headline-reveal")}
-            delayClassName="fi-reveal-delay-heading"
-            immediate
-          >
+          <TextReveal as="h1" id="page-intro-title" variant="heading" className="page-intro-headline" immediate>
             {renderHeadline()}
           </TextReveal>
           {description ? (
             <TextReveal
               as="p"
-              className={cn(
-                "page-intro-description",
-                isHero && "text-center",
-                "page-intro-description-reveal",
-              )}
-              delayClassName="fi-reveal-delay-description"
+              variant="description"
+              className={cn("page-intro-description", isHero && "text-center")}
               immediate
             >
               {description}
@@ -123,8 +108,8 @@ export function PageIntroduction({
           {actions && actions.length > 0 ? (
             <TextReveal
               as="div"
+              variant="action"
               className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}
-              delayClassName="fi-reveal-delay-actions"
               immediate
             >
               {actions.map((action, index) => (

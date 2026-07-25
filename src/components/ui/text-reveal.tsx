@@ -4,13 +4,23 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+export type TextRevealVariant = "default" | "eyebrow" | "heading" | "description" | "action";
+
 type TextRevealProps = {
   children: ReactNode;
   className?: string;
   as?: "div" | "p" | "h1" | "h2";
+  variant?: TextRevealVariant;
   delayClassName?: string;
   immediate?: boolean;
   id?: string;
+};
+
+const VARIANT_CLASSES: Record<Exclude<TextRevealVariant, "default">, string> = {
+  eyebrow: "page-intro-eyebrow-reveal fi-reveal-delay-eyebrow",
+  heading: "page-intro-headline-reveal fi-reveal-delay-heading",
+  description: "page-intro-description-reveal fi-reveal-delay-description",
+  action: "page-intro-actions-reveal fi-reveal-delay-actions",
 };
 
 function prepareAnimatedReveal(node: HTMLElement) {
@@ -18,15 +28,7 @@ function prepareAnimatedReveal(node: HTMLElement) {
   node.classList.add("fi-text-reveal--enhanced");
 }
 
-function revealImmediately(node: HTMLElement) {
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion) {
-    node.classList.add("fi-text-reveal--visible");
-    return;
-  }
-
-  prepareAnimatedReveal(node);
-
+function revealNode(node: HTMLElement) {
   window.requestAnimationFrame(() => {
     node.classList.add("fi-text-reveal--visible");
   });
@@ -36,6 +38,7 @@ export function TextReveal({
   children,
   className,
   as: Component = "div",
+  variant = "default",
   delayClassName,
   immediate = false,
   id,
@@ -55,7 +58,8 @@ export function TextReveal({
     }
 
     if (immediate) {
-      revealImmediately(node);
+      prepareAnimatedReveal(node);
+      revealNode(node);
       return;
     }
 
@@ -64,16 +68,14 @@ export function TextReveal({
     prepareAnimatedReveal(node);
 
     if (inView) {
-      window.requestAnimationFrame(() => {
-        node.classList.add("fi-text-reveal--visible");
-      });
+      revealNode(node);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          node.classList.add("fi-text-reveal--visible");
+          revealNode(node);
           observer.disconnect();
         }
       },
@@ -83,11 +85,19 @@ export function TextReveal({
     return () => observer.disconnect();
   }, [immediate]);
 
+  const variantClass =
+    variant !== "default" ? VARIANT_CLASSES[variant] : undefined;
+
   return (
     <Component
       ref={ref as never}
       id={id}
-      className={cn("fi-text-reveal fi-text-reveal--visible", delayClassName, className)}
+      className={cn(
+        "fi-text-reveal fi-text-reveal--visible",
+        variantClass,
+        delayClassName,
+        className,
+      )}
     >
       {children}
     </Component>

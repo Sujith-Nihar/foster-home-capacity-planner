@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
 
+import { SectionReveal } from "@/components/ui/section-reveal";
 import type { MethodologySection } from "@/lib/methodology/sections";
 import { METHODOLOGY_CALLOUTS } from "@/lib/methodology/sections";
 import type { DatasetMetadataDto } from "@/lib/types/domain";
@@ -48,30 +49,33 @@ function formatGeneratedAt(value: string): string {
 export function MethodologyPageContent({ metadata, sections }: MethodologyPageContentProps) {
   return (
     <div className="space-y-8">
-      <section
-        aria-labelledby="methodology-principles-heading"
-        className="space-y-4 rounded-lg border border-border-default bg-surface-raised p-6"
-      >
-        <h2 id="methodology-principles-heading" className="text-lg font-semibold text-text-primary">
-          How to read this application
-        </h2>
-        <ul className="space-y-3">
-          {METHODOLOGY_CALLOUTS.map((callout) => (
-            <li
-              key={callout}
-              className="flex items-start gap-3 text-sm leading-6 text-text-secondary"
-            >
-              <Info className="mt-0.5 size-4 shrink-0 text-text-tertiary" aria-hidden="true" />
-              <span>{callout}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <SectionReveal>
+        <section
+          aria-labelledby="methodology-principles-heading"
+          className="space-y-4 rounded-lg border border-border-default bg-surface-raised p-6"
+        >
+          <h2 id="methodology-principles-heading" className="text-lg font-semibold text-text-primary">
+            How to read this application
+          </h2>
+          <ul className="space-y-3">
+            {METHODOLOGY_CALLOUTS.map((callout) => (
+              <li
+                key={callout}
+                className="flex items-start gap-3 text-sm leading-6 text-text-secondary"
+              >
+                <Info className="mt-0.5 size-4 shrink-0 text-text-tertiary" aria-hidden="true" />
+                <span>{callout}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </SectionReveal>
 
-      <section
-        aria-labelledby="dataset-version-heading"
-        className="space-y-4 rounded-lg border border-border-default bg-surface-raised p-6"
-      >
+      <SectionReveal delayMs={40}>
+        <section
+          aria-labelledby="dataset-version-heading"
+          className="space-y-4 rounded-lg border border-border-default bg-surface-raised p-6"
+        >
         <h2 id="dataset-version-heading" className="text-lg font-semibold text-text-primary">
           Data version
         </h2>
@@ -112,9 +116,11 @@ export function MethodologyPageContent({ metadata, sections }: MethodologyPageCo
             </dd>
           </div>
         </dl>
-      </section>
+        </section>
+      </SectionReveal>
 
-      <nav aria-label="Methodology sections" className="rounded-lg border border-border-default p-4">
+      <SectionReveal delayMs={80}>
+        <nav aria-label="Methodology sections" className="rounded-lg border border-border-default p-4">
         <h2 className="text-sm font-medium text-text-primary">On this page</h2>
         <ul className="mt-3 columns-1 gap-x-8 space-y-2 text-sm sm:columns-2">
           {sections.map((section) => (
@@ -128,11 +134,14 @@ export function MethodologyPageContent({ metadata, sections }: MethodologyPageCo
             </li>
           ))}
         </ul>
-      </nav>
+        </nav>
+      </SectionReveal>
 
       <div className="space-y-6">
-        {sections.map((section) => (
-          <MethodologySectionCard key={section.id} section={section} />
+        {sections.map((section, index) => (
+          <SectionReveal key={section.id} delayMs={Math.min(index * 40, 80)}>
+            <MethodologySectionCard section={section} />
+          </SectionReveal>
         ))}
       </div>
     </div>

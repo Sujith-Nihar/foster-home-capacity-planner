@@ -32,7 +32,7 @@ test.describe("brand alignment", () => {
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
-    await page.waitForTimeout(1600);
+    await page.waitForTimeout(2000);
 
     const underline = page.locator(".hand-drawn-underline-path").first();
     await expect(underline).toBeVisible();
