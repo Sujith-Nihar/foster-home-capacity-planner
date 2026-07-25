@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { buildRetentionQueryString } from "@/lib/retention/query";
 import type { FilterOptionsDto } from "@/lib/types/domain";
 import type { RetentionSearchParams } from "@/lib/validation/search-params";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useOperationalFilters } from "@/hooks/use-operational-filters";
 
 type ActiveFilterChipsProps = {
   searchParams: RetentionSearchParams;
@@ -35,8 +34,7 @@ export function ActiveFilterChips({
   searchParams,
   onClearAll,
 }: ActiveFilterChipsProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { navigate, isPending } = useOperationalFilters();
 
   const chips: Array<{ key: string; label: string; removeParams: Partial<RetentionSearchParams> }> =
     [];
@@ -123,9 +121,7 @@ export function ActiveFilterChips({
       page: 1,
     };
 
-    startTransition(() => {
-      router.push(`/retention${buildRetentionQueryString(nextParams)}`);
-    });
+    navigate(buildRetentionQueryString(nextParams));
   }
 
   if (chips.length === 0) {

@@ -6,6 +6,8 @@ import {
   getCachedReportingDate,
 } from "@/lib/data/cached-snapshot";
 import { timedOperation } from "@/lib/performance/timing";
+import { filterCountiesBySearch } from "@/lib/filters/county-search";
+import { cache } from "react";
 import {
   executeSupabaseQuery,
   getActiveReportingDate,
@@ -56,7 +58,7 @@ export async function getFilterOptions(
   );
 }
 
-export async function getRecruitmentCounties(
+export const getRecruitmentCounties = cache(async function getRecruitmentCounties(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<CountyMetricsDto[]> {
   return timedOperation(
@@ -101,12 +103,13 @@ export async function getRecruitmentCounties(
         }),
       );
 
-      const counties = rows.map(mapCountyMetrics);
+      let counties = rows.map(mapCountyMetrics);
+      counties = filterCountiesBySearch(counties, params.county);
       return sortRecruitmentCounties(counties, params.sort, params.direction);
     },
     { rowCount: (counties) => counties.length, cache: "miss" },
   );
-}
+});
 
 export async function getRecruitmentCountyRanking(
   limit = 10,

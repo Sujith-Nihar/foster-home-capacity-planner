@@ -73,6 +73,7 @@ export const paginationSchema = z.object({
 
 export const recruitmentSearchSchema = z
   .object({
+    county: optionalString,
     priority: z.enum(RECRUITMENT_PRIORITIES).optional(),
     minFosterChildren: z.coerce.number().int().min(0).optional(),
     ageGroup: z.enum(AGE_GROUP_LABELS).optional(),

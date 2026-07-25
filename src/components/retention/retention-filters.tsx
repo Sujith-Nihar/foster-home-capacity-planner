@@ -20,6 +20,7 @@ export function RetentionSortHeader({ label, sortKey, searchParams }: SortHeader
   return (
     <Link
       href={href}
+      scroll={false}
       className="inline-flex items-center gap-1 font-medium text-text-primary hover:text-brand-navy hover:underline"
     >
       {label}

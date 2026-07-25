@@ -1,41 +1,64 @@
+import { Suspense } from "react";
 import { Info } from "lucide-react";
 
 import { AgeGroupPressureChart } from "@/components/charts/age-group-pressure-chart";
 import { RecruitmentScatterChart } from "@/components/charts/recruitment-scatter-chart";
 import { MethodologyLink } from "@/components/methodology-link";
 import { OperationalTableHeader } from "@/components/operational/operational-filter-panel";
+import { OperationalResultsFallback } from "@/components/operational/operational-results-fallback";
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
+import {
+  RecruitmentEligibleResults,
+  RecruitmentLimitedResults,
+} from "@/components/recruitment/recruitment-eligible-results";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { RECRUITMENT_METRICS } from "@/content/methodology";
-import type { CountyAgeMetricsByCounty } from "@/lib/data/recruitment";
-import type { AgeGroupPressureDto } from "@/lib/recruitment/analytics";
+import { getCachedCountyAgeMetrics } from "@/lib/data/cached-snapshot";
+import { deriveAgeGroupPressureFromCountyAgeMetrics } from "@/lib/data/cached-snapshot";
+import { getRecruitmentCounties } from "@/lib/data/recruitment";
+import { buildRecruitmentResultsKey } from "@/lib/filters/operational-results-key";
+import { partitionRecruitmentCounties } from "@/lib/recruitment/analytics";
 import { buildRecruitmentQueryString } from "@/lib/recruitment/query";
-import type { CountyMetricsDto, FilterOptionsDto } from "@/lib/types/domain";
+import type { FilterOptionsDto } from "@/lib/types/domain";
 import { formatCount } from "@/lib/utils/formatters";
 import type { RecruitmentSearchParams } from "@/lib/validation/search-params";
 
 type RecruitmentPageContentProps = {
-  eligibleCounties: CountyMetricsDto[];
-  limitedDataCounties: CountyMetricsDto[];
   filterOptions: FilterOptionsDto;
-  ageGroupPressure: AgeGroupPressureDto[];
-  countyAgeMetricsByCounty: CountyAgeMetricsByCounty;
   searchParams: RecruitmentSearchParams;
+  rawSearchParams: Record<string, string | string[] | undefined>;
+  highPriorityCount: number;
 };
 
-export function RecruitmentPageContent({
-  eligibleCounties,
-  limitedDataCounties,
-  filterOptions,
-  ageGroupPressure,
-  countyAgeMetricsByCounty,
+async function RecruitmentChartsSection({
   searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const [counties, allCountyAgeMetrics] = await Promise.all([
+    getRecruitmentCounties(searchParams),
+    getCachedCountyAgeMetrics(),
+  ]);
+  const { eligible } = partitionRecruitmentCounties(counties);
+  const ageGroupPressure = deriveAgeGroupPressureFromCountyAgeMetrics(allCountyAgeMetrics);
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <RecruitmentScatterChart counties={eligible} />
+      <AgeGroupPressureChart data={ageGroupPressure} />
+    </div>
+  );
+}
+
+export function RecruitmentPageContent({
+  filterOptions,
+  searchParams,
+  rawSearchParams,
+  highPriorityCount,
 }: RecruitmentPageContentProps) {
   const exportQuery = buildRecruitmentQueryString(searchParams).replace(/^\?/, "");
-  const highPriorityCount = eligibleCounties.filter(
-    (county) => county.recruitmentPriority === "High",
-  ).length;
+  const resultsKey = buildRecruitmentResultsKey(searchParams);
 
   return (
     <div className="space-y-8">
@@ -66,10 +89,6 @@ export function RecruitmentPageContent({
       </div>
 
       <RecruitmentCountyTable
-        counties={eligibleCounties}
-        countyAgeMetricsByCounty={countyAgeMetricsByCounty}
-        searchParams={searchParams}
-        emptyMessage="No eligible counties match the current filters."
         header={
           <RecruitmentFilters
             filterOptions={filterOptions}
@@ -77,24 +96,31 @@ export function RecruitmentPageContent({
             exportQuery={exportQuery}
             title="County recruitment planning priorities"
             titleId="recruitment-county-table-heading"
-            totalCount={eligibleCounties.length}
+            showResultCount={false}
           />
         }
-        footer={`Showing ${eligibleCounties.length} eligible ${
-          eligibleCounties.length === 1 ? "county" : "counties"
-        }.`}
-      />
+      >
+        <Suspense
+          key={resultsKey}
+          fallback={<OperationalResultsFallback rows={8} />}
+        >
+          <RecruitmentEligibleResults searchParams={rawSearchParams} />
+        </Suspense>
+      </RecruitmentCountyTable>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RecruitmentScatterChart counties={eligibleCounties} />
-        <AgeGroupPressureChart data={ageGroupPressure} />
-      </div>
+      <Suspense
+        key={`${resultsKey}-charts`}
+        fallback={
+          <div className="grid gap-6 lg:grid-cols-2" aria-busy="true">
+            <div className="h-72 rounded-xl border border-border-default bg-muted/40" />
+            <div className="h-72 rounded-xl border border-border-default bg-muted/40" />
+          </div>
+        }
+      >
+        <RecruitmentChartsSection searchParams={rawSearchParams} />
+      </Suspense>
 
       <RecruitmentCountyTable
-        counties={limitedDataCounties}
-        countyAgeMetricsByCounty={countyAgeMetricsByCounty}
-        searchParams={searchParams}
-        emptyMessage="No limited-data counties match the current filters."
         header={
           <OperationalTableHeader
             title="Limited-data counties"
@@ -102,10 +128,14 @@ export function RecruitmentPageContent({
             description="Counties below minimum foster-home children or engaged-provider volume thresholds are shown separately and excluded from comparative scatter analysis."
           />
         }
-        footer={`Showing ${limitedDataCounties.length} limited-data ${
-          limitedDataCounties.length === 1 ? "county" : "counties"
-        }.`}
-      />
+      >
+        <Suspense
+          key={`${resultsKey}-limited`}
+          fallback={<OperationalResultsFallback rows={4} />}
+        >
+          <RecruitmentLimitedResults searchParams={rawSearchParams} />
+        </Suspense>
+      </RecruitmentCountyTable>
 
       <div className="flex justify-end">
         <MethodologyLink label="Review recruitment methodology" />

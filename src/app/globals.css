@@ -832,6 +832,19 @@
     letter-spacing: -0.01em;
   }
 
+  .operational-filter-panel__title:focus {
+    outline: none;
+  }
+
+  .operational-filter-panel__title:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .retention-provider-list {
+    scroll-margin-top: 8.5rem;
+  }
+
   @media (min-width: 1024px) {
     .operational-filter-panel__title {
       font-size: 1.5rem;

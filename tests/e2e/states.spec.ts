@@ -12,7 +12,7 @@ test.describe("application states", () => {
   test("shows empty filtered retention results", async ({ page }) => {
     await page.goto("/retention?providerId=999999999");
     await expect(
-      page.getByText("No licensed providers match the current filters."),
+      page.getByRole("status").filter({ hasText: "No licensed providers match the selected filters." }).first(),
     ).toBeVisible();
   });
 });

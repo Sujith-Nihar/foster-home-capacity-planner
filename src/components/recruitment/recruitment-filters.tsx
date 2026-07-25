@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
+import { CountySearchInput } from "@/components/operational/county-search-input";
 import {
   OperationalFilterField,
   OperationalFilterGrid,
@@ -25,6 +25,8 @@ import {
   RECRUITMENT_ATTENTION_HELP,
   RECRUITMENT_METRICS,
 } from "@/content/methodology";
+import { useOperationalFilters } from "@/hooks/use-operational-filters";
+import { useSyncDraftFromApplied } from "@/hooks/use-sync-draft-from-applied";
 import type { FilterOptionsDto } from "@/lib/types/domain";
 import { buildRecruitmentQueryString, buildRecruitmentSortHref } from "@/lib/recruitment/query";
 import {
@@ -40,7 +42,8 @@ type RecruitmentFiltersProps = {
   exportQuery: string;
   title: string;
   titleId: string;
-  totalCount: number;
+  showResultCount?: boolean;
+  totalCount?: number;
 };
 
 const ALL_FILTER_VALUE = "all";
@@ -97,54 +100,65 @@ function hasAdvancedFilters(searchParams: RecruitmentSearchParams): boolean {
   );
 }
 
+function createDraftState(searchParams: RecruitmentSearchParams) {
+  return {
+    countySearch: searchParams.county ?? "",
+    priority: searchParams.priority ?? ALL_FILTER_VALUE,
+    ageGroup: searchParams.ageGroup ?? ALL_FILTER_VALUE,
+    minFosterChildren: searchParams.minFosterChildren?.toString() ?? "",
+    outOfCountyPreset: resolveOutOfCountyPreset(
+      searchParams.minOutOfCountyRate,
+      searchParams.maxOutOfCountyRate,
+    ),
+    customMinOutOfCountyPercent: decimalToPercentInput(searchParams.minOutOfCountyRate),
+    customMaxOutOfCountyPercent: decimalToPercentInput(searchParams.maxOutOfCountyRate),
+    moreFiltersOpen:
+      hasAdvancedFilters(searchParams) ||
+      resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
+        "custom",
+  };
+}
+
 export function RecruitmentFilters({
   filterOptions,
   searchParams,
   exportQuery,
   title,
   titleId,
-  totalCount,
+  showResultCount = true,
+  totalCount = 0,
 }: RecruitmentFiltersProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [priority, setPriority] = useState(searchParams.priority ?? ALL_FILTER_VALUE);
-  const [ageGroup, setAgeGroup] = useState(searchParams.ageGroup ?? ALL_FILTER_VALUE);
-  const [minFosterChildren, setMinFosterChildren] = useState(
-    searchParams.minFosterChildren?.toString() ?? "",
-  );
-  const [outOfCountyPreset, setOutOfCountyPreset] = useState(
-    resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate),
-  );
-  const [customMinOutOfCountyPercent, setCustomMinOutOfCountyPercent] = useState(
-    decimalToPercentInput(searchParams.minOutOfCountyRate),
-  );
-  const [customMaxOutOfCountyPercent, setCustomMaxOutOfCountyPercent] = useState(
-    decimalToPercentInput(searchParams.maxOutOfCountyRate),
-  );
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(
-    hasAdvancedFilters(searchParams) || outOfCountyPreset === "custom",
+  const { navigate, isPending } = useOperationalFilters();
+  const [draft, setDraft] = useState(() => createDraftState(searchParams));
+
+  const syncDraft = useCallback((applied: RecruitmentSearchParams) => {
+    setDraft(createDraftState(applied));
+  }, []);
+
+  useSyncDraftFromApplied(searchParams, syncDraft, (applied) =>
+    buildRecruitmentQueryString(applied),
   );
 
   const selectedPreset = useMemo(
-    () => OUT_OF_COUNTY_PRESETS.find((item) => item.value === outOfCountyPreset),
-    [outOfCountyPreset],
+    () => OUT_OF_COUNTY_PRESETS.find((item) => item.value === draft.outOfCountyPreset),
+    [draft.outOfCountyPreset],
   );
 
   const advancedFilterCount = useMemo(() => {
-    if (outOfCountyPreset === "custom") {
+    if (draft.outOfCountyPreset === "custom") {
       return 1;
     }
     return hasAdvancedFilters(searchParams) ? 1 : 0;
-  }, [outOfCountyPreset, searchParams]);
+  }, [draft.outOfCountyPreset, searchParams]);
 
   function resolveOutOfCountyRates(): {
     minOutOfCountyRate?: number;
     maxOutOfCountyRate?: number;
   } {
-    if (outOfCountyPreset === "custom") {
+    if (draft.outOfCountyPreset === "custom") {
       return {
-        minOutOfCountyRate: percentInputToDecimal(customMinOutOfCountyPercent),
-        maxOutOfCountyRate: percentInputToDecimal(customMaxOutOfCountyPercent),
+        minOutOfCountyRate: percentInputToDecimal(draft.customMinOutOfCountyPercent),
+        maxOutOfCountyRate: percentInputToDecimal(draft.customMaxOutOfCountyPercent),
       };
     }
 
@@ -154,38 +168,49 @@ export function RecruitmentFilters({
     };
   }
 
-  function applyFilters() {
+  function buildNextParams(): Partial<RecruitmentSearchParams> &
+    Pick<RecruitmentSearchParams, "sort" | "direction"> {
     const outOfCountyRates = resolveOutOfCountyRates();
-    const nextParams: Partial<RecruitmentSearchParams> & Pick<RecruitmentSearchParams, "sort" | "direction"> = {
+    const county = draft.countySearch.trim();
+
+    return {
       sort: searchParams.sort,
       direction: searchParams.direction,
-      priority: priority !== ALL_FILTER_VALUE ? (priority as RecruitmentSearchParams["priority"]) : undefined,
-      ageGroup: ageGroup !== ALL_FILTER_VALUE ? (ageGroup as RecruitmentSearchParams["ageGroup"]) : undefined,
-      minFosterChildren: minFosterChildren ? Number(minFosterChildren) : undefined,
+      county: county || undefined,
+      priority:
+        draft.priority !== ALL_FILTER_VALUE
+          ? (draft.priority as RecruitmentSearchParams["priority"])
+          : undefined,
+      ageGroup:
+        draft.ageGroup !== ALL_FILTER_VALUE
+          ? (draft.ageGroup as RecruitmentSearchParams["ageGroup"])
+          : undefined,
+      minFosterChildren: draft.minFosterChildren ? Number(draft.minFosterChildren) : undefined,
       ...outOfCountyRates,
     };
+  }
 
-    startTransition(() => {
-      router.push(`/recruitment${buildRecruitmentQueryString(nextParams)}`);
-    });
+  function applyFilters() {
+    navigate(buildRecruitmentQueryString(buildNextParams()));
   }
 
   function clearFilters() {
-    setPriority(ALL_FILTER_VALUE);
-    setAgeGroup(ALL_FILTER_VALUE);
-    setMinFosterChildren("");
-    setOutOfCountyPreset("any");
-    setCustomMinOutOfCountyPercent("");
-    setCustomMaxOutOfCountyPercent("");
-    setMoreFiltersOpen(false);
-    startTransition(() => {
-      router.push(
-        `/recruitment${buildRecruitmentQueryString({
-          sort: searchParams.sort,
-          direction: searchParams.direction,
-        })}`,
-      );
+    setDraft({
+      countySearch: "",
+      priority: ALL_FILTER_VALUE,
+      ageGroup: ALL_FILTER_VALUE,
+      minFosterChildren: "",
+      outOfCountyPreset: "any",
+      customMinOutOfCountyPercent: "",
+      customMaxOutOfCountyPercent: "",
+      moreFiltersOpen: false,
     });
+    navigate(
+      buildRecruitmentQueryString({
+        sort: searchParams.sort,
+        direction: searchParams.direction,
+      }),
+    );
   }
 
   return (
@@ -229,8 +254,22 @@ export function RecruitmentFilters({
       }
       primaryFilters={
         <OperationalFilterGrid>
-          <OperationalFilterField label="Recruitment priority">
-            <Select value={priority} onValueChange={(value) => setPriority(value ?? ALL_FILTER_VALUE)}>
+          <OperationalFilterField label="Search county">
+            <CountySearchInput
+              value={draft.countySearch}
+              onValueChange={(value) => setDraft((current) => ({ ...current, countySearch: value }))}
+              counties={filterOptions.counties}
+              onEnter={applyFilters}
+            />
+          </OperationalFilterField>
+
+          <OperationalFilterField label="Recruitment attention">
+            <Select
+              value={draft.priority}
+              onValueChange={(value) =>
+                setDraft((current) => ({ ...current, priority: value ?? ALL_FILTER_VALUE }))
+              }
+            >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All priorities" />
               </SelectTrigger>
@@ -250,15 +289,22 @@ export function RecruitmentFilters({
               type="number"
               min={0}
               step={1}
-              value={minFosterChildren}
-              onChange={(event) => setMinFosterChildren(event.target.value)}
+              value={draft.minFosterChildren}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, minFosterChildren: event.target.value }))
+              }
               placeholder="e.g. 10"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
           </OperationalFilterField>
 
           <OperationalFilterField label="Highest-pressure age group">
-            <Select value={ageGroup} onValueChange={(value) => setAgeGroup(value ?? ALL_FILTER_VALUE)}>
+            <Select
+              value={draft.ageGroup}
+              onValueChange={(value) =>
+                setDraft((current) => ({ ...current, ageGroup: value ?? ALL_FILTER_VALUE }))
+              }
+            >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All age groups" />
               </SelectTrigger>
@@ -277,13 +323,14 @@ export function RecruitmentFilters({
 
           <OperationalFilterField label="Out-of-county rate">
             <Select
-              value={outOfCountyPreset}
+              value={draft.outOfCountyPreset}
               onValueChange={(value) => {
                 const next = (value ?? "any") as (typeof OUT_OF_COUNTY_PRESETS)[number]["value"];
-                setOutOfCountyPreset(next);
-                if (next === "custom") {
-                  setMoreFiltersOpen(true);
-                }
+                setDraft((current) => ({
+                  ...current,
+                  outOfCountyPreset: next,
+                  moreFiltersOpen: next === "custom" ? true : current.moreFiltersOpen,
+                }));
               }}
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
@@ -308,8 +355,13 @@ export function RecruitmentFilters({
               min={0}
               max={100}
               step={0.1}
-              value={customMinOutOfCountyPercent}
-              onChange={(event) => setCustomMinOutOfCountyPercent(event.target.value)}
+              value={draft.customMinOutOfCountyPercent}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  customMinOutOfCountyPercent: event.target.value,
+                }))
+              }
               placeholder="0%–100%"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
@@ -320,16 +372,23 @@ export function RecruitmentFilters({
               min={0}
               max={100}
               step={0.1}
-              value={customMaxOutOfCountyPercent}
-              onChange={(event) => setCustomMaxOutOfCountyPercent(event.target.value)}
+              value={draft.customMaxOutOfCountyPercent}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  customMaxOutOfCountyPercent: event.target.value,
+                }))
+              }
               placeholder="0%–100%"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
           </OperationalFilterField>
         </>
       }
-      moreFiltersOpen={moreFiltersOpen}
-      onMoreFiltersToggle={() => setMoreFiltersOpen((open) => !open)}
+      moreFiltersOpen={draft.moreFiltersOpen}
+      onMoreFiltersToggle={() =>
+        setDraft((current) => ({ ...current, moreFiltersOpen: !current.moreFiltersOpen }))
+      }
       advancedFilterCount={advancedFilterCount}
       onApply={applyFilters}
       onClear={clearFilters}
@@ -338,6 +397,7 @@ export function RecruitmentFilters({
       resultCount={totalCount}
       resultNoun="county"
       resultNounPlural="counties"
+      showResultCount={showResultCount}
       advancedFiltersId="recruitment-advanced-filters"
     />
   );
@@ -357,6 +417,7 @@ export function RecruitmentSortHeader({ label, sortKey, searchParams }: SortHead
   return (
     <Link
       href={href}
+      scroll={false}
       className={cn(
         "inline-flex items-center gap-1 font-medium text-text-primary hover:underline",
       )}

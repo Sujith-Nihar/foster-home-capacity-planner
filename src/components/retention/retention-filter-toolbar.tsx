@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { ActiveFilterChips } from "@/components/retention/active-filter-chips";
 import {
@@ -25,6 +24,8 @@ import {
   RETENTION_OUTREACH_HELP,
   RETENTION_OUTREACH_RULES,
 } from "@/content/methodology";
+import { useOperationalFilters } from "@/hooks/use-operational-filters";
+import { useSyncDraftFromApplied } from "@/hooks/use-sync-draft-from-applied";
 import { buildRetentionQueryString } from "@/lib/retention/query";
 import type { FilterOptionsDto } from "@/lib/types/domain";
 import {
@@ -38,9 +39,10 @@ type RetentionFilterToolbarProps = {
   filterOptions: FilterOptionsDto;
   searchParams: RetentionSearchParams;
   exportQuery: string;
-  totalCount: number;
   title: string;
   titleId: string;
+  showResultCount?: boolean;
+  totalCount?: number;
 };
 
 const ALL_FILTER_VALUE = "all";
@@ -88,34 +90,41 @@ function hasAdvancedFilters(searchParams: RetentionSearchParams): boolean {
   );
 }
 
+function createDraftState(searchParams: RetentionSearchParams) {
+  return {
+    providerId: searchParams.providerId?.toString() ?? "",
+    county: searchParams.county ?? ALL_FILTER_VALUE,
+    priority: searchParams.priority ?? ALL_FILTER_VALUE,
+    activity: searchParams.activity,
+    expiration: searchParams.expiration,
+    minInactivityDays: searchParams.minInactivityDays?.toString() ?? "",
+    minEngagementPercent: decimalToPercent(searchParams.minEngagement),
+    maxEngagementPercent: decimalToPercent(searchParams.maxEngagement),
+    minAge: searchParams.minAge?.toString() ?? "",
+    maxAge: searchParams.maxAge?.toString() ?? "",
+    moreFiltersOpen: hasAdvancedFilters(searchParams),
+  };
+}
+
 export function RetentionFilterToolbar({
   filterOptions,
   searchParams,
   exportQuery,
-  totalCount,
+  totalCount = 0,
   title,
   titleId,
+  showResultCount = true,
 }: RetentionFilterToolbarProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [moreFiltersOpen, setMoreFiltersOpen] = useState(hasAdvancedFilters(searchParams));
+  const { navigate, isPending } = useOperationalFilters();
+  const [draft, setDraft] = useState(() => createDraftState(searchParams));
 
-  const [providerId, setProviderId] = useState(searchParams.providerId?.toString() ?? "");
-  const [county, setCounty] = useState(searchParams.county ?? ALL_FILTER_VALUE);
-  const [priority, setPriority] = useState(searchParams.priority ?? ALL_FILTER_VALUE);
-  const [activity, setActivity] = useState(searchParams.activity);
-  const [expiration, setExpiration] = useState(searchParams.expiration);
-  const [minInactivityDays, setMinInactivityDays] = useState(
-    searchParams.minInactivityDays?.toString() ?? "",
+  const syncDraft = useCallback((applied: RetentionSearchParams) => {
+    setDraft(createDraftState(applied));
+  }, []);
+
+  useSyncDraftFromApplied(searchParams, syncDraft, (applied) =>
+    buildRetentionQueryString(applied),
   );
-  const [minEngagementPercent, setMinEngagementPercent] = useState(
-    decimalToPercent(searchParams.minEngagement),
-  );
-  const [maxEngagementPercent, setMaxEngagementPercent] = useState(
-    decimalToPercent(searchParams.maxEngagement),
-  );
-  const [minAge, setMinAge] = useState(searchParams.minAge?.toString() ?? "");
-  const [maxAge, setMaxAge] = useState(searchParams.maxAge?.toString() ?? "");
 
   function buildNextParams(): Partial<RetentionSearchParams> &
     Pick<RetentionSearchParams, "sort" | "direction"> {
@@ -123,49 +132,46 @@ export function RetentionFilterToolbar({
       sort: searchParams.sort,
       direction: searchParams.direction,
       page: 1,
-      providerId: providerId ? Number(providerId) : undefined,
-      county: county !== ALL_FILTER_VALUE ? county : undefined,
+      providerId: draft.providerId ? Number(draft.providerId) : undefined,
+      county: draft.county !== ALL_FILTER_VALUE ? draft.county : undefined,
       priority:
-        priority !== ALL_FILTER_VALUE
-          ? (priority as RetentionSearchParams["priority"])
+        draft.priority !== ALL_FILTER_VALUE
+          ? (draft.priority as RetentionSearchParams["priority"])
           : undefined,
-      activity,
-      expiration,
-      minInactivityDays: minInactivityDays ? Number(minInactivityDays) : undefined,
-      minEngagement: percentToDecimal(minEngagementPercent),
-      maxEngagement: percentToDecimal(maxEngagementPercent),
-      minAge: minAge ? Number(minAge) : undefined,
-      maxAge: maxAge ? Number(maxAge) : undefined,
+      activity: draft.activity,
+      expiration: draft.expiration,
+      minInactivityDays: draft.minInactivityDays ? Number(draft.minInactivityDays) : undefined,
+      minEngagement: percentToDecimal(draft.minEngagementPercent),
+      maxEngagement: percentToDecimal(draft.maxEngagementPercent),
+      minAge: draft.minAge ? Number(draft.minAge) : undefined,
+      maxAge: draft.maxAge ? Number(draft.maxAge) : undefined,
     };
   }
 
   function applyFilters() {
-    startTransition(() => {
-      router.push(`/retention${buildRetentionQueryString(buildNextParams())}`);
-    });
+    navigate(buildRetentionQueryString(buildNextParams()));
   }
 
   function clearFilters() {
-    setProviderId("");
-    setCounty(ALL_FILTER_VALUE);
-    setPriority(ALL_FILTER_VALUE);
-    setActivity("all");
-    setExpiration("all");
-    setMinInactivityDays("");
-    setMinEngagementPercent("");
-    setMaxEngagementPercent("");
-    setMinAge("");
-    setMaxAge("");
-    setMoreFiltersOpen(false);
-
-    startTransition(() => {
-      router.push(
-        `/retention${buildRetentionQueryString({
-          sort: searchParams.sort,
-          direction: searchParams.direction,
-        })}`,
-      );
+    setDraft({
+      providerId: "",
+      county: ALL_FILTER_VALUE,
+      priority: ALL_FILTER_VALUE,
+      activity: "all",
+      expiration: "all",
+      minInactivityDays: "",
+      minEngagementPercent: "",
+      maxEngagementPercent: "",
+      minAge: "",
+      maxAge: "",
+      moreFiltersOpen: false,
     });
+    navigate(
+      buildRetentionQueryString({
+        sort: searchParams.sort,
+        direction: searchParams.direction,
+      }),
+    );
   }
 
   const hasActiveFilters = useMemo(() => {
@@ -236,15 +242,25 @@ export function RetentionFilterToolbar({
             <Input
               type="search"
               inputMode="numeric"
-              value={providerId}
-              onChange={(event) => setProviderId(event.target.value.replace(/\D/g, ""))}
+              value={draft.providerId}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  providerId: event.target.value.replace(/\D/g, ""),
+                }))
+              }
               placeholder="Provider ID"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
           </OperationalFilterField>
 
           <OperationalFilterField label="County">
-            <Select value={county} onValueChange={(value) => setCounty(value ?? ALL_FILTER_VALUE)}>
+            <Select
+              value={draft.county}
+              onValueChange={(value) =>
+                setDraft((current) => ({ ...current, county: value ?? ALL_FILTER_VALUE }))
+              }
+            >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All counties" />
               </SelectTrigger>
@@ -261,8 +277,10 @@ export function RetentionFilterToolbar({
 
           <OperationalFilterField label="Outreach priority">
             <Select
-              value={priority}
-              onValueChange={(value) => setPriority(value ?? ALL_FILTER_VALUE)}
+              value={draft.priority}
+              onValueChange={(value) =>
+                setDraft((current) => ({ ...current, priority: value ?? ALL_FILTER_VALUE }))
+              }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
                 <SelectValue placeholder="All priorities" />
@@ -280,9 +298,12 @@ export function RetentionFilterToolbar({
 
           <OperationalFilterField label="Current activity">
             <Select
-              value={activity}
+              value={draft.activity}
               onValueChange={(value) =>
-                setActivity((value ?? "all") as RetentionSearchParams["activity"])
+                setDraft((current) => ({
+                  ...current,
+                  activity: (value ?? "all") as RetentionSearchParams["activity"],
+                }))
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
@@ -303,9 +324,12 @@ export function RetentionFilterToolbar({
         <>
           <OperationalFilterField label="License expiration window">
             <Select
-              value={expiration}
+              value={draft.expiration}
               onValueChange={(value) =>
-                setExpiration((value ?? "all") as RetentionSearchParams["expiration"])
+                setDraft((current) => ({
+                  ...current,
+                  expiration: (value ?? "all") as RetentionSearchParams["expiration"],
+                }))
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
@@ -326,8 +350,10 @@ export function RetentionFilterToolbar({
               type="number"
               min={0}
               step={1}
-              value={minInactivityDays}
-              onChange={(event) => setMinInactivityDays(event.target.value)}
+              value={draft.minInactivityDays}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, minInactivityDays: event.target.value }))
+              }
               placeholder="e.g. 90"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
@@ -340,8 +366,10 @@ export function RetentionFilterToolbar({
                 min={0}
                 max={100}
                 step={1}
-                value={minEngagementPercent}
-                onChange={(event) => setMinEngagementPercent(event.target.value)}
+                value={draft.minEngagementPercent}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, minEngagementPercent: event.target.value }))
+                }
                 placeholder="Min %"
                 aria-label="Minimum engagement rate percent"
                 className={OPERATIONAL_FILTER_CONTROL_CLASS}
@@ -351,8 +379,10 @@ export function RetentionFilterToolbar({
                 min={0}
                 max={100}
                 step={1}
-                value={maxEngagementPercent}
-                onChange={(event) => setMaxEngagementPercent(event.target.value)}
+                value={draft.maxEngagementPercent}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, maxEngagementPercent: event.target.value }))
+                }
                 placeholder="Max %"
                 aria-label="Maximum engagement rate percent"
                 className={OPERATIONAL_FILTER_CONTROL_CLASS}
@@ -367,8 +397,10 @@ export function RetentionFilterToolbar({
                 min={0}
                 max={21}
                 step={1}
-                value={minAge}
-                onChange={(event) => setMinAge(event.target.value)}
+                value={draft.minAge}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, minAge: event.target.value }))
+                }
                 placeholder="Min age"
                 aria-label="Minimum preferred child age"
                 className={OPERATIONAL_FILTER_CONTROL_CLASS}
@@ -378,8 +410,10 @@ export function RetentionFilterToolbar({
                 min={0}
                 max={21}
                 step={1}
-                value={maxAge}
-                onChange={(event) => setMaxAge(event.target.value)}
+                value={draft.maxAge}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, maxAge: event.target.value }))
+                }
                 placeholder="Max age"
                 aria-label="Maximum preferred child age"
                 className={OPERATIONAL_FILTER_CONTROL_CLASS}
@@ -388,8 +422,10 @@ export function RetentionFilterToolbar({
           </OperationalFilterField>
         </>
       }
-      moreFiltersOpen={moreFiltersOpen}
-      onMoreFiltersToggle={() => setMoreFiltersOpen((open) => !open)}
+      moreFiltersOpen={draft.moreFiltersOpen}
+      onMoreFiltersToggle={() =>
+        setDraft((current) => ({ ...current, moreFiltersOpen: !current.moreFiltersOpen }))
+      }
       advancedFilterCount={advancedFilterCount}
       activeFilterChips={
         hasActiveFilters ? (
@@ -407,6 +443,7 @@ export function RetentionFilterToolbar({
       resultCount={totalCount}
       resultNoun="provider"
       resultNounPlural="providers"
+      showResultCount={showResultCount}
       advancedFiltersId="retention-advanced-filters"
     />
   );

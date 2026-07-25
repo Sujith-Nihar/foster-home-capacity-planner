@@ -1,15 +1,17 @@
 import { CalendarClock } from "lucide-react";
-import Link from "next/link";
 
+import { ViewExpiringLicensesAction } from "@/components/retention/view-expiring-licenses-action";
 import { SectionShell } from "@/components/ui/section-shell";
 import type { RetentionSummaryDto } from "@/lib/types/domain";
 import { formatCount } from "@/lib/utils/formatters";
+import type { RetentionSearchParams } from "@/lib/validation/search-params";
 
 type RetentionAttentionPanelProps = {
   summary: RetentionSummaryDto;
+  searchParams: RetentionSearchParams;
 };
 
-export function RetentionAttentionPanel({ summary }: RetentionAttentionPanelProps) {
+export function RetentionAttentionPanel({ summary, searchParams }: RetentionAttentionPanelProps) {
   const countLabel = formatCount(summary.licensesExpiringWithin90Days);
 
   return (
@@ -34,12 +36,7 @@ export function RetentionAttentionPanel({ summary }: RetentionAttentionPanelProp
             </p>
           </div>
         </div>
-        <Link
-          href="/retention?expiration=within_90"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-status-medium-border bg-surface-raised px-4 text-sm font-medium text-text-primary transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          View expiring licenses
-        </Link>
+        <ViewExpiringLicensesAction searchParams={searchParams} variant="panel" />
       </div>
     </SectionShell>
   );

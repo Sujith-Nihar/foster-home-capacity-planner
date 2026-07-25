@@ -34,6 +34,7 @@ describe("recruitment filters and sorting", () => {
   it("parses extended recruitment filters from the URL", () => {
     expect(
       parseRecruitmentSearchParams({
+        county: "Cook",
         priority: "Medium",
         minFosterChildren: "12",
         ageGroup: "13–17",
@@ -43,6 +44,7 @@ describe("recruitment filters and sorting", () => {
         direction: "asc",
       }),
     ).toEqual({
+      county: "Cook",
       priority: "Medium",
       minFosterChildren: 12,
       ageGroup: "13–17",

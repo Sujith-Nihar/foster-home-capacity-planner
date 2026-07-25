@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { CalendarClock, ShieldAlert, UserCheck, UserMinus, Users } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
+import { ViewExpiringLicensesAction } from "@/components/retention/view-expiring-licenses-action";
 import type { RetentionSummaryDto } from "@/lib/types/domain";
 import { formatCount } from "@/lib/utils/formatters";
+import type { RetentionSearchParams } from "@/lib/validation/search-params";
 
 type RetentionKpiGridProps = {
   summary: RetentionSummaryDto;
@@ -52,7 +53,10 @@ export function RetentionKpiGrid({ summary }: RetentionKpiGridProps) {
   );
 }
 
-export function RetentionExpirationPanel({ summary }: RetentionKpiGridProps) {
+export function RetentionExpirationPanel({
+  summary,
+  searchParams,
+}: RetentionKpiGridProps & { searchParams: RetentionSearchParams }) {
   const countLabel = formatCount(summary.licensesExpiringWithin90Days);
 
   return (
@@ -77,12 +81,7 @@ export function RetentionExpirationPanel({ summary }: RetentionKpiGridProps) {
             </p>
           </div>
         </div>
-        <Link
-          href="/retention?expiration=within_90"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-status-medium-border bg-surface-raised px-4 text-sm font-medium text-text-primary transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          View expiring licenses
-        </Link>
+        <ViewExpiringLicensesAction searchParams={searchParams} variant="panel" />
       </div>
     </section>
   );

@@ -29,6 +29,9 @@ export function buildRecruitmentQueryString(
 ): string {
   const search = new URLSearchParams();
 
+  if (params.county) {
+    search.set("county", params.county);
+  }
   if (params.priority) {
     search.set("priority", params.priority);
   }

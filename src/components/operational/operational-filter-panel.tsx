@@ -53,6 +53,7 @@ type OperationalFilterPanelProps = {
   resultNounPlural: string;
   advancedFiltersId?: string;
   showMoreFiltersButton?: boolean;
+  showResultCount?: boolean;
 };
 
 export function OperationalFilterPanel({
@@ -74,8 +75,17 @@ export function OperationalFilterPanel({
   resultNounPlural,
   advancedFiltersId = "operational-advanced-filters",
   showMoreFiltersButton = true,
+  showResultCount = true,
 }: OperationalFilterPanelProps) {
   const resultLabel = resultCount === 1 ? resultNoun : resultNounPlural;
+  const matchLabel = resultCount === 1 ? "matches" : "match";
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isPending) {
+      onApply();
+    }
+  }
 
   return (
     <div className="operational-filter-panel">
@@ -84,7 +94,7 @@ export function OperationalFilterPanel({
       </h2>
       <div className="operational-filter-panel__description">{description}</div>
 
-      <div className="operational-filter-panel__controls">
+      <form className="operational-filter-panel__controls" onSubmit={handleSubmit}>
         {primaryFilters}
 
         {showMoreFiltersButton && advancedFilters ? (
@@ -115,18 +125,20 @@ export function OperationalFilterPanel({
 
             <div className="operational-filter-actions__right">
               <button
-                type="button"
+                type="submit"
                 className="operational-filter-btn operational-filter-btn--apply"
-                onClick={onApply}
                 disabled={isPending}
+                aria-busy={isPending || undefined}
+                onMouseDown={(event) => event.preventDefault()}
               >
-                Apply filters
+                {isPending ? "Applying…" : "Apply filters"}
               </button>
               <button
                 type="button"
                 className="operational-filter-btn operational-filter-btn--clear"
                 onClick={onClear}
                 disabled={isPending}
+                onMouseDown={(event) => event.preventDefault()}
               >
                 Clear filters
               </button>
@@ -144,18 +156,20 @@ export function OperationalFilterPanel({
             <div className="operational-filter-actions__left">{activeFilterChips}</div>
             <div className="operational-filter-actions__right">
               <button
-                type="button"
+                type="submit"
                 className="operational-filter-btn operational-filter-btn--apply"
-                onClick={onApply}
                 disabled={isPending}
+                aria-busy={isPending || undefined}
+                onMouseDown={(event) => event.preventDefault()}
               >
-                Apply filters
+                {isPending ? "Applying…" : "Apply filters"}
               </button>
               <button
                 type="button"
                 className="operational-filter-btn operational-filter-btn--clear"
                 onClick={onClear}
                 disabled={isPending}
+                onMouseDown={(event) => event.preventDefault()}
               >
                 Clear filters
               </button>
@@ -185,18 +199,26 @@ export function OperationalFilterPanel({
           </div>
         ) : null}
 
-        <p
-          className="operational-filter-result-count"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <span className="operational-filter-result-count__value">
-            {formatCount(resultCount)}
-          </span>{" "}
-          {resultLabel} match
-        </p>
-      </div>
+        {showResultCount ? (
+          <p
+            className="operational-filter-result-count"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {resultCount === 0 ? (
+              <>No {resultNounPlural} match</>
+            ) : (
+              <>
+                <span className="operational-filter-result-count__value">
+                  {formatCount(resultCount)}
+                </span>{" "}
+                {resultLabel} {matchLabel}
+              </>
+            )}
+          </p>
+        ) : null}
+      </form>
     </div>
   );
 }

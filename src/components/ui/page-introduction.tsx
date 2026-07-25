@@ -17,6 +17,7 @@ type PageIntroductionProps = {
   highlightPhrase?: string;
   description?: string;
   actions?: PageIntroductionAction[];
+  actionSlot?: ReactNode;
   aside?: ReactNode;
   className?: string;
   variant?: "hero" | "operational";
@@ -48,6 +49,7 @@ export function PageIntroduction({
   highlightPhrase,
   description,
   actions,
+  actionSlot,
   aside,
   className,
   variant = "operational",
@@ -105,7 +107,17 @@ export function PageIntroduction({
               {description}
             </TextReveal>
           ) : null}
-          {actions && actions.length > 0 ? (
+          {actionSlot ? (
+            <TextReveal
+              as="div"
+              variant="action"
+              className={cn("flex flex-wrap gap-3 pt-1", isHero && "justify-center")}
+              immediate
+            >
+              {actionSlot}
+            </TextReveal>
+          ) : null}
+          {!actionSlot && actions && actions.length > 0 ? (
             <TextReveal
               as="div"
               variant="action"

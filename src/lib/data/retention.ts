@@ -4,6 +4,7 @@ import {
   getCachedRetentionSummaryMetrics,
 } from "@/lib/data/cached-snapshot";
 import { timedOperation } from "@/lib/performance/timing";
+import { cache } from "react";
 import {
   getActiveReportingDate,
   getServerSupabaseClient,
@@ -247,11 +248,11 @@ async function listRetentionProviders(
   );
 }
 
-export async function getRetentionProviders(
+export const getRetentionProviders = cache(async function getRetentionProviders(
   searchParams: Record<string, string | string[] | undefined>,
 ): Promise<PaginatedResult<ProviderMetricsDto>> {
   return listRetentionProviders(parseRetentionSearchParams(searchParams));
-}
+});
 
 export async function getRetentionExportProviders(
   searchParams: Record<string, string | string[] | undefined>,
