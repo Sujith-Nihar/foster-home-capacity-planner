@@ -94,7 +94,6 @@ export function HandDrawnUnderline({ className, tone = "navy" }: HandDrawnUnderl
         d="M3 6.5C34 2.8 58 8.2 92 5.6C118 3.8 146 7.4 174 4.9C192 3.4 206 6.1 217 5.2"
         pathLength={1}
         stroke="currentColor"
-        strokeWidth="2.25"
         strokeLinecap="round"
         strokeDasharray="1"
         strokeDashoffset="1"
