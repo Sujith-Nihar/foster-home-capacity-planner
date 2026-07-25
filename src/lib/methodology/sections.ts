@@ -79,7 +79,12 @@ export function buildMethodologySections(): MethodologySection[] {
     {
       id: "prototype-planning-rules",
       title: "3. Planning rules selected for this prototype",
-      paragraphs: [PROTOTYPE_PLANNING_RULES_INTRO, COMPARABLE_COUNTIES.explanation, TOP_25_PERCENT.fullDefinition],
+      paragraphs: [
+        PROTOTYPE_PLANNING_RULES_INTRO,
+        COMPARABLE_COUNTIES.explanation,
+        COMPARABLE_COUNTIES.policyNote,
+        TOP_25_PERCENT.fullDefinition,
+      ],
       bullets: [
         `County eligibility thresholds: at least ${RECRUITMENT_MINIMUM_VOLUME.currentFosterHomeChildren} current foster-home children and ${RECRUITMENT_MINIMUM_VOLUME.activeProviders} engaged providers.`,
         `Median: the middle value among comparable counties for each indicator.`,
@@ -87,7 +92,7 @@ export function buildMethodologySections(): MethodologySection[] {
         `High suggested recruitment attention: ${RECRUITMENT_PRIORITY_RULES.highMinIndicatorsAt75th} indicators in the top 25% of comparable counties.`,
         `Medium suggested recruitment attention: ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAt75th} indicator in the top 25%, or ${RECRUITMENT_PRIORITY_RULES.mediumMinIndicatorsAtMedian} indicators above the median.`,
         "Low suggested recruitment attention: eligible counties that do not meet High or Medium rules.",
-        "Limited data: counties below minimum volume thresholds are shown separately.",
+        "Limited data comparison status: counties below minimum volume thresholds are not scored for suggested recruitment attention.",
         `High suggested outreach priority: ${RETENTION_OUTREACH_RULES.high.join("; ")}.`,
         `Medium suggested outreach priority: ${RETENTION_OUTREACH_RULES.medium.join("; ")}.`,
         `Low suggested outreach priority: ${RETENTION_OUTREACH_RULES.low[0]}.`,

@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import type { SuggestedRecruitmentAttention } from "@/lib/recruitment/classification";
 
-export type AttentionLevel = "high" | "medium" | "low" | "limited";
+export type AttentionLevel = "high" | "medium" | "low" | "limited" | "not-scored";
 
 type PriorityBadgeProps = {
   level: AttentionLevel;
@@ -39,6 +40,10 @@ const LEVEL_CONFIG: Record<
     icon: CircleHelp,
     className: "border-border-strong bg-muted text-text-primary [&>svg]:text-text-secondary",
   },
+  "not-scored": {
+    icon: CircleHelp,
+    className: "border-border-strong bg-muted text-text-secondary [&>svg]:text-text-tertiary",
+  },
 };
 
 export function priorityToAttentionLevel(
@@ -52,7 +57,22 @@ export function priorityToAttentionLevel(
     case "Low":
       return "low";
     case "Limited data":
-      return "limited";
+      return "not-scored";
+  }
+}
+
+export function suggestedAttentionToLevel(
+  attention: SuggestedRecruitmentAttention,
+): AttentionLevel {
+  switch (attention) {
+    case "High":
+      return "high";
+    case "Medium":
+      return "medium";
+    case "Low":
+      return "low";
+    case "Not scored":
+      return "not-scored";
   }
 }
 

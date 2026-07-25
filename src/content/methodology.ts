@@ -21,6 +21,8 @@ export const COMPARABLE_COUNTIES = {
   shortLabel: "Comparable counties",
   explanation:
     "County comparisons include counties with at least 10 current foster-home children and 3 engaged providers. These minimums reduce unstable comparisons based on very small counts.",
+  policyNote:
+    "These minimums were selected for this assessment and were not provided as an official DCFS policy.",
   comparisonGroupLabel: `Counties with at least ${RECRUITMENT_MINIMUM_VOLUME.currentFosterHomeChildren} current foster-home children and ${RECRUITMENT_MINIMUM_VOLUME.activeProviders} engaged providers`,
 } as const;
 
@@ -37,18 +39,18 @@ export const PROTOTYPE_PLANNING_RULES_INTRO =
 
 export const OVERVIEW_PRIORITY_CALLOUT = {
   title: "How priorities are created",
-  text: "Recruitment and outreach priorities are transparent planning rules created for this prototype. They organize staff review using current placement activity, provider engagement and license timing. They are not official DCFS classifications or predictions.",
+  text: "Recruitment and outreach categories are transparent prototype rules that organize staff review. They are not official DCFS classifications or predictions.",
   actionLabel: "View methodology",
 } as const;
 
 export const RECRUITMENT_PLANNING_CAVEAT =
-  "This is a prototype planning rule, not an official DCFS classification or a proven foster-home shortage estimate.";
+  "Suggested recruitment attention is a transparent prototype planning rule. It is not an official DCFS classification and does not prove that a county has a foster-home shortage.";
 
 export const RECRUITMENT_INDICATORS_CAVEAT =
   "These indicators support recruitment planning. They do not measure available beds or prove a foster-home shortage.";
 
 export const RETENTION_OUTREACH_CAVEAT =
-  "This category supports staff review. It does not predict closure, non-renewal or provider performance.";
+  "This category supports staff review. It does not predict provider closure, license non-renewal, or provider performance.";
 
 export const PROVIDER_OUTREACH_CAVEAT =
   "This supports staff review and does not predict whether the provider will renew.";
@@ -150,9 +152,16 @@ export const RECRUITMENT_ATTENTION_CLASSIFICATIONS = [
     level: "Low",
     description: "The county does not meet the High or Medium rules.",
   },
+] as const;
+
+export const COMPARISON_STATUS_DEFINITIONS = [
   {
-    level: "Limited data",
-    description: `The county has fewer than ${RECRUITMENT_MINIMUM_VOLUME.currentFosterHomeChildren} current foster-home children or fewer than ${RECRUITMENT_MINIMUM_VOLUME.activeProviders} engaged providers.`,
+    status: "Eligible",
+    description: "Meets minimum volume for stable county comparison.",
+  },
+  {
+    status: "Limited data",
+    description: `Fewer than ${RECRUITMENT_MINIMUM_VOLUME.currentFosterHomeChildren} current foster-home children or fewer than ${RECRUITMENT_MINIMUM_VOLUME.activeProviders} engaged providers.`,
   },
 ] as const;
 
@@ -178,7 +187,7 @@ export const METHODOLOGY_LIMITATIONS = [
   "Out-of-county placements can occur for several reasons and do not by themselves prove a local shortage.",
   "Recent placement activity describes engagement, not provider quality.",
   "Priorities support staff review and are not predictions of closure, non-renewal, or placement outcomes.",
-  "Small counties below minimum volume thresholds receive Limited-data treatment.",
+  "Small counties below minimum volume thresholds receive a Limited data comparison status and are not scored for suggested recruitment attention.",
   `The reporting snapshot is fixed at ${formatReportingDate(REPORTING_DATE)}.`,
 ] as const;
 

@@ -95,7 +95,7 @@ describe("retention export", () => {
     expect(csv).toContain("provider_id,county,license_end_date");
     expect(csv).toContain("500001,Cook");
     expect(csv).toContain("High outreach priority");
-    expect(csv).toContain("Inactive for at least 180 days");
+    expect(csv).toContain("Inactive for 212 days");
   });
 
   it("serializes retention export rows to CSV", () => {

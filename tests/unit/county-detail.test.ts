@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCountyExecutiveSummary,
   buildCountyLimitations,
   buildCountyPriorityExplanation,
   ageGroupSectionLabel,
@@ -76,16 +77,25 @@ describe("county detail helpers", () => {
 
     const explanation = buildCountyPriorityExplanation(sampleCounty(), ageGroups, ageGroups);
     expect(explanation).toContain("Cook County");
-    expect(explanation).toContain("High recruitment attention");
-    expect(explanation).toContain("Above the 75th percentile");
+    expect(explanation).toContain("high attention");
+    expect(explanation).toContain("More children per engaged provider than most comparable counties");
     expect(explanation).toContain("Ages 13–17 show the highest recruitment pressure");
+  });
+
+  it("builds a concise executive summary for limited-data counties", () => {
+    const summary = buildCountyExecutiveSummary(
+      sampleCounty({ recruitmentPriority: "Limited data", currentFosterHomeChildren: 8, activeProviders: 5 }),
+    );
+    expect(summary).toContain("not scored");
+    expect(summary).toContain("8 current foster-home children");
+    expect(summary).not.toContain("low attention");
   });
 
   it("builds a separate explanation for limited-data counties", () => {
     const explanation = buildCountyPriorityExplanation(
       sampleCounty({ recruitmentPriority: "Limited data", recruitmentReasons: [] }),
     );
-    expect(explanation).toContain("does not meet minimum volume rules");
+    expect(explanation).toContain("not scored");
     expect(explanation).not.toContain("proven shortage");
   });
 

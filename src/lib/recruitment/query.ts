@@ -1,11 +1,15 @@
+import {
+  getSuggestedRecruitmentAttention,
+  type SuggestedRecruitmentAttention,
+} from "@/lib/recruitment/classification";
 import type { RecruitmentPriority, SortDirection } from "@/lib/types/domain";
 import type { RecruitmentSearchParams } from "@/lib/validation/search-params";
 
-const PRIORITY_ORDER: Record<RecruitmentPriority, number> = {
+const ATTENTION_SORT_ORDER: Record<SuggestedRecruitmentAttention, number> = {
   High: 0,
   Medium: 1,
   Low: 2,
-  "Limited data": 3,
+  "Not scored": 3,
 };
 
 export function sortRecruitmentCounties<T extends { recruitmentPriority: RecruitmentPriority }>(
@@ -19,7 +23,8 @@ export function sortRecruitmentCounties<T extends { recruitmentPriority: Recruit
 
   return [...counties].sort((left, right) => {
     const difference =
-      PRIORITY_ORDER[left.recruitmentPriority] - PRIORITY_ORDER[right.recruitmentPriority];
+      ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(left)] -
+      ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(right)];
     return direction === "asc" ? difference : -difference;
   });
 }
@@ -34,6 +39,9 @@ export function buildRecruitmentQueryString(
   }
   if (params.priority) {
     search.set("priority", params.priority);
+  }
+  if (params.comparisonStatus && params.comparisonStatus !== "eligible") {
+    search.set("comparisonStatus", params.comparisonStatus);
   }
   if (params.minFosterChildren !== undefined) {
     search.set("minFosterChildren", String(params.minFosterChildren));

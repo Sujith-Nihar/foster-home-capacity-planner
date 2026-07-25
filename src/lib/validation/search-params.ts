@@ -13,6 +13,10 @@ export const RECRUITMENT_PRIORITIES = [
   "Limited data",
 ] as const;
 
+export const RECRUITMENT_ATTENTION_FILTERS = ["High", "Medium", "Low"] as const;
+
+export const COMPARISON_STATUS_FILTERS = ["eligible", "all", "limited"] as const;
+
 export const OUTREACH_PRIORITIES = ["High", "Medium", "Low"] as const;
 
 export const AGE_GROUP_LABELS = ["0–5", "6–12", "13–17", "Unknown"] as const satisfies readonly AgeGroupLabel[];
@@ -74,7 +78,8 @@ export const paginationSchema = z.object({
 export const recruitmentSearchSchema = z
   .object({
     county: optionalString,
-    priority: z.enum(RECRUITMENT_PRIORITIES).optional(),
+    priority: z.enum(RECRUITMENT_ATTENTION_FILTERS).optional(),
+    comparisonStatus: z.enum(COMPARISON_STATUS_FILTERS).default("eligible"),
     minFosterChildren: z.coerce.number().int().min(0).optional(),
     ageGroup: z.enum(AGE_GROUP_LABELS).optional(),
     minOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),

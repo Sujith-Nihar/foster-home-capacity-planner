@@ -1,8 +1,20 @@
-import { AGE_GROUPS, RECRUITMENT_MINIMUM_VOLUME } from "@/config/metrics";
+import { AGE_GROUPS } from "@/config/metrics";
 import type { AgeGroupLabel } from "@/config/metrics";
 import { buildAgeGroupPrioritySummary, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
+import {
+  buildDataSufficiencyReason,
+  getComparisonStatus,
+  getSuggestedRecruitmentAttention,
+  isLimitedDataCounty,
+} from "@/lib/recruitment/classification";
+import { summarizeRecruitmentReason } from "@/lib/recruitment/summary-labels";
 import type { CountyAgeMetricsDto, CountyMetricsDto } from "@/lib/types/domain";
-import { formatCountyName, formatRecruitmentPriorityLabel } from "@/lib/utils/formatters";
+import {
+  formatCountyName,
+  formatNullablePercent,
+  formatRatio,
+  formatSuggestedRecruitmentAttentionLabel,
+} from "@/lib/utils/formatters";
 
 export function orderCountyAgeGroups(
   ageGroups: CountyAgeMetricsDto[],
@@ -15,19 +27,60 @@ export function orderCountyAgeGroups(
     .filter((group): group is CountyAgeMetricsDto => group !== undefined);
 }
 
+export function buildCountyExecutiveSummary(county: CountyMetricsDto): string {
+  const countyName = formatCountyName(county.county);
+
+  if (isLimitedDataCounty(county)) {
+    return `${countyName} is not scored for suggested recruitment attention. ${buildDataSufficiencyReason(county)}`;
+  }
+
+  const attention = getSuggestedRecruitmentAttention(county).toLowerCase();
+  const ratio = formatRatio(county.childrenPerActiveProvider);
+  const outOfCounty = formatNullablePercent(county.outOfCountyFosterRate);
+  const ageGroup =
+    county.highestPressureAgeGroup === "Unknown"
+      ? "age unavailable"
+      : county.highestPressureAgeGroup
+        ? `ages ${county.highestPressureAgeGroup}`
+        : null;
+
+  let summary = `${countyName} receives ${attention} suggested recruitment attention`;
+
+  const metricParts: string[] = [];
+  if (county.childrenPerActiveProvider !== null) {
+    metricParts.push(`${ratio} foster-home children per engaged provider`);
+  }
+  if (county.outOfCountyFosterRate !== null) {
+    metricParts.push(`an ${outOfCounty} out-of-county placement rate`);
+  }
+
+  if (metricParts.length > 0) {
+    summary += ` because it has ${metricParts.join(" and ")}`;
+  }
+
+  if (ageGroup) {
+    summary += `. Recruitment pressure is highest for ${ageGroup}.`;
+  } else {
+    summary += ".";
+  }
+
+  return summary;
+}
+
 export function buildCountyPriorityExplanation(
   county: CountyMetricsDto,
   countyAgeGroups: CountyAgeMetricsDto[] = [],
   allCountyAgeGroups: CountyAgeMetricsDto[] = [],
 ): string {
-  const countyLabel = formatCountyName(county.county);
-
-  if (county.recruitmentPriority === "Limited data") {
-    return `${countyLabel} does not meet minimum volume rules for comparative recruitment planning priority. Counties need at least ${RECRUITMENT_MINIMUM_VOLUME.currentFosterHomeChildren} foster-home children and ${RECRUITMENT_MINIMUM_VOLUME.activeProviders} active providers before statewide comparison applies.`;
+  if (isLimitedDataCounty(county)) {
+    return buildCountyExecutiveSummary(county);
   }
 
-  const priorityLabel = formatRecruitmentPriorityLabel(county.recruitmentPriority);
-  let explanation = `${countyLabel} is classified as ${priorityLabel} at the reporting date. This is a planning signal based on foster-home demand, out-of-county placement pressure, and age-group indicators relative to other eligible counties—not a proven shortage estimate.`;
+  const countyLabel = formatCountyName(county.county);
+  const attentionLabel = formatSuggestedRecruitmentAttentionLabel(
+    getSuggestedRecruitmentAttention(county),
+  );
+  let explanation = `${countyLabel} has ${attentionLabel.toLowerCase()} based on foster-home demand, out-of-county placement pressure, and age-group indicators relative to other eligible counties.`;
 
   const ageGroupSummary = buildAgeGroupPrioritySummary(
     countyAgeGroups,
@@ -42,21 +95,25 @@ export function buildCountyPriorityExplanation(
     return explanation;
   }
 
-  return `${explanation} Documented factors: ${county.recruitmentReasons.join("; ")}.`;
+  const plainReasons = county.recruitmentReasons
+    .map((reason) => summarizeRecruitmentReason(reason))
+    .join("; ");
+
+  return `${explanation} Contributing indicators: ${plainReasons}.`;
 }
 
 export function buildCountyLimitations(county: CountyMetricsDto): string[] {
   const limitations = [
-    "Recruitment priority is a planning indicator. It does not prove that a county lacks enough foster homes.",
-    "Licensed and active provider counts describe the current provider base. They are not available beds, vacancies, or guaranteed placement capacity.",
+    "Suggested recruitment attention is a prototype planning rule. It does not prove that a county lacks enough foster homes.",
+    "Licensed and engaged provider counts describe the current provider base. They are not available beds, vacancies, or guaranteed placement capacity.",
     "Published metrics never include child identifiers or child-level placement records.",
     "Out-of-county foster-home rates use current foster-home placements where the child's removal county differs from the placement county.",
     "Age-group pressure uses provider age-preference overlap rules. Matching providers are not guaranteed open placements.",
   ];
 
-  if (county.recruitmentPriority === "Limited data") {
+  if (isLimitedDataCounty(county)) {
     limitations.unshift(
-      `${formatCountyName(county.county)} is shown separately from comparative rankings because it does not meet minimum volume thresholds.`,
+      `${formatCountyName(county.county)} has ${getComparisonStatus(county).toLowerCase()} comparison status and is not scored for suggested recruitment attention.`,
     );
   }
 

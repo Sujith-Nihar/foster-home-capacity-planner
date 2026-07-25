@@ -25,7 +25,7 @@ describe("formatters", () => {
 
   it("formats recruitment priority labels", () => {
     expect(formatRecruitmentPriorityLabel("High")).toBe("High recruitment attention");
-    expect(formatRecruitmentPriorityLabel("Limited data")).toBe("Limited data");
+    expect(formatRecruitmentPriorityLabel("Limited data")).toBe("Not scored");
   });
 
   it("formats boolean labels", () => {

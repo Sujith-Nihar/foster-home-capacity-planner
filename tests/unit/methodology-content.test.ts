@@ -47,7 +47,16 @@ describe("centralized methodology content", () => {
   });
 
   it("documents prototype caveats for recruitment and retention", () => {
-    expect(RECRUITMENT_METRICS.recruitmentAttention.limitation).toMatch(/prototype planning rule/i);
+    expect(RECRUITMENT_METRICS.recruitmentAttention.limitation).toMatch(
+      /does not prove that a county has a foster-home shortage/i,
+    );
     expect(RETENTION_METRICS.outreachPriority.limitation).toMatch(/does not predict/i);
+  });
+
+  it("documents comparison minimum policy note on methodology", () => {
+    const sections = buildMethodologySections();
+    expect(sections[2]?.paragraphs.join(" ")).toContain(
+      "were not provided as an official DCFS policy",
+    );
   });
 });

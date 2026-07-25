@@ -1,28 +1,37 @@
 import { getRecruitmentCounties } from "@/lib/data/recruitment";
 import { getRetentionExportProviders } from "@/lib/data/retention";
+import {
+  buildDataSufficiencyReason,
+  getComparisonStatus,
+  getSuggestedRecruitmentAttention,
+} from "@/lib/recruitment/classification";
+import { summarizeRecruitmentReason } from "@/lib/recruitment/summary-labels";
+import { formatOutreachReasonForDisplay } from "@/lib/retention/reason-display";
 import type { CountyMetricsDto, ProviderMetricsDto } from "@/lib/types/domain";
 import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 import {
   formatBooleanLabel,
+  formatComparisonStatusLabel,
   formatCountyName,
   formatNullablePercent,
-  formatPercent,
-  formatRatio,
-  formatRecruitmentPriorityLabel,
   formatOutreachPriorityLabel,
+  formatRatio,
   formatReportingDate,
+  formatSuggestedRecruitmentAttentionLabel,
 } from "@/lib/utils/formatters";
 
 export type RecruitmentExportRow = {
   county: string;
-  recruitment_priority: string;
+  comparison_status: string;
+  suggested_recruitment_attention: string;
   current_foster_home_children: number;
-  active_providers: number;
-  children_per_active_provider: string;
+  engaged_providers: number;
+  children_per_engaged_provider: string;
   out_of_county_foster_rate: string;
   highest_pressure_age_group: string;
-  expiring_90_days: number;
+  licenses_expiring_within_90_days: number;
   recruitment_reasons: string;
+  data_sufficiency_reason: string;
 };
 
 export type RetentionExportRow = {
@@ -41,20 +50,30 @@ export type RetentionExportRow = {
 };
 
 export function mapRecruitmentExportRows(counties: CountyMetricsDto[]): RecruitmentExportRow[] {
-  return counties.map((county) => ({
-    county: county.county,
-    recruitment_priority: formatRecruitmentPriorityLabel(county.recruitmentPriority),
-    current_foster_home_children: county.currentFosterHomeChildren,
-    active_providers: county.activeProviders,
-    children_per_active_provider: formatRatio(county.childrenPerActiveProvider),
-    out_of_county_foster_rate:
-      county.outOfCountyFosterRate === null
-        ? "—"
-        : formatPercent(county.outOfCountyFosterRate),
-    highest_pressure_age_group: county.highestPressureAgeGroup ?? "—",
-    expiring_90_days: county.expiring90Days,
-    recruitment_reasons: county.recruitmentReasons.join("; "),
-  }));
+  return counties.map((county) => {
+    const comparisonStatus = getComparisonStatus(county);
+    const suggestedAttention = getSuggestedRecruitmentAttention(county);
+    const isLimitedData = comparisonStatus === "Limited data";
+
+    return {
+      county: county.county,
+      comparison_status: formatComparisonStatusLabel(comparisonStatus),
+      suggested_recruitment_attention: formatSuggestedRecruitmentAttentionLabel(suggestedAttention),
+      current_foster_home_children: county.currentFosterHomeChildren,
+      engaged_providers: county.activeProviders,
+      children_per_engaged_provider: formatRatio(county.childrenPerActiveProvider),
+      out_of_county_foster_rate:
+        county.outOfCountyFosterRate === null
+          ? "—"
+          : formatNullablePercent(county.outOfCountyFosterRate),
+      highest_pressure_age_group: county.highestPressureAgeGroup ?? "—",
+      licenses_expiring_within_90_days: county.expiring90Days,
+      recruitment_reasons: isLimitedData
+        ? ""
+        : county.recruitmentReasons.map((reason) => summarizeRecruitmentReason(reason)).join("; "),
+      data_sufficiency_reason: isLimitedData ? buildDataSufficiencyReason(county) : "",
+    };
+  });
 }
 
 export function mapRetentionExportRows(providers: ProviderMetricsDto[]): RetentionExportRow[] {
@@ -77,7 +96,18 @@ export function mapRetentionExportRows(providers: ProviderMetricsDto[]): Retenti
     engagement_rate_last_365: formatNullablePercent(provider.engagementRateLast365),
     min_age: provider.minAge,
     max_age: provider.maxAge,
-    outreach_reasons: provider.outreachReasons.join("; "),
+    outreach_reasons: provider.outreachReasons
+      .map((reason) =>
+        formatOutreachReasonForDisplay(reason, {
+          daysSinceLastPlacement: provider.daysSinceLastPlacement,
+          daysUntilExpiration: provider.daysUntilExpiration,
+          currentlyHasPlacement: provider.currentlyHasPlacement,
+          engagementRateLast365: provider.engagementRateLast365,
+          eligibleLicensedDaysLast365: provider.eligibleLicensedDaysLast365,
+          activeDaysLast365: provider.activeDaysLast365,
+        }),
+      )
+      .join("; "),
   }));
 }
 

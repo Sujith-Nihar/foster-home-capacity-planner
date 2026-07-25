@@ -140,7 +140,7 @@ function RecruitmentCountyCard({
       </Link>
       <dl className="mt-3 space-y-3">
         <TableMobileField
-          label="Attention"
+          label="Suggested attention"
           value={<RecruitmentAttentionSummary county={county} />}
         />
         <TableMobileField label="Provider base" value={<ProviderBaseSummary county={county} />} />
@@ -194,7 +194,7 @@ export function RecruitmentCountyTableBody({
               </TableHead>
               <TableHead scope="col" className={`${HEADER_CELL} w-[20%]`}>
                 <RecruitmentSortHeader
-                  label="Attention"
+                  label="Suggested attention"
                   sortKey="recruitment_priority"
                   searchParams={searchParams}
                 />

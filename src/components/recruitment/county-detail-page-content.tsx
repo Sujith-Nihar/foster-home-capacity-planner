@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table";
 import { tableColumnClasses } from "@/components/ui/table-utils";
 import type { CountyPageData } from "@/lib/data/counties";
-import { ageGroupSectionLabel } from "@/lib/recruitment/county-detail";
+import { ageGroupSectionLabel, buildCountyExecutiveSummary } from "@/lib/recruitment/county-detail";
 import { explainRecruitmentReason } from "@/lib/recruitment/reason-display";
 import { MEASURABLE_AGE_GROUP_LABELS } from "@/lib/recruitment/age-groups";
 import {
@@ -41,10 +41,8 @@ import {
 } from "@/content/methodology";
 import {
   formatCount,
-  formatCountyName,
   formatNullablePercent,
   formatRatio,
-  formatRecruitmentPriorityLabel,
 } from "@/lib/utils/formatters";
 
 type CountyDetailPageContentProps = {
@@ -52,13 +50,7 @@ type CountyDetailPageContentProps = {
 };
 
 function countyBriefingLead(data: CountyPageData): string {
-  const countyName = formatCountyName(data.county.county);
-
-  if (data.county.recruitmentPriority === "Limited data") {
-    return `${countyName} is tracked separately because it does not meet minimum volume thresholds for comparison among eligible counties.`;
-  }
-
-  return `${countyName} is classified as ${formatRecruitmentPriorityLabel(data.county.recruitmentPriority)} for recruitment planning at the reporting date.`;
+  return buildCountyExecutiveSummary(data.county);
 }
 
 export function CountyDetailPageContent({ data }: CountyDetailPageContentProps) {

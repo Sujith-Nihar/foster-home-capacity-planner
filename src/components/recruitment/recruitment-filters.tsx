@@ -23,7 +23,6 @@ import {
 import {
   COMPARABLE_COUNTIES,
   RECRUITMENT_ATTENTION_HELP,
-  RECRUITMENT_METRICS,
 } from "@/content/methodology";
 import { useOperationalFilters } from "@/hooks/use-operational-filters";
 import { useSyncDraftFromApplied } from "@/hooks/use-sync-draft-from-applied";
@@ -31,7 +30,8 @@ import type { FilterOptionsDto } from "@/lib/types/domain";
 import { buildRecruitmentQueryString, buildRecruitmentSortHref } from "@/lib/recruitment/query";
 import {
   AGE_GROUP_LABELS,
-  RECRUITMENT_PRIORITIES,
+  COMPARISON_STATUS_FILTERS,
+  RECRUITMENT_ATTENTION_FILTERS,
   type RecruitmentSearchParams,
 } from "@/lib/validation/search-params";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,15 @@ type RecruitmentFiltersProps = {
 };
 
 const ALL_FILTER_VALUE = "all";
+
+const COMPARISON_STATUS_LABELS: Record<
+  (typeof COMPARISON_STATUS_FILTERS)[number],
+  string
+> = {
+  eligible: "Eligible counties",
+  all: "All counties",
+  limited: "Limited-data counties",
+};
 
 const OUT_OF_COUNTY_PRESETS = [
   { value: "any", label: "Any rate", min: undefined, max: undefined },
@@ -95,8 +104,9 @@ function resolveOutOfCountyPreset(
 
 function hasAdvancedFilters(searchParams: RecruitmentSearchParams): boolean {
   return (
+    searchParams.minFosterChildren !== undefined ||
     resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
-    "custom"
+      "custom"
   );
 }
 
@@ -104,6 +114,7 @@ function createDraftState(searchParams: RecruitmentSearchParams) {
   return {
     countySearch: searchParams.county ?? "",
     priority: searchParams.priority ?? ALL_FILTER_VALUE,
+    comparisonStatus: searchParams.comparisonStatus,
     ageGroup: searchParams.ageGroup ?? ALL_FILTER_VALUE,
     minFosterChildren: searchParams.minFosterChildren?.toString() ?? "",
     outOfCountyPreset: resolveOutOfCountyPreset(
@@ -145,11 +156,15 @@ export function RecruitmentFilters({
   );
 
   const advancedFilterCount = useMemo(() => {
+    let count = 0;
     if (draft.outOfCountyPreset === "custom") {
-      return 1;
+      count += 1;
     }
-    return hasAdvancedFilters(searchParams) ? 1 : 0;
-  }, [draft.outOfCountyPreset, searchParams]);
+    if (draft.minFosterChildren.trim()) {
+      count += 1;
+    }
+    return count;
+  }, [draft.minFosterChildren, draft.outOfCountyPreset]);
 
   function resolveOutOfCountyRates(): {
     minOutOfCountyRate?: number;
@@ -181,6 +196,7 @@ export function RecruitmentFilters({
         draft.priority !== ALL_FILTER_VALUE
           ? (draft.priority as RecruitmentSearchParams["priority"])
           : undefined,
+      comparisonStatus: draft.comparisonStatus,
       ageGroup:
         draft.ageGroup !== ALL_FILTER_VALUE
           ? (draft.ageGroup as RecruitmentSearchParams["ageGroup"])
@@ -198,6 +214,7 @@ export function RecruitmentFilters({
     setDraft({
       countySearch: "",
       priority: ALL_FILTER_VALUE,
+      comparisonStatus: "eligible",
       ageGroup: ALL_FILTER_VALUE,
       minFosterChildren: "",
       outOfCountyPreset: "any",
@@ -219,9 +236,8 @@ export function RecruitmentFilters({
       titleId={titleId}
       description={
         <>
-          Eligible counties meeting minimum volume rules for comparative{" "}
-          {RECRUITMENT_METRICS.recruitmentAttention.label.toLowerCase()}.{" "}
-          {COMPARABLE_COUNTIES.explanation.split(".")[0]}.
+          Compare county recruitment indicators using transparent prototype planning rules.{" "}
+          {COMPARABLE_COUNTIES.explanation}
           <OperationalMethodologyLink title={RECRUITMENT_ATTENTION_HELP.title}>
             <div>
               <p className="font-medium text-text-primary">Three indicators</p>
@@ -263,7 +279,7 @@ export function RecruitmentFilters({
             />
           </OperationalFilterField>
 
-          <OperationalFilterField label="Recruitment attention">
+          <OperationalFilterField label="Suggested recruitment attention">
             <Select
               value={draft.priority}
               onValueChange={(value) =>
@@ -271,11 +287,11 @@ export function RecruitmentFilters({
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
-                <SelectValue placeholder="All priorities" />
+                <SelectValue placeholder="All attention levels" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_FILTER_VALUE}>All priorities</SelectItem>
-                {RECRUITMENT_PRIORITIES.map((item) => (
+                <SelectItem value={ALL_FILTER_VALUE}>All attention levels</SelectItem>
+                {RECRUITMENT_ATTENTION_FILTERS.map((item) => (
                   <SelectItem key={item} value={item}>
                     {item}
                   </SelectItem>
@@ -284,18 +300,28 @@ export function RecruitmentFilters({
             </Select>
           </OperationalFilterField>
 
-          <OperationalFilterField label="Minimum foster-home children">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={draft.minFosterChildren}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, minFosterChildren: event.target.value }))
+          <OperationalFilterField label="Comparison status">
+            <Select
+              value={draft.comparisonStatus}
+              onValueChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  comparisonStatus:
+                    (value as RecruitmentSearchParams["comparisonStatus"]) ?? "eligible",
+                }))
               }
-              placeholder="e.g. 10"
-              className={OPERATIONAL_FILTER_CONTROL_CLASS}
-            />
+            >
+              <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
+                <SelectValue placeholder="Eligible counties" />
+              </SelectTrigger>
+              <SelectContent>
+                {COMPARISON_STATUS_FILTERS.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {COMPARISON_STATUS_LABELS[item]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </OperationalFilterField>
 
           <OperationalFilterField label="Highest-pressure age group">
@@ -349,6 +375,19 @@ export function RecruitmentFilters({
       }
       advancedFilters={
         <>
+          <OperationalFilterField label="Minimum foster-home children">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={draft.minFosterChildren}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, minFosterChildren: event.target.value }))
+              }
+              placeholder="e.g. 10"
+              className={OPERATIONAL_FILTER_CONTROL_CLASS}
+            />
+          </OperationalFilterField>
           <OperationalFilterField label="Minimum out-of-county rate (%)">
             <Input
               type="number"

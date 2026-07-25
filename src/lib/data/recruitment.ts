@@ -15,6 +15,7 @@ import {
   mapCountyAgeMetrics,
   mapCountyMetrics,
 } from "@/lib/supabase/server";
+import { filterCountiesByComparisonStatus } from "@/lib/recruitment/classification";
 import { partitionRecruitmentCounties, type AgeGroupPressureDto } from "@/lib/recruitment/analytics";
 import { groupCountyAgeMetricsByCounty, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
 import { sortRecruitmentCounties } from "@/lib/recruitment/query";
@@ -77,6 +78,12 @@ export const getRecruitmentCounties = cache(async function getRecruitmentCountie
         query = query.eq("recruitment_priority", params.priority);
       }
 
+      if (params.comparisonStatus === "eligible") {
+        query = query.neq("recruitment_priority", "Limited data");
+      } else if (params.comparisonStatus === "limited") {
+        query = query.eq("recruitment_priority", "Limited data");
+      }
+
       if (params.minFosterChildren !== undefined) {
         query = query.gte("current_foster_home_children", params.minFosterChildren);
       }
@@ -105,6 +112,7 @@ export const getRecruitmentCounties = cache(async function getRecruitmentCountie
 
       let counties = rows.map(mapCountyMetrics);
       counties = filterCountiesBySearch(counties, params.county);
+      counties = filterCountiesByComparisonStatus(counties, params.comparisonStatus);
       return sortRecruitmentCounties(counties, params.sort, params.direction);
     },
     { rowCount: (counties) => counties.length, cache: "miss" },

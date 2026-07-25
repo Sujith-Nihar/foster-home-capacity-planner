@@ -46,6 +46,7 @@ describe("recruitment filters and sorting", () => {
     ).toEqual({
       county: "Cook",
       priority: "Medium",
+      comparisonStatus: "eligible",
       minFosterChildren: 12,
       ageGroup: "13–17",
       minOutOfCountyRate: 0.1,
@@ -64,7 +65,7 @@ describe("recruitment filters and sorting", () => {
     expect(result.success).toBe(false);
   });
 
-  it("sorts recruitment priority with a fixed high-to-limited order", () => {
+  it("sorts suggested attention with not scored after low", () => {
     const counties = [
       sampleCounty({ county: "A", recruitmentPriority: "Low" }),
       sampleCounty({ county: "B", recruitmentPriority: "High" }),
@@ -90,11 +91,22 @@ describe("recruitment filters and sorting", () => {
 });
 
 describe("recruitment export", () => {
-  it("serializes filtered export rows to CSV", () => {
-    const csv = serializeCsv(mapRecruitmentExportRows([sampleCounty()]));
-    expect(csv).toContain("county,recruitment_priority");
-    expect(csv).toContain("Cook,High recruitment attention,80,20");
-    expect(csv).toContain("6–12");
+  it("serializes filtered export rows to CSV with separate attention and comparison columns", () => {
+    const csv = serializeCsv(
+      mapRecruitmentExportRows([
+        sampleCounty(),
+        sampleCounty({
+          county: "Tiny",
+          recruitmentPriority: "Limited data",
+          currentFosterHomeChildren: 8,
+          activeProviders: 2,
+        }),
+      ]),
+    );
+    expect(csv).toContain("comparison_status,suggested_recruitment_attention");
+    expect(csv).toContain("Cook,Eligible,High attention");
+    expect(csv).toContain("Tiny,Limited data,Not scored");
+    expect(csv).not.toContain("Limited data attention");
   });
 
   it("sanitizes export filenames", () => {

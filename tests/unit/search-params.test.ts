@@ -17,6 +17,7 @@ import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 describe("recruitment search params", () => {
   it("applies defaults for an empty query string", () => {
     expect(parseRecruitmentSearchParams({})).toEqual({
+      comparisonStatus: "eligible",
       sort: "children_per_active_provider",
       direction: "desc",
     });
@@ -31,6 +32,7 @@ describe("recruitment search params", () => {
       }),
     ).toEqual({
       priority: "High",
+      comparisonStatus: "eligible",
       sort: "out_of_county_foster_rate",
       direction: "asc",
     });
@@ -41,9 +43,16 @@ describe("recruitment search params", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects invalid priorities", () => {
-    const result = safeParseRecruitmentSearchParams({ priority: "Critical" });
+  it("rejects limited data as an attention filter", () => {
+    const result = safeParseRecruitmentSearchParams({ priority: "Limited data" });
     expect(result.success).toBe(false);
+  });
+
+  it("parses comparison status filters", () => {
+    expect(parseRecruitmentSearchParams({ comparisonStatus: "all" }).comparisonStatus).toBe("all");
+    expect(parseRecruitmentSearchParams({ comparisonStatus: "limited" }).comparisonStatus).toBe(
+      "limited",
+    );
   });
 });
 

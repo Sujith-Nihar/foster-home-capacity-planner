@@ -1,6 +1,10 @@
 import { format, parseISO } from "date-fns";
 
 import type { OutreachPriority, RecruitmentPriority } from "@/lib/types/domain";
+import type {
+  ComparisonStatus,
+  SuggestedRecruitmentAttention,
+} from "@/lib/recruitment/classification";
 
 export function formatReportingDate(value: string): string {
   return format(parseISO(value), "MMMM d, yyyy");
@@ -49,16 +53,29 @@ export function formatDays(value: number | null | undefined): string {
   return `${formatCount(value)} days`;
 }
 
+export function formatSuggestedRecruitmentAttentionLabel(
+  attention: SuggestedRecruitmentAttention,
+): string {
+  if (attention === "Not scored") {
+    return "Not scored";
+  }
+  return `${attention} attention`;
+}
+
+export function formatComparisonStatusLabel(status: ComparisonStatus): string {
+  return status;
+}
+
 export function formatRecruitmentPriorityLabel(priority: RecruitmentPriority): string {
   if (priority === "Limited data") {
-    return "Limited data";
+    return "Not scored";
   }
   return `${priority} recruitment attention`;
 }
 
 export function formatCompactRecruitmentPriorityLabel(priority: RecruitmentPriority): string {
   if (priority === "Limited data") {
-    return "Limited data";
+    return "Not scored";
   }
   return `${priority} attention`;
 }

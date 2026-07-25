@@ -4,13 +4,9 @@ import { Info } from "lucide-react";
 import { AgeGroupPressureChart } from "@/components/charts/age-group-pressure-chart";
 import { RecruitmentScatterChart } from "@/components/charts/recruitment-scatter-chart";
 import { MethodologyLink } from "@/components/methodology-link";
-import { OperationalTableHeader } from "@/components/operational/operational-filter-panel";
 import { OperationalResultsFallback } from "@/components/operational/operational-results-fallback";
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
-import {
-  RecruitmentEligibleResults,
-  RecruitmentLimitedResults,
-} from "@/components/recruitment/recruitment-eligible-results";
+import { RecruitmentCountyResults } from "@/components/recruitment/recruitment-eligible-results";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { RECRUITMENT_METRICS } from "@/content/methodology";
@@ -94,7 +90,7 @@ export function RecruitmentPageContent({
             filterOptions={filterOptions}
             searchParams={searchParams}
             exportQuery={exportQuery}
-            title="County recruitment planning priorities"
+            title="County recruitment review"
             titleId="recruitment-county-table-heading"
             showResultCount={false}
           />
@@ -104,7 +100,7 @@ export function RecruitmentPageContent({
           key={resultsKey}
           fallback={<OperationalResultsFallback rows={8} />}
         >
-          <RecruitmentEligibleResults searchParams={rawSearchParams} />
+          <RecruitmentCountyResults searchParams={rawSearchParams} />
         </Suspense>
       </RecruitmentCountyTable>
 
@@ -119,23 +115,6 @@ export function RecruitmentPageContent({
       >
         <RecruitmentChartsSection searchParams={rawSearchParams} />
       </Suspense>
-
-      <RecruitmentCountyTable
-        header={
-          <OperationalTableHeader
-            title="Limited-data counties"
-            titleId="limited-data-counties-heading"
-            description="Counties below minimum foster-home children or engaged-provider volume thresholds are shown separately and excluded from comparative scatter analysis."
-          />
-        }
-      >
-        <Suspense
-          key={`${resultsKey}-limited`}
-          fallback={<OperationalResultsFallback rows={4} />}
-        >
-          <RecruitmentLimitedResults searchParams={rawSearchParams} />
-        </Suspense>
-      </RecruitmentCountyTable>
 
       <div className="flex justify-end">
         <MethodologyLink label="Review recruitment methodology" />
