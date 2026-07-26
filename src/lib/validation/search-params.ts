@@ -85,7 +85,7 @@ export const recruitmentSearchSchema = z
     ageGroup: z.enum(AGE_GROUP_LABELS).optional(),
     minOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),
     maxOutOfCountyRate: z.coerce.number().min(0).max(1).optional(),
-    sort: z.enum(RECRUITMENT_SORT_FIELDS).default("children_per_active_provider"),
+    sort: z.enum(RECRUITMENT_SORT_FIELDS).default("recruitment_priority"),
     direction: z.enum(SORT_DIRECTIONS).default("desc"),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce

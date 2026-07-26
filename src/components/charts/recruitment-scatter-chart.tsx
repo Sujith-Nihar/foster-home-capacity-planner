@@ -52,7 +52,7 @@ function ChartTooltip({
     <div className="rounded-md border border-border-default bg-surface-raised px-3 py-2 text-sm shadow-sm">
       <p className="font-medium text-text-primary">{formatCountyName(point.county)}</p>
       <p className="text-text-secondary">
-        Children per active provider: {formatRatio(point.x)}
+        Children per engaged provider: {formatRatio(point.x)}
       </p>
       <p className="text-text-secondary">Out-of-county rate: {formatNullablePercent(point.y)}</p>
       <p className="text-text-secondary">Foster-home children: {formatCount(point.z)}</p>
@@ -65,7 +65,7 @@ function buildSummary(points: ScatterPoint[]): string {
     return "No eligible counties are available for the recruitment pressure scatter plot.";
   }
 
-  return `Scatter plot of ${formatCount(points.length)} eligible counties. Bubble size reflects current foster-home children. Higher values to the right indicate more children per active provider; higher values upward indicate greater out-of-county placement rates.`;
+  return `Scatter plot of ${formatCount(points.length)} eligible counties. Bubble size reflects current foster-home children. Higher values to the right indicate more children per engaged provider; higher values upward indicate greater out-of-county placement rates.`;
 }
 
 export function RecruitmentScatterChart({ counties }: RecruitmentScatterChartProps) {
@@ -76,6 +76,7 @@ export function RecruitmentScatterChart({ counties }: RecruitmentScatterChartPro
     <ChartPanel
       title="Recruitment pressure scatter plot"
       description="Each bubble is an eligible county. Position shows pressure; size shows foster-home demand."
+      visibleLead="Compare county placement pressure against out-of-county placement rates."
       summary={buildSummary(points)}
       isEmpty={isEmpty}
       emptyDescription="Eligible counties need comparable provider and out-of-county rate metrics to appear in this chart."
@@ -86,7 +87,7 @@ export function RecruitmentScatterChart({ counties }: RecruitmentScatterChartPro
           <XAxis
             type="number"
             dataKey="x"
-            name="Children per active provider"
+            name="Children per engaged provider"
             tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
             tickFormatter={(value: number) => formatRatio(value)}
           />

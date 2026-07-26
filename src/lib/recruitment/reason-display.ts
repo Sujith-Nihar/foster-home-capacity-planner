@@ -109,7 +109,7 @@ export function formatAdditionalFactorsLabel(additionalCount: number): string {
     return "";
   }
   const noun = additionalCount === 1 ? "factor" : "factors";
-  return `+${additionalCount} additional ${noun}`;
+  return `View ${additionalCount} more ${noun}`;
 }
 
 export function formatHighestPressureAgeGroupReason(ageGroup: string | null): string | null {

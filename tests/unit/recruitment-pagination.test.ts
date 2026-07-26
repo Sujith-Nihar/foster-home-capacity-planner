@@ -19,16 +19,17 @@ import { parseRecruitmentSearchParams } from "@/lib/validation/search-params";
 import { RECRUITMENT_DEFAULT_PAGE_SIZE } from "@/lib/pagination/constants";
 
 describe("recruitment pagination helpers", () => {
-  it("defaults to page 1 and page size 20", () => {
+  it("defaults to page 1 and page size 10", () => {
     expect(parseRecruitmentSearchParams({})).toMatchObject({
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
       comparisonStatus: "eligible",
+      sort: "recruitment_priority",
     });
   });
 
   it("coerces invalid page sizes to the default", () => {
-    expect(parseRecruitmentSearchParams({ pageSize: "25" }).pageSize).toBe(20);
+    expect(parseRecruitmentSearchParams({ pageSize: "25" }).pageSize).toBe(10);
     expect(parseRecruitmentSearchParams({ pageSize: "50" }).pageSize).toBe(50);
   });
 
@@ -39,8 +40,8 @@ describe("recruitment pagination helpers", () => {
 
   it("formats result ranges for single and multiple counties", () => {
     expect(formatResultRangeLabel(1, 1, 1, "county", "counties")).toBe("Showing 1 county");
-    expect(formatResultRangeLabel(1, 20, 102, "county", "counties")).toBe(
-      "Showing 1–20 of 102 counties",
+    expect(formatResultRangeLabel(1, 10, 102, "county", "counties")).toBe(
+      "Showing 1–10 of 102 counties",
     );
     expect(formatResultRangeLabel(101, 102, 102, "county", "counties")).toBe(
       "Showing 101–102 of 102 counties",
@@ -62,7 +63,7 @@ describe("recruitment pagination helpers", () => {
   it("serializes pagination in the URL while omitting defaults", () => {
     expect(
       buildRecruitmentQueryString({
-        sort: "children_per_active_provider",
+        sort: "recruitment_priority",
         direction: "desc",
         page: 1,
         pageSize: RECRUITMENT_DEFAULT_PAGE_SIZE,

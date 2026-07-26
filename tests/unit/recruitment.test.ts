@@ -54,7 +54,7 @@ describe("recruitment filters and sorting", () => {
       sort: "expiring_90_days",
       direction: "asc",
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
     });
   });
 
@@ -75,8 +75,19 @@ describe("recruitment filters and sorting", () => {
       sampleCounty({ county: "D", recruitmentPriority: "Medium" }),
     ];
 
-    const sorted = sortRecruitmentCounties(counties, "recruitment_priority", "asc");
+    const sorted = sortRecruitmentCounties(counties, "recruitment_priority", "desc");
     expect(sorted.map((county) => county.county)).toEqual(["B", "D", "A", "C"]);
+  });
+
+  it("sorts by attention then children per engaged provider within each group", () => {
+    const counties = [
+      sampleCounty({ county: "B", recruitmentPriority: "High", childrenPerActiveProvider: 3 }),
+      sampleCounty({ county: "A", recruitmentPriority: "High", childrenPerActiveProvider: 5 }),
+      sampleCounty({ county: "C", recruitmentPriority: "Medium", childrenPerActiveProvider: 8 }),
+    ];
+
+    const sorted = sortRecruitmentCounties(counties, "recruitment_priority", "desc");
+    expect(sorted.map((county) => county.county)).toEqual(["A", "B", "C"]);
   });
 
   it("partitions limited-data counties separately", () => {

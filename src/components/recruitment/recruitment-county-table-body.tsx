@@ -6,6 +6,7 @@ import { Info } from "lucide-react";
 import { CountyHighestPressureSummary } from "@/components/recruitment/county-details-disclosure";
 import { RecruitmentAttentionSummary } from "@/components/recruitment/recruitment-attention-summary";
 import { RecruitmentSortHeader } from "@/components/recruitment/recruitment-filters";
+import { RecruitmentSuggestedAttentionHelp } from "@/components/recruitment/recruitment-suggested-attention-help";
 import { StackedTableCell } from "@/components/shared/stacked-table-cell";
 import { TableViewActionLink } from "@/components/shared/table-view-action-link";
 import {
@@ -80,7 +81,7 @@ function PlacementPressureSummary({ county }: { county: CountyMetricsDto }) {
           <TooltipTrigger
             render={
               <span className="inline-flex cursor-help items-center gap-1 tabular-nums underline decoration-dotted underline-offset-2">
-                {ratio} children per provider
+                {ratio} children per engaged provider
                 <Info className="size-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />
               </span>
             }
@@ -108,14 +109,17 @@ function PressureAndAgeSummary({
   );
 }
 
+function formatLicenseExposure(count: number): string {
+  if (count <= 0) {
+    return "No licenses ending within 90 days";
+  }
+  return `${formatCount(count)} licenses ending within 90 days`;
+}
+
 function RenewalAndActionCell({ county }: { county: CountyMetricsDto }) {
   return (
     <div className="flex min-w-0 flex-col items-start gap-2">
-      <p className="text-sm tabular-nums text-text-primary">
-        {county.expiring90Days > 0
-          ? `${formatCount(county.expiring90Days)} licenses expiring`
-          : "No licenses expiring"}
-      </p>
+      <p className="text-sm tabular-nums text-text-primary">{formatLicenseExposure(county.expiring90Days)}</p>
       <TableViewActionLink href={countyHref(county.county)} label="View county" />
     </div>
   );
@@ -150,12 +154,10 @@ function RecruitmentCountyCard({
           value={<CountyHighestPressureSummary highestGroups={highestGroups} />}
         />
         <TableMobileField
-          label="Expiring licenses"
+          label="Near-term license exposure"
           value={
             <span className="tabular-nums">
-              {county.expiring90Days > 0
-                ? `${formatCount(county.expiring90Days)} licenses expiring`
-                : "None in the next 90 days"}
+              {formatLicenseExposure(county.expiring90Days)}
             </span>
           }
         />
@@ -193,11 +195,14 @@ export function RecruitmentCountyTableBody({
                 County
               </TableHead>
               <TableHead scope="col" className={`${HEADER_CELL} w-[20%]`}>
-                <RecruitmentSortHeader
-                  label="Suggested attention"
-                  sortKey="recruitment_priority"
-                  searchParams={searchParams}
-                />
+                <div className="inline-flex items-start gap-1.5">
+                  <RecruitmentSortHeader
+                    label="Suggested attention"
+                    sortKey="recruitment_priority"
+                    searchParams={searchParams}
+                  />
+                  <RecruitmentSuggestedAttentionHelp />
+                </div>
               </TableHead>
               <TableHead scope="col" className={`${HEADER_CELL} w-[17%]`}>
                 Provider base
@@ -224,7 +229,7 @@ export function RecruitmentCountyTableBody({
                 scope="col"
                 className={`${HEADER_CELL} w-[16%] hidden xl:table-cell`}
               >
-                Renewal and action
+                Near-term license exposure
               </TableHead>
               <TableHead
                 scope="col"
@@ -254,7 +259,7 @@ export function RecruitmentCountyTableBody({
                     <RecruitmentAttentionSummary county={county} />
                     {county.expiring90Days > 0 ? (
                       <p className="mt-1 text-xs tabular-nums text-text-secondary xl:hidden">
-                        {formatCount(county.expiring90Days)} licenses expiring
+                        {formatLicenseExposure(county.expiring90Days)}
                       </p>
                     ) : null}
                   </TableCell>

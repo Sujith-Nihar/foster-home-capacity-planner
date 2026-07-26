@@ -18,10 +18,10 @@ describe("recruitment search params", () => {
   it("applies defaults for an empty query string", () => {
     expect(parseRecruitmentSearchParams({})).toEqual({
       comparisonStatus: "eligible",
-      sort: "children_per_active_provider",
+      sort: "recruitment_priority",
       direction: "desc",
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
     });
   });
 
@@ -38,7 +38,7 @@ describe("recruitment search params", () => {
       sort: "out_of_county_foster_rate",
       direction: "asc",
       page: 1,
-      pageSize: 20,
+      pageSize: 10,
     });
   });
 

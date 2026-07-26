@@ -1,6 +1,6 @@
-import { OperationalResultCount } from "@/components/operational/operational-result-count";
 import { RecruitmentCountyTableBody } from "@/components/recruitment/recruitment-county-table-body";
 import { RecruitmentPagination } from "@/components/recruitment/recruitment-pagination";
+import { RecruitmentResultCount } from "@/components/recruitment/recruitment-result-count";
 import type { CountyAgeMetricsByCounty } from "@/lib/data/recruitment";
 import { getRecruitmentCountiesPaginated } from "@/lib/data/recruitment";
 import { groupCountyAgeMetricsByCounty } from "@/lib/recruitment/age-groups";
@@ -29,7 +29,7 @@ export async function RecruitmentCountyResults({ searchParams }: RecruitmentCoun
   if (pagination.totalCount === 0) {
     return (
       <div className="space-y-3 px-4 py-2" aria-busy="false">
-        <OperationalResultCount totalCount={0} noun="county" nounPlural="counties" />
+        <RecruitmentResultCount totalCount={0} comparisonStatus={params.comparisonStatus} />
         <p className="px-0 py-4 text-sm text-text-secondary" role="status">
           No counties match the selected filters.
         </p>
@@ -40,10 +40,9 @@ export async function RecruitmentCountyResults({ searchParams }: RecruitmentCoun
   return (
     <div className="space-y-3" aria-busy="false">
       <div className="px-4 pt-2">
-        <OperationalResultCount
+        <RecruitmentResultCount
           totalCount={pagination.totalCount}
-          noun="county"
-          nounPlural="counties"
+          comparisonStatus={params.comparisonStatus}
         />
       </div>
       <RecruitmentCountyTableBody

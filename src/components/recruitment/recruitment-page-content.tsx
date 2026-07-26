@@ -5,6 +5,7 @@ import { AgeGroupPressureChart } from "@/components/charts/age-group-pressure-ch
 import { RecruitmentScatterChart } from "@/components/charts/recruitment-scatter-chart";
 import { MethodologyLink } from "@/components/methodology-link";
 import { OperationalResultsFallback } from "@/components/operational/operational-results-fallback";
+import { RecruitmentAdditionalAnalysisDisclosure } from "@/components/recruitment/recruitment-additional-analysis-disclosure";
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
 import { RecruitmentCountyResults } from "@/components/recruitment/recruitment-eligible-results";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
@@ -40,9 +41,11 @@ async function RecruitmentChartsSection({
   const ageGroupPressure = deriveAgeGroupPressureFromCountyAgeMetrics(allCountyAgeMetrics);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <RecruitmentScatterChart counties={eligible} />
+    <div className="space-y-6">
       <AgeGroupPressureChart data={ageGroupPressure} />
+      <RecruitmentAdditionalAnalysisDisclosure>
+        <RecruitmentScatterChart counties={eligible} />
+      </RecruitmentAdditionalAnalysisDisclosure>
     </div>
   );
 }
@@ -107,9 +110,9 @@ export function RecruitmentPageContent({
       <Suspense
         key={`${resultsKey}-charts`}
         fallback={
-          <div className="grid gap-6 lg:grid-cols-2" aria-busy="true">
+          <div className="space-y-6" aria-busy="true">
             <div className="h-72 rounded-xl border border-border-default bg-muted/40" />
-            <div className="h-72 rounded-xl border border-border-default bg-muted/40" />
+            <div className="h-40 rounded-xl border border-border-default bg-muted/40" />
           </div>
         }
       >

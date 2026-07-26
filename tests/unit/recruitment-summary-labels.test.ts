@@ -23,7 +23,7 @@ describe("recruitment summary labels", () => {
   });
 
   it("formats additional factor counts", () => {
-    expect(formatAdditionalFactorsLabel(3)).toBe("+3 additional factors");
-    expect(formatAdditionalFactorsLabel(1)).toBe("+1 additional factor");
+    expect(formatAdditionalFactorsLabel(3)).toBe("View 3 more factors");
+    expect(formatAdditionalFactorsLabel(1)).toBe("View 1 more factor");
   });
 });

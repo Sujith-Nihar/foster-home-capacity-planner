@@ -11,7 +11,7 @@ import {
   OperationalFilterPanel,
   OPERATIONAL_FILTER_CONTROL_CLASS,
 } from "@/components/operational/operational-filter-panel";
-import { OperationalMethodologyLink } from "@/components/operational/operational-methodology-link";
+import { RecruitmentAttentionHelpSheet } from "@/components/recruitment/recruitment-attention-help-sheet";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,10 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  COMPARABLE_COUNTIES,
-  RECRUITMENT_ATTENTION_HELP,
-} from "@/content/methodology";
 import { useOperationalFilters } from "@/hooks/use-operational-filters";
 import { useSyncDraftFromApplied } from "@/hooks/use-sync-draft-from-applied";
 import type { FilterOptionsDto } from "@/lib/types/domain";
@@ -58,7 +54,7 @@ const COMPARISON_STATUS_LABELS: Record<
 };
 
 const OUT_OF_COUNTY_PRESETS = [
-  { value: "any", label: "Any rate", min: undefined, max: undefined },
+  { value: "any", label: "Any out-of-county rate", min: undefined, max: undefined },
   { value: "25", label: "25% or higher", min: 0.25, max: undefined },
   { value: "50", label: "50% or higher", min: 0.5, max: undefined },
   { value: "75", label: "75% or higher", min: 0.75, max: undefined },
@@ -105,8 +101,8 @@ function resolveOutOfCountyPreset(
 function hasAdvancedFilters(searchParams: RecruitmentSearchParams): boolean {
   return (
     searchParams.minFosterChildren !== undefined ||
-    resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
-      "custom"
+    resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) !==
+      "any"
   );
 }
 
@@ -123,10 +119,7 @@ function createDraftState(searchParams: RecruitmentSearchParams) {
     ),
     customMinOutOfCountyPercent: decimalToPercentInput(searchParams.minOutOfCountyRate),
     customMaxOutOfCountyPercent: decimalToPercentInput(searchParams.maxOutOfCountyRate),
-    moreFiltersOpen:
-      hasAdvancedFilters(searchParams) ||
-      resolveOutOfCountyPreset(searchParams.minOutOfCountyRate, searchParams.maxOutOfCountyRate) ===
-        "custom",
+    moreFiltersOpen: hasAdvancedFilters(searchParams),
   };
 }
 
@@ -157,7 +150,7 @@ export function RecruitmentFilters({
 
   const advancedFilterCount = useMemo(() => {
     let count = 0;
-    if (draft.outOfCountyPreset === "custom") {
+    if (draft.outOfCountyPreset !== "any") {
       count += 1;
     }
     if (draft.minFosterChildren.trim()) {
@@ -239,36 +232,8 @@ export function RecruitmentFilters({
       titleId={titleId}
       description={
         <>
-          Compare county recruitment indicators using transparent prototype planning rules.{" "}
-          {COMPARABLE_COUNTIES.explanation}
-          <OperationalMethodologyLink title={RECRUITMENT_ATTENTION_HELP.title}>
-            <div>
-              <p className="font-medium text-text-primary">Three indicators</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                {RECRUITMENT_ATTENTION_HELP.indicators.map((indicator) => (
-                  <li key={indicator}>{indicator}</li>
-                ))}
-              </ul>
-            </div>
-            <p>
-              <span className="font-medium text-text-primary">Comparison group: </span>
-              {RECRUITMENT_ATTENTION_HELP.comparisonGroup}
-            </p>
-            <div>
-              <p className="font-medium text-text-primary">Planning rules</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                <li>High: {RECRUITMENT_ATTENTION_HELP.highRule}</li>
-                <li>Medium: {RECRUITMENT_ATTENTION_HELP.mediumRule}</li>
-              </ul>
-            </div>
-            <p>{RECRUITMENT_ATTENTION_HELP.caveat}</p>
-            <Link
-              href="/methodology#prototype-planning-rules"
-              className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
-            >
-              View full methodology
-            </Link>
-          </OperationalMethodologyLink>
+          Compare counties using child demand, the engaged provider base, placement location and age
+          preferences. <RecruitmentAttentionHelpSheet />
         </>
       }
       primaryFilters={
@@ -349,7 +314,10 @@ export function RecruitmentFilters({
               </SelectContent>
             </Select>
           </OperationalFilterField>
-
+        </OperationalFilterGrid>
+      }
+      advancedFilters={
+        <>
           <OperationalFilterField label="Out-of-county rate">
             <Select
               value={draft.outOfCountyPreset}
@@ -363,7 +331,7 @@ export function RecruitmentFilters({
               }}
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
-                <SelectValue placeholder="Any rate" />
+                <SelectValue placeholder="Any out-of-county rate" />
               </SelectTrigger>
               <SelectContent>
                 {OUT_OF_COUNTY_PRESETS.map((item) => (
@@ -374,10 +342,7 @@ export function RecruitmentFilters({
               </SelectContent>
             </Select>
           </OperationalFilterField>
-        </OperationalFilterGrid>
-      }
-      advancedFilters={
-        <>
+
           <OperationalFilterField label="Minimum foster-home children">
             <Input
               type="number"

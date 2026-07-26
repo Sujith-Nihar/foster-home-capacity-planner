@@ -1,18 +1,13 @@
-import { PriorityBadge, suggestedAttentionToLevel } from "@/components/priority-badge";
+import { RecruitmentAttentionBadge } from "@/components/recruitment/recruitment-attention-badge";
+import { RecruitmentAdditionalFactors } from "@/components/recruitment/recruitment-additional-factors";
 import type { CountyMetricsDto } from "@/lib/types/domain";
 import {
   buildDataSufficiencyReason,
   getComparisonStatus,
   getSuggestedRecruitmentAttention,
 } from "@/lib/recruitment/classification";
-import {
-  formatAdditionalFactorsLabel,
-  summarizeRecruitmentReason,
-} from "@/lib/recruitment/summary-labels";
-import {
-  formatComparisonStatusLabel,
-  formatSuggestedRecruitmentAttentionLabel,
-} from "@/lib/utils/formatters";
+import { summarizeRecruitmentReason } from "@/lib/recruitment/summary-labels";
+import { formatComparisonStatusLabel } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils";
 
 type RecruitmentAttentionSummaryProps = {
@@ -29,14 +24,16 @@ export function RecruitmentAttentionSummary({
   const isLimitedData = comparisonStatus === "Limited data";
   const [primary, ...additional] = county.recruitmentReasons;
   const shortReason = !isLimitedData && primary ? summarizeRecruitmentReason(primary) : null;
-  const additionalLabel = !isLimitedData ? formatAdditionalFactorsLabel(additional.length) : null;
   const sufficiencyReason = isLimitedData ? buildDataSufficiencyReason(county) : null;
+  const badgePrimaryReason = shortReason ?? sufficiencyReason;
 
   return (
     <div className={cn("min-w-0 space-y-1", className)}>
-      <PriorityBadge
-        level={suggestedAttentionToLevel(suggestedAttention)}
-        label={formatSuggestedRecruitmentAttentionLabel(suggestedAttention)}
+      <RecruitmentAttentionBadge
+        attention={suggestedAttention}
+        isLimitedData={isLimitedData}
+        primaryReason={badgePrimaryReason}
+        compact
       />
       {isLimitedData ? (
         <p className="text-xs leading-snug text-text-secondary">
@@ -50,8 +47,8 @@ export function RecruitmentAttentionSummary({
       {sufficiencyReason ? (
         <p className="line-clamp-3 text-xs leading-snug text-text-secondary">{sufficiencyReason}</p>
       ) : null}
-      {additionalLabel ? (
-        <p className="text-xs font-medium text-brand-navy">{additionalLabel}</p>
+      {!isLimitedData && additional.length > 0 ? (
+        <RecruitmentAdditionalFactors reasons={additional} />
       ) : null}
     </div>
   );

@@ -105,7 +105,7 @@ test.describe("operational filter navigation", () => {
     await page.reload();
     await expect(page.getByLabel("Search county")).toHaveValue(/cook/i);
     await expect(page.locator(".operational-filter-result-count").first()).not.toContainText(
-      /No counties match/i,
+      /No eligible counties shown/i,
     );
   });
 

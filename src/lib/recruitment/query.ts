@@ -13,7 +13,13 @@ const ATTENTION_SORT_ORDER: Record<SuggestedRecruitmentAttention, number> = {
   "Not scored": 3,
 };
 
-export function sortRecruitmentCounties<T extends { recruitmentPriority: RecruitmentPriority }>(
+export function sortRecruitmentCounties<
+  T extends {
+    recruitmentPriority: RecruitmentPriority;
+    childrenPerActiveProvider: number | null;
+    county: string;
+  },
+>(
   counties: T[],
   sort: RecruitmentSearchParams["sort"],
   direction: SortDirection,
@@ -22,11 +28,27 @@ export function sortRecruitmentCounties<T extends { recruitmentPriority: Recruit
     return counties;
   }
 
+  const attentionMultiplier = direction === "asc" ? -1 : 1;
+
   return [...counties].sort((left, right) => {
-    const difference =
-      ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(left)] -
-      ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(right)];
-    return direction === "asc" ? difference : -difference;
+    const attentionDifference =
+      (ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(left)] -
+        ATTENTION_SORT_ORDER[getSuggestedRecruitmentAttention(right)]) *
+      attentionMultiplier;
+
+    if (attentionDifference !== 0) {
+      return attentionDifference;
+    }
+
+    const leftRatio = left.childrenPerActiveProvider ?? -1;
+    const rightRatio = right.childrenPerActiveProvider ?? -1;
+    const ratioDifference = rightRatio - leftRatio;
+
+    if (ratioDifference !== 0) {
+      return ratioDifference;
+    }
+
+    return left.county.localeCompare(right.county);
   });
 }
 

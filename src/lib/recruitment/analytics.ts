@@ -59,6 +59,32 @@ export function scatterPlotCounties(counties: CountyMetricsDto[]): CountyMetrics
   );
 }
 
+export function formatAgeGroupPressureTakeaway(data: AgeGroupPressureDto[]): string {
+  const measurable = data.filter(
+    (item) => item.ageGroup !== "Unknown" && item.childrenPerMatchingActiveProvider !== null,
+  );
+
+  if (measurable.length === 0) {
+    return "Statewide age-group pressure is not available for the reporting date.";
+  }
+
+  const topPressure = measurable[0]?.childrenPerMatchingActiveProvider ?? null;
+  const highestGroups = measurable
+    .filter((item) => item.childrenPerMatchingActiveProvider === topPressure)
+    .map((item) => item.ageGroup);
+
+  if (highestGroups.length === 0) {
+    return "Statewide age-group pressure is not available for the reporting date.";
+  }
+
+  const ageLabel =
+    highestGroups.length === 1
+      ? `Ages ${highestGroups[0]}`
+      : `Ages ${highestGroups.slice(0, -1).join(", ")} and ${highestGroups.at(-1)}`;
+
+  return `${ageLabel} have the highest statewide pressure relative to matching engaged providers.`;
+}
+
 export function partitionRecruitmentCounties(counties: CountyMetricsDto[]): {
   eligible: CountyMetricsDto[];
   limitedData: CountyMetricsDto[];

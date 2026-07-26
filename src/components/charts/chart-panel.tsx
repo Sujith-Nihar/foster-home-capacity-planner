@@ -11,6 +11,7 @@ type ChartPanelProps = {
   titleId?: string;
   description: string;
   summary: string;
+  visibleLead?: string;
   isEmpty?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -27,6 +28,7 @@ export function ChartPanel({
   titleId,
   description,
   summary,
+  visibleLead,
   isEmpty = false,
   emptyTitle = "No chart data available",
   emptyDescription = "There is not enough data to display this chart for the current reporting date.",
@@ -37,10 +39,20 @@ export function ChartPanel({
 
   return (
     <ChartCard title={title} description={description} className={className}>
-      <p id={summaryId} className="mb-4 text-sm leading-6 text-text-secondary">
-        <span className="sr-only">Chart summary: </span>
-        {summary}
-      </p>
+      {visibleLead ? (
+        <>
+          <p className="mb-4 text-sm leading-6 text-text-secondary">{visibleLead}</p>
+          <p id={summaryId} className="sr-only">
+            <span>Chart summary: </span>
+            {summary}
+          </p>
+        </>
+      ) : (
+        <p id={summaryId} className="mb-4 text-sm leading-6 text-text-secondary">
+          <span className="sr-only">Chart summary: </span>
+          {summary}
+        </p>
+      )}
       {isEmpty ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (

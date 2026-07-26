@@ -50,13 +50,38 @@ test.describe("recruitment county comparison table", () => {
   test("shows six visible desktop columns at 1280px and above", async ({ page }) => {
     const table = eligibleCountyTable(page);
     await expect(table.getByRole("columnheader", { name: "County" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Attention" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: /Suggested attention/i })).toBeVisible();
+    await expect(table.getByRole("button", { name: /How suggested recruitment attention is calculated/i })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Provider base" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Placement pressure" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Age focus" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Renewal and action" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Near-term license exposure" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Pressure and age focus" })).toBeHidden();
     await expect(table.getByRole("columnheader", { name: "Action", exact: true })).toBeHidden();
+  });
+
+  test("opens suggested attention explanations from the column help and badge", async ({ page }) => {
+    const table = eligibleCountyTable(page);
+    const columnHelp = table.getByRole("button", {
+      name: /How suggested recruitment attention is calculated/i,
+    });
+    await columnHelp.focus();
+    await expect(columnHelp).toHaveAttribute("aria-expanded", "true");
+    const columnPopover = page.locator(".recruitment-attention-popover").first();
+    await expect(columnPopover).toContainText("Suggested recruitment attention");
+    await expect(columnPopover).toContainText("View full methodology");
+    await page.keyboard.press("Escape");
+
+    const attentionBadge = table
+      .locator(".table-desktop-only table tbody tr")
+      .first()
+      .getByRole("button", { name: /suggested attention/i })
+      .first();
+    await attentionBadge.focus();
+    await expect(attentionBadge).toHaveAttribute("aria-expanded", "true");
+    const badgePopover = page.locator(".recruitment-attention-badge-popover").first();
+    await expect(badgePopover).toContainText(/recruitment attention/i);
+    await expect(badgePopover).not.toContainText("top 25%");
   });
 
   test("navigates via View county", async ({ page }) => {

@@ -1,5 +1,5 @@
-export const RECRUITMENT_PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
-export const RECRUITMENT_DEFAULT_PAGE_SIZE = 20;
+export const RECRUITMENT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+export const RECRUITMENT_DEFAULT_PAGE_SIZE = 10;
 
 export const RETENTION_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export const RETENTION_DEFAULT_PAGE_SIZE = 25;

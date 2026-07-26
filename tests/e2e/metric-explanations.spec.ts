@@ -23,6 +23,7 @@ test.describe("metric explanations", () => {
     await page.goto("/recruitment");
     await expect(page.getByText("How recruitment attention is calculated")).toBeVisible();
     await page.getByText("How recruitment attention is calculated").click();
+    await expect(page.getByRole("dialog")).toBeVisible();
     await expect(
       page.getByText(/at least 10 current foster-home children and 3 engaged providers/i).first(),
     ).toBeVisible();

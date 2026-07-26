@@ -8,11 +8,11 @@ test.describe("recruitment pagination", () => {
     });
   });
 
-  test("shows at most 20 counties on the first page by default", async ({ page }) => {
+  test("shows at most 10 counties on the first page by default", async ({ page }) => {
     const rows = page.locator("table tbody tr");
     await expect(rows.first()).toBeVisible({ timeout: 15_000 });
-    await expect(rows).toHaveCount(20, { timeout: 15_000 });
-    await expect(page.getByText(/Showing 1–20 of/i)).toBeVisible();
+    await expect(rows).toHaveCount(10, { timeout: 15_000 });
+    await expect(page.getByText(/Showing 1–10 of/i)).toBeVisible();
   });
 
   test("navigates to the next page and updates the visible range", async ({ page }) => {
@@ -21,8 +21,8 @@ test.describe("recruitment pagination", () => {
     await nextButton.click();
 
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.getByText(/Showing 21–40 of/i)).toBeVisible({ timeout: 15_000 });
-    await expect(page.locator("table tbody tr")).toHaveCount(20);
+    await expect(page.getByText(/Showing 11–20 of/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator("table tbody tr")).toHaveCount(10);
   });
 
   test("resets to page 1 when filters are applied", async ({ page }) => {
@@ -33,7 +33,7 @@ test.describe("recruitment pagination", () => {
 
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page).not.toHaveURL(/page=2/);
-    await expect(page.getByText(/Showing 1–20 of/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Showing 1–10 of/i)).toBeVisible({ timeout: 15_000 });
   });
 
   test("changes page size and resets to page 1", async ({ page }) => {
