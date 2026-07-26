@@ -8,6 +8,7 @@ import { OverviewPlanningNote } from "@/components/overview/overview-planning-no
 import { OverviewRecruitmentPressureChart } from "@/components/overview/overview-recruitment-pressure-chart";
 import { OverviewUpcomingLicensesChart } from "@/components/overview/overview-upcoming-licenses-chart";
 import { RecruitmentCountiesSection } from "@/components/overview/recruitment-counties-section";
+import { PageIntroSpacing } from "@/components/layout/page-intro-spacing";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { SectionHeading, SectionShell } from "@/components/ui/section-shell";
@@ -42,7 +43,7 @@ export function OverviewPageContent({
   showHistoricalLicenseChart,
 }: OverviewPageContentProps) {
   return (
-    <div className="overview-page space-y-0">
+    <PageIntroSpacing className="overview-page space-y-0">
       <PageIntroduction
         variant="hero"
         className="overview-page__hero"
@@ -126,6 +127,6 @@ export function OverviewPageContent({
           </div>
         </SectionShell>
       </div>
-    </div>
+    </PageIntroSpacing>
   );
 }

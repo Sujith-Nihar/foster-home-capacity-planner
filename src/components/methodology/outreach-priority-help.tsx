@@ -32,7 +32,7 @@ export function OutreachPriorityHelp({ className }: OutreachPriorityHelpProps) {
         </div>
         <p>{RETENTION_METRICS.outreachPriority.limitation}</p>
         <Link
-          href="/methodology#prototype-planning-rules"
+          href="/methodology#methodology-retention-rules"
           className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
         >
           View full methodology

@@ -79,7 +79,7 @@ export function ProviderCalculationDisclosure({ details }: ProviderCalculationDi
               <CalculationDetailItem key={detail.triggeredRule} detail={detail} />
             ))}
             <Link
-              href="/methodology#prototype-planning-rules"
+              href="/methodology#methodology-retention-rules"
               className="inline-flex text-sm font-medium text-brand-navy underline-offset-4 hover:underline"
             >
               Review retention methodology

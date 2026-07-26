@@ -48,7 +48,7 @@ export function RetentionOutreachMethodologyNote() {
             </ul>
           </div>
           <Link
-            href="/methodology#prototype-planning-rules"
+            href="/methodology#methodology-retention-rules"
             className="inline-flex text-xs font-medium text-brand-navy underline-offset-4 hover:underline"
           >
             View full methodology

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { PageIntroSpacing } from "@/components/layout/page-intro-spacing";
 import { MethodologyLink } from "@/components/methodology-link";
 import { CountyDetailHeroAside } from "@/components/recruitment/county-detail-hero-aside";
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
@@ -70,7 +71,7 @@ export default async function CountyDetailPage({
   const displayName = formatCountyName(data.county.county);
 
   return (
-    <>
+    <PageIntroSpacing>
       <Breadcrumbs items={breadcrumbCounty(displayName)} className="mb-6" />
       <PageIntroduction
         eyebrow="COUNTY BRIEFING"
@@ -87,6 +88,6 @@ export default async function CountyDetailPage({
       <div className="mt-8">
         <MethodologyLink label="Review recruitment methodology" />
       </div>
-    </>
+    </PageIntroSpacing>
   );
 }

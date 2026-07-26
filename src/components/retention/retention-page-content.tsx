@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { RetentionProviderTable } from "@/components/retention/retention-provider-table";
 import { RetentionProviderListScrollManager } from "@/components/retention/retention-provider-list-scroll-manager";
 import { ReviewHighPriorityProvidersAction } from "@/components/retention/review-high-priority-providers-action";
+import { PageIntroSpacing } from "@/components/layout/page-intro-spacing";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { RETENTION_PROVIDER_LIST_ID } from "@/lib/retention/expiring-licenses";
 import { buildRetentionQueryString } from "@/lib/retention/query";
@@ -30,12 +31,11 @@ export function RetentionPageContent({
   const exportQuery = buildRetentionQueryString(searchParams).replace(/^\?/, "");
 
   return (
-    <div className="space-y-8">
+    <PageIntroSpacing className="space-y-8">
       <Suspense fallback={null}>
         <RetentionProviderListScrollManager />
       </Suspense>
       <PageIntroduction
-        className="page-intro--retention"
         eyebrow="RETENTION"
         headline="Support the foster homes already serving Illinois families."
         highlightPhrase="support the foster homes"
@@ -55,6 +55,6 @@ export function RetentionPageContent({
           exportQuery={exportQuery}
         />
       </section>
-    </div>
+    </PageIntroSpacing>
   );
 }

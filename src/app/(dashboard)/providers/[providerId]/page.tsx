@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { PageIntroSpacing } from "@/components/layout/page-intro-spacing";
 import { MethodologyLink } from "@/components/methodology-link";
 import { ProviderDetailHeader } from "@/components/providers/provider-detail-header";
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
@@ -61,7 +62,7 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
   );
 
   return (
-    <>
+    <PageIntroSpacing>
       <Breadcrumbs items={breadcrumbProvider(String(data.provider.providerId))} className="mb-4" />
       <ProviderDetailHeader
         provider={data.provider}
@@ -75,6 +76,6 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
       <div className="mt-8">
         <MethodologyLink label="Review retention methodology" />
       </div>
-    </>
+    </PageIntroSpacing>
   );
 }

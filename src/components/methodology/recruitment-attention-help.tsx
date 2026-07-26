@@ -34,7 +34,7 @@ export function RecruitmentAttentionHelp({ className }: RecruitmentAttentionHelp
         </div>
         <p>{RECRUITMENT_ATTENTION_HELP.caveat}</p>
         <Link
-          href="/methodology#prototype-planning-rules"
+          href="/methodology#methodology-recruitment-rules"
           className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
         >
           View full methodology

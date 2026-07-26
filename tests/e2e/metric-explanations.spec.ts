@@ -12,10 +12,11 @@ test.describe("metric explanations", () => {
   test("methodology identifies prototype-created thresholds", async ({ page }) => {
     await page.goto("/methodology");
 
-    await expect(page.getByRole("heading", { name: /Planning rules selected for this prototype/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Suggested recruitment attention/i })).toBeVisible();
     await expect(
       page.getByText(/were not supplied by DCFS/i),
     ).toBeVisible();
+    await page.getByRole("button", { name: /Show technical details and data lineage/i }).click();
     await expect(page.getByText(/75th percentile marks the top quarter/i).first()).toBeVisible();
   });
 

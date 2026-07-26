@@ -9,6 +9,7 @@ import { RecruitmentAdditionalAnalysisDisclosure } from "@/components/recruitmen
 import { RecruitmentCountyTable } from "@/components/recruitment/recruitment-county-table";
 import { RecruitmentCountyResults } from "@/components/recruitment/recruitment-eligible-results";
 import { RecruitmentFilters } from "@/components/recruitment/recruitment-filters";
+import { PageIntroSpacing } from "@/components/layout/page-intro-spacing";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { RECRUITMENT_METRICS } from "@/content/methodology";
 import { getCachedCountyAgeMetrics } from "@/lib/data/cached-snapshot";
@@ -60,7 +61,7 @@ export function RecruitmentPageContent({
   const resultsKey = buildRecruitmentResultsKey(searchParams);
 
   return (
-    <div className="space-y-8">
+    <PageIntroSpacing className="space-y-8">
       <PageIntroduction
         eyebrow="RECRUITMENT"
         headline="Focus recruitment where children and communities need it most."
@@ -122,6 +123,6 @@ export function RecruitmentPageContent({
       <div className="flex justify-end">
         <MethodologyLink label="Review recruitment methodology" />
       </div>
-    </div>
+    </PageIntroSpacing>
   );
 }

@@ -51,7 +51,7 @@ export function RecruitmentAttentionHelpSheet() {
             </ul>
           </div>
           <Link
-            href="/methodology#prototype-planning-rules"
+            href="/methodology#methodology-recruitment-rules"
             className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
             onClick={() => setOpen(false)}
           >

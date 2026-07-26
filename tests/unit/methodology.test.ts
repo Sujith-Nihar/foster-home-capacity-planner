@@ -1,21 +1,28 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildMethodologyIntroDescription,
+  METHODOLOGY_SECTION_IDS,
+} from "@/lib/methodology/page-content";
+import {
   buildMethodologySections,
   METHODOLOGY_CALLOUTS,
   REQUIRED_METHODOLOGY_PHRASES,
 } from "@/lib/methodology/sections";
 
 describe("methodology content", () => {
-  it("documents the four required analytical sections", () => {
+  it("documents the seven required analytical sections", () => {
     const sections = buildMethodologySections();
-    const titles = sections.map((section) => section.title);
+    const ids = sections.map((section) => section.id);
 
-    expect(titles).toEqual([
-      "1. Source-data definitions",
-      "2. Metrics calculated by the application",
-      "3. Planning rules selected for this prototype",
-      "4. Limitations and appropriate use",
+    expect(ids).toEqual([
+      METHODOLOGY_SECTION_IDS.definitions,
+      METHODOLOGY_SECTION_IDS.recruitmentMetrics,
+      METHODOLOGY_SECTION_IDS.retentionMetrics,
+      METHODOLOGY_SECTION_IDS.recruitmentRules,
+      METHODOLOGY_SECTION_IDS.retentionRules,
+      METHODOLOGY_SECTION_IDS.limitations,
+      METHODOLOGY_SECTION_IDS.technicalDetails,
     ]);
   });
 
@@ -25,20 +32,12 @@ describe("methodology content", () => {
     }
 
     expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/available beds/i);
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/does not predict/i);
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/prototype planning rule/i);
-    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not automatically assumed suitable/i);
+    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/not official DCFS classifications/i);
+    expect(METHODOLOGY_CALLOUTS.join(" ")).toMatch(/child identifiers/i);
   });
 
-  it("anchors definitions to the fixed reporting date", () => {
-    const reportingSection = buildMethodologySections().find(
-      (section) => section.id === "source-data-definitions",
-    );
-
-    expect(reportingSection?.paragraphs.join(" ")).toContain("reporting date");
-    const allText = buildMethodologySections()
-      .flatMap((section) => [...section.paragraphs, ...(section.bullets ?? [])])
-      .join(" ");
-    expect(allText).toContain("July 1, 2026");
+  it("anchors the intro to the fixed reporting date", () => {
+    expect(buildMethodologyIntroDescription()).toContain("July 1, 2026");
+    expect(buildMethodologyIntroDescription()).toContain("reporting snapshot");
   });
 });

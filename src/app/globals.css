@@ -174,6 +174,7 @@
   --fi-delay-description: 210ms;
   --fi-delay-actions: 300ms;
   --fi-delay-underline: 420ms;
+  --page-intro-spacing-top: 2.5rem;
   --fi-ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
   --fi-ease-draw: cubic-bezier(0.65, 0, 0.35, 1);
   --motion-hover: var(--fi-motion-hover);
@@ -205,6 +206,18 @@
   --operational-table-radius: 1.125rem;
   --operational-table-head-height: 4.375rem;
   --operational-table-row-min-height: 5.25rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-intro-spacing-top: 3.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-intro-spacing-top: 5rem;
+  }
 }
 
 .dark {
@@ -323,6 +336,10 @@
     .app-container {
       padding-inline: 3rem;
     }
+  }
+
+  .page-intro-spacing {
+    padding-top: var(--page-intro-spacing-top);
   }
 
   .app-header {
@@ -624,8 +641,7 @@
   }
 
   .overview-page__hero.page-intro--hero {
-    min-height: clamp(11rem, 24vh, 20rem);
-    padding-block: 1.75rem 1.5rem;
+    padding-block-end: 1.75rem;
   }
 
   .overview-chart-panel__takeaway {
@@ -1789,32 +1805,488 @@
   }
 
   .page-intro {
-    min-height: 11rem;
-    max-height: 16rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding-block: 2rem;
+    justify-content: flex-start;
+  }
+
+  .page-intro--operational {
+    min-height: auto;
+    max-height: none;
+    padding-block: 0 1.5rem;
   }
 
   .page-intro--hero {
-    min-height: clamp(18rem, 38vh, 32rem);
+    min-height: auto;
     max-height: none;
     text-align: center;
     align-items: center;
-    padding-block: 3rem 2.5rem;
-  }
-
-  .page-intro--retention {
-    min-height: auto;
-    max-height: none;
-    padding-block: 1.25rem 1.5rem;
+    padding-block: 0 2rem;
   }
 
   .page-intro--provider-detail {
     min-height: auto;
     max-height: none;
-    padding-block: 1.25rem 1.5rem;
+    padding-block: 0 1.5rem;
+  }
+
+  .page-intro--methodology {
+    min-height: auto;
+    max-height: none;
+    padding-block: 0 1.5rem;
+  }
+
+  .page-intro--methodology .page-intro-headline {
+    font-size: clamp(1.625rem, 2.8vw, 2.125rem);
+    line-height: 1.2;
+    max-width: 42rem;
+  }
+
+  .page-intro--methodology .page-intro-description {
+    max-width: 42rem;
+  }
+
+  .methodology-page {
+    --methodology-panel-padding: 1rem 1.125rem;
+  }
+
+  .methodology-panel {
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-default);
+    background: var(--surface-raised);
+    padding: var(--methodology-panel-padding);
+  }
+
+  .methodology-scroll-target,
+  .scroll-mt-32 {
+    scroll-margin-top: 8rem;
+  }
+
+  .methodology-important-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .methodology-important-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .methodology-important-callout {
+    border-radius: 0.625rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--attention-ivory);
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .methodology-section-nav {
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-base);
+    padding: 0.875rem 1rem;
+  }
+
+  .methodology-section-nav__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .methodology-section-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+  }
+
+  .methodology-section-nav__link {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--border-default);
+    background: var(--surface-raised);
+    padding: 0.3125rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--brand-navy);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .methodology-section-nav__link:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-base);
+    color: var(--text-primary);
+  }
+
+  .methodology-section-nav__link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+
+  .methodology-inline-link {
+    font-weight: 500;
+    color: var(--brand-navy);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .methodology-inline-link:hover {
+    color: var(--text-primary);
+  }
+
+  .methodology-data-snapshot__grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .methodology-data-snapshot__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .methodology-data-snapshot__field dt {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-data-snapshot__field dd {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-data-snapshot__field--wide {
+    grid-column: 1 / -1;
+  }
+
+  .methodology-data-snapshot__records {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .methodology-data-snapshot__note {
+    margin-top: 0.875rem;
+  }
+
+  .methodology-definition-group__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-definition-group__list {
+    margin-top: 0.75rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .methodology-definition-row {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 0.75rem;
+  }
+
+  .methodology-definition-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .methodology-definition-row__term {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-definition-row__definition {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-definition-row__technical {
+    margin-top: 0.5rem;
+  }
+
+  .methodology-technical-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--brand-navy);
+    cursor: pointer;
+  }
+
+  .methodology-technical-toggle:hover {
+    color: var(--text-primary);
+  }
+
+  .methodology-technical-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
+    border-radius: 0.25rem;
+  }
+
+  .methodology-technical-toggle__chevron {
+    width: 0.875rem;
+    height: 0.875rem;
+    transition: transform 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .methodology-technical-toggle__chevron,
+    .methodology-technical-disclosure__chevron {
+      transition: none;
+    }
+  }
+
+  .methodology-technical-toggle__chevron--expanded,
+  .methodology-technical-disclosure__chevron--expanded {
+    transform: rotate(180deg);
+  }
+
+  .methodology-technical-toggle__panel {
+    margin-top: 0.375rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-metric-grid {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  @media (min-width: 1024px) {
+    .methodology-metric-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .methodology-metric-card {
+    border-radius: 0.625rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-base);
+    padding: 0.875rem;
+    height: 100%;
+  }
+
+  .methodology-metric-card__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-metric-card__fields {
+    margin-top: 0.625rem;
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .methodology-metric-card__fields dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .methodology-metric-card__fields dd {
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-formula {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    color: var(--text-primary);
+  }
+
+  .methodology-rules-card {
+    border-radius: 0.625rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-base);
+    padding: 0.875rem;
+  }
+
+  .methodology-rules-card__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-rules-card__list {
+    margin-top: 0.5rem;
+    display: grid;
+    gap: 0.375rem;
+    padding-left: 1.125rem;
+    list-style: disc;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-rules-card__note {
+    margin-top: 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-callout {
+    border-radius: 0.625rem;
+    border: 1px solid var(--status-medium-border);
+    background: var(--attention-ivory);
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .methodology-table-wrap {
+    overflow-x: auto;
+  }
+
+  .methodology-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .methodology-table th,
+  .methodology-table td {
+    border: 1px solid var(--border-subtle);
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .methodology-table thead th {
+    background: var(--surface-base);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-table tbody th {
+    width: 7rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--surface-base);
+  }
+
+  .methodology-table tbody td {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .methodology-technical-disclosure {
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .methodology-technical-disclosure__toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--brand-navy);
+    cursor: pointer;
+  }
+
+  .methodology-technical-disclosure__toggle:hover {
+    color: var(--text-primary);
+  }
+
+  .methodology-technical-disclosure__toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring);
+    border-radius: 0.25rem;
+  }
+
+  .methodology-technical-disclosure__chevron {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease;
+  }
+
+  .methodology-technical-disclosure__panel {
+    padding-bottom: 0.5rem;
+  }
+
+  .methodology-technical-subsection__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .methodology-technical-list {
+    margin-top: 0.5rem;
+    display: grid;
+    gap: 0.375rem;
+    padding-left: 1.125rem;
+    list-style: disc;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  .methodology-technical-list--mono code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8125rem;
+    word-break: break-word;
+  }
+
+  .methodology-technical-metadata {
+    display: grid;
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .methodology-technical-metadata dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text-tertiary);
+  }
+
+  .methodology-technical-metadata dd {
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .methodology-source-hash {
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
   }
 
   .provider-detail-header {

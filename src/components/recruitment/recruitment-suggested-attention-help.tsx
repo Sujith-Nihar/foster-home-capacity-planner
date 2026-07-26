@@ -39,7 +39,7 @@ export function RecruitmentSuggestedAttentionHelp() {
       </dl>
       <p className="mt-3 text-text-secondary">{RECRUITMENT_PLANNING_CAVEAT}</p>
       <Link
-        href="/methodology#prototype-planning-rules"
+        href="/methodology#methodology-recruitment-rules"
         className="mt-3 inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
       >
         View full methodology

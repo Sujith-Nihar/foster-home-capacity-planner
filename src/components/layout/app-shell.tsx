@@ -12,7 +12,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-full min-w-0 flex-col">
       <AppHeader />
       <main className="min-w-0 flex-1">
-        <div className="app-container min-w-0 py-6 lg:py-8">{children}</div>
+        <div className="app-container min-w-0 pb-6 lg:pb-8">{children}</div>
       </main>
       <BackToTop />
     </div>

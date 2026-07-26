@@ -8,6 +8,13 @@ import {
 } from "@/content/methodology";
 import { explainRecruitmentReason } from "@/lib/recruitment/reason-display";
 import { explainOutreachReason } from "@/lib/retention/reason-display";
+import {
+  buildMethodologyIntroDescription,
+  buildStaffFacingRetentionOutreachRules,
+  IMPORTANT_THINGS_TO_KNOW,
+  METHODOLOGY_NAV_ITEMS,
+  METHODOLOGY_SECTION_IDS,
+} from "@/lib/methodology/page-content";
 import { buildMethodologySections } from "@/lib/methodology/sections";
 
 describe("centralized methodology content", () => {
@@ -35,15 +42,18 @@ describe("centralized methodology content", () => {
     ).toBe("Limited placement activity during the past 12 months");
   });
 
-  it("structures methodology into four explicit sections", () => {
+  it("structures methodology navigation into seven explicit sections", () => {
     const sections = buildMethodologySections();
-    expect(sections.map((section) => section.title)).toEqual([
-      "1. Source-data definitions",
-      "2. Metrics calculated by the application",
-      "3. Planning rules selected for this prototype",
-      "4. Limitations and appropriate use",
+    expect(sections.map((section) => section.id)).toEqual([
+      METHODOLOGY_SECTION_IDS.definitions,
+      METHODOLOGY_SECTION_IDS.recruitmentMetrics,
+      METHODOLOGY_SECTION_IDS.retentionMetrics,
+      METHODOLOGY_SECTION_IDS.recruitmentRules,
+      METHODOLOGY_SECTION_IDS.retentionRules,
+      METHODOLOGY_SECTION_IDS.limitations,
+      METHODOLOGY_SECTION_IDS.technicalDetails,
     ]);
-    expect(sections[2]?.paragraphs.join(" ")).toContain(PROTOTYPE_PLANNING_RULES_INTRO);
+    expect(METHODOLOGY_NAV_ITEMS).toHaveLength(7);
   });
 
   it("documents prototype caveats for recruitment and retention", () => {
@@ -53,10 +63,20 @@ describe("centralized methodology content", () => {
     expect(RETENTION_METRICS.outreachPriority.limitation).toMatch(/does not predict/i);
   });
 
-  it("documents comparison minimum policy note on methodology", () => {
-    const sections = buildMethodologySections();
-    expect(sections[2]?.paragraphs.join(" ")).toContain(
-      "were not provided as an official DCFS policy",
-    );
+  it("uses a dynamic reporting date in the methodology intro", () => {
+    expect(buildMethodologyIntroDescription()).toContain("July 1, 2026");
+    expect(buildMethodologyIntroDescription()).not.toContain("assessment build");
+  });
+
+  it("builds staff-facing retention rules from shared thresholds", () => {
+    const rules = buildStaffFacingRetentionOutreachRules();
+    expect(rules.high[0]).toContain("180 days");
+    expect(rules.medium[0]).toContain("90 days");
+    expect(rules.low[0]).toContain("No High or Medium outreach rule applies");
+  });
+
+  it("documents comparison minimum policy note in technical planning notes", () => {
+    expect(PROTOTYPE_PLANNING_RULES_INTRO).toContain("were not supplied by DCFS");
+    expect(IMPORTANT_THINGS_TO_KNOW.join(" ")).toContain("not official DCFS classifications");
   });
 });
