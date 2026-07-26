@@ -5,7 +5,6 @@ import { SectionReveal } from "@/components/ui/section-reveal";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { SectionShell } from "@/components/ui/section-shell";
 import type {
-  OverviewInsightsDto,
   RetentionPriorityDistributionDto,
   RetentionSummaryDto,
   SystemSnapshotDto,
@@ -13,10 +12,14 @@ import type {
 import { formatCount } from "@/lib/utils/formatters";
 
 type AttentionPanelProps = {
-  insights: OverviewInsightsDto;
   snapshot: SystemSnapshotDto;
   retentionSummary: RetentionSummaryDto;
   retentionDistribution: RetentionPriorityDistributionDto;
+};
+
+type AttentionFinding = {
+  count: number;
+  label: string;
 };
 
 export function AttentionPanel({
@@ -24,29 +27,46 @@ export function AttentionPanel({
   retentionSummary,
   retentionDistribution,
 }: AttentionPanelProps) {
-  const findings = [
-    `${formatCount(retentionSummary.licensesExpiringWithin90Days)} provider licenses end within 90 days.`,
-    `${formatCount(retentionDistribution.high)} providers currently meet high outreach criteria.`,
-    `${formatCount(snapshot.highRecruitmentCounties)} counties combine elevated recruitment planning signals with near-term provider-license exposure.`,
+  const findings: AttentionFinding[] = [
+    {
+      count: retentionSummary.licensesExpiringWithin90Days,
+      label: "licenses end within 90 days",
+    },
+    {
+      count: retentionDistribution.high,
+      label: "providers meet high outreach criteria",
+    },
+    {
+      count: snapshot.highRecruitmentCounties,
+      label: "counties need both recruitment and near-term license-expiration review",
+    },
   ];
 
   return (
     <SectionShell tone="dark" aria-labelledby="attention-panel-heading">
       <div className="content-container">
-        <div className="mx-auto max-w-3xl space-y-6 text-center sm:text-left">
-          <TextReveal as="h2" id="attention-panel-heading" variant="heading" className="eyebrow-label text-white/80" immediate>
+        <div className="mx-auto max-w-4xl space-y-6">
+          <TextReveal
+            as="h2"
+            id="attention-panel-heading"
+            variant="heading"
+            className="eyebrow-label text-white/80"
+            immediate
+          >
             What needs attention
           </TextReveal>
 
           <SectionReveal delayMs={40}>
-            <ul className="space-y-3 text-base leading-relaxed text-white/78">
+            <ul className="grid gap-4 sm:grid-cols-3">
               {findings.map((finding) => (
-                <li key={finding} className="flex gap-3 sm:items-start">
-                  <span
-                    className="mt-2.5 size-1.5 shrink-0 rounded-full bg-brand-blue"
-                    aria-hidden="true"
-                  />
-                  <span>{finding}</span>
+                <li
+                  key={finding.label}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left"
+                >
+                  <p className="text-3xl font-semibold tabular-nums tracking-tight text-white sm:text-4xl">
+                    {formatCount(finding.count)}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/78">{finding.label}</p>
                 </li>
               ))}
             </ul>

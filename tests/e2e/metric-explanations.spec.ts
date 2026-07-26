@@ -53,7 +53,7 @@ test.describe("metric explanations", () => {
   test("overview includes planning priority callout", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "How priorities are created" })).toBeVisible();
-    await expect(page.getByText(/transparent planning rules created for this prototype/i)).toBeVisible();
+    await expect(page.getByText(/transparent prototype rules that organize staff review/i)).toBeVisible();
   });
 
   for (const route of ["/recruitment", "/retention", "/recruitment/Cook", "/providers/500021"]) {

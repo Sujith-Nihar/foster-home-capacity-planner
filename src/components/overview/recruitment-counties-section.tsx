@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DataTableShell } from "@/components/data-table-shell";
 import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
+import { TableViewActionLink } from "@/components/shared/table-view-action-link";
 import {
   Table,
   TableBody,
@@ -30,18 +31,13 @@ type RecruitmentCountiesSectionProps = {
   counties: CountyMetricsDto[];
 };
 
+function countyHref(county: string): string {
+  return `/recruitment/${encodeURIComponent(county)}`;
+}
+
 export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSectionProps) {
   return (
-    <DataTableShell
-      actions={
-        <Link
-          href="/recruitment"
-          className="text-sm font-medium text-brand-navy underline-offset-4 hover:underline"
-        >
-          View all counties
-        </Link>
-      }
-    >
+    <DataTableShell>
       {counties.length === 0 ? (
         <p className="px-4 py-6 text-sm text-text-secondary" role="status">
           No county recruitment rankings are available for the reporting date.
@@ -53,7 +49,7 @@ export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSect
               <TableMobileItem key={county.county}>
                 <div className="flex items-start justify-between gap-3">
                   <Link
-                    href={`/recruitment/${encodeURIComponent(county.county)}`}
+                    href={countyHref(county.county)}
                     className="font-medium text-brand-navy underline-offset-4 hover:underline"
                   >
                     {formatCountyName(county.county)}
@@ -69,10 +65,13 @@ export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSect
                     value={formatCount(county.currentFosterHomeChildren)}
                   />
                   <TableMobileField
-                    label="Children per provider"
+                    label="Children per engaged provider"
                     value={formatRatio(county.childrenPerActiveProvider)}
                   />
                 </dl>
+                <div className="mt-3 border-t border-border-subtle pt-3">
+                  <TableViewActionLink href={countyHref(county.county)} label="View county" compact />
+                </div>
               </TableMobileItem>
             ))}
           </TableMobileList>
@@ -80,21 +79,23 @@ export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSect
           <div className="table-desktop-only">
             <Table>
               <TableColgroup>
-                <TableCol style={{ width: "34%" }} />
                 <TableCol style={{ width: "24%" }} />
-                <TableCol style={{ width: "21%" }} />
-                <TableCol style={{ width: "21%" }} />
+                <TableCol style={{ width: "24%" }} />
+                <TableCol style={{ width: "16%" }} />
+                <TableCol style={{ width: "18%" }} />
+                <TableCol style={{ width: "18%" }} />
               </TableColgroup>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead scope="col">County</TableHead>
-                  <TableHead scope="col">Priority</TableHead>
+                  <TableHead scope="col">Suggested attention</TableHead>
                   <TableHead scope="col" className={tableColumnClasses.numeric}>
                     Foster-home children
                   </TableHead>
                   <TableHead scope="col" className={tableColumnClasses.numeric}>
-                    Children per provider
+                    Children per engaged provider
                   </TableHead>
+                  <TableHead scope="col">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,7 +103,7 @@ export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSect
                   <TableRow key={county.county}>
                     <TableCell>
                       <Link
-                        href={`/recruitment/${encodeURIComponent(county.county)}`}
+                        href={countyHref(county.county)}
                         className="block truncate font-medium text-brand-navy underline-offset-4 hover:underline"
                       >
                         {formatCountyName(county.county)}
@@ -119,6 +120,9 @@ export function RecruitmentCountiesSection({ counties }: RecruitmentCountiesSect
                     </TableCell>
                     <TableCell className={tableColumnClasses.numeric}>
                       {formatRatio(county.childrenPerActiveProvider)}
+                    </TableCell>
+                    <TableCell>
+                      <TableViewActionLink href={countyHref(county.county)} label="View county" compact />
                     </TableCell>
                   </TableRow>
                 ))}

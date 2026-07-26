@@ -11,12 +11,13 @@ export default async function OverviewPage() {
   return (
     <OverviewPageContent
       snapshot={data.snapshot}
-      insights={data.insights}
       retentionSummary={data.retentionSummary}
       topRecruitmentCounties={data.topRecruitmentCounties}
+      recruitmentPressureCounties={data.recruitmentPressureCounties}
       monthlyMetrics={data.monthlyMetrics}
       retentionDistribution={data.retentionDistribution}
       largestCounties={data.largestCounties}
+      showHistoricalLicenseChart={data.showHistoricalLicenseChart}
     />
   );
 }

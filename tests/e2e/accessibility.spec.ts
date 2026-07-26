@@ -62,7 +62,7 @@ test.describe("accessibility", () => {
 
   test("exposes visible chart summaries on the overview page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText(/Total children in care:/i).first()).toBeVisible();
-    await expect(page.getByText(/License expirations by month from/i).first()).toBeVisible();
+    await expect(page.getByText(/licensed providers have licenses ending within 90 days/i).first()).toBeVisible();
+    await expect(page.getByText(/highest children-per-engaged-provider ratio/i).first()).toBeVisible();
   });
 });

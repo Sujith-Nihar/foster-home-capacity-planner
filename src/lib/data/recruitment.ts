@@ -229,10 +229,12 @@ async function listRecruitmentCounties(
 
   const sortField = params.sort;
   let page = params.page;
-  let { data, error, count } = await buildQuery()
+  const initialResult = await buildQuery()
     .order(sortField, { ascending: params.direction === "asc", nullsFirst: false })
     .order("county", { ascending: true, nullsFirst: false })
     .range(from, to);
+  let { data, count } = initialResult;
+  const { error } = initialResult;
 
   if (error) {
     throw wrapDataAccessError("load recruitment counties", error);

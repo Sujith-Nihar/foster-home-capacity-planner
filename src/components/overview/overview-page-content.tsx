@@ -1,11 +1,12 @@
-import { LargestCountiesChart } from "@/components/charts/largest-counties-chart";
-import { LicenseExpirationsChart } from "@/components/charts/license-expirations-chart";
-import { PlacementTypeChart } from "@/components/charts/placement-type-chart";
-import { RetentionDistributionChart } from "@/components/charts/retention-distribution-chart";
+import Link from "next/link";
+
 import { MethodologyLink } from "@/components/methodology-link";
-import { PlanningPriorityCallout } from "@/components/methodology/planning-priority-callout";
 import { AttentionPanel } from "@/components/overview/attention-panel";
+import { OverviewAdditionalAnalysis } from "@/components/overview/overview-additional-analysis";
 import { OverviewMetricsGrid } from "@/components/overview/overview-metrics-grid";
+import { OverviewPlanningNote } from "@/components/overview/overview-planning-note";
+import { OverviewRecruitmentPressureChart } from "@/components/overview/overview-recruitment-pressure-chart";
+import { OverviewUpcomingLicensesChart } from "@/components/overview/overview-upcoming-licenses-chart";
 import { RecruitmentCountiesSection } from "@/components/overview/recruitment-counties-section";
 import { PageIntroduction } from "@/components/ui/page-introduction";
 import { SectionReveal } from "@/components/ui/section-reveal";
@@ -14,7 +15,6 @@ import { SectionWave } from "@/components/ui/section-wave";
 import type {
   CountyMetricsDto,
   MonthlyMetricsDto,
-  OverviewInsightsDto,
   RetentionPriorityDistributionDto,
   RetentionSummaryDto,
   SystemSnapshotDto,
@@ -22,27 +22,30 @@ import type {
 
 type OverviewPageContentProps = {
   snapshot: SystemSnapshotDto;
-  insights: OverviewInsightsDto;
   retentionSummary: RetentionSummaryDto;
   topRecruitmentCounties: CountyMetricsDto[];
+  recruitmentPressureCounties: CountyMetricsDto[];
   monthlyMetrics: MonthlyMetricsDto[];
   retentionDistribution: RetentionPriorityDistributionDto;
   largestCounties: CountyMetricsDto[];
+  showHistoricalLicenseChart: boolean;
 };
 
 export function OverviewPageContent({
   snapshot,
-  insights,
   retentionSummary,
   topRecruitmentCounties,
+  recruitmentPressureCounties,
   monthlyMetrics,
   retentionDistribution,
   largestCounties,
+  showHistoricalLicenseChart,
 }: OverviewPageContentProps) {
   return (
-    <div className="space-y-0">
+    <div className="overview-page space-y-0">
       <PageIntroduction
         variant="hero"
+        className="overview-page__hero"
         eyebrow="ILLINOIS CAPACITY OVERVIEW"
         headline="Translate foster-home data into clear action."
         highlightPhrase="clear action"
@@ -54,16 +57,14 @@ export function OverviewPageContent({
       />
 
       <SectionWave fill="mist" />
-      <div className="bg-surface-raised pb-10 pt-4">
-        <div className="content-container space-y-6">
-          <PlanningPriorityCallout />
+      <div className="bg-surface-raised pb-8 pt-3">
+        <div className="content-container">
           <OverviewMetricsGrid snapshot={snapshot} />
         </div>
       </div>
 
       <SectionWave fill="navy" />
       <AttentionPanel
-        insights={insights}
         snapshot={snapshot}
         retentionSummary={retentionSummary}
         retentionDistribution={retentionDistribution}
@@ -73,12 +74,21 @@ export function OverviewPageContent({
       <div className="space-y-8 pt-8">
         <SectionReveal>
           <SectionShell>
-            <SectionHeading
-              titleId="recruitment-pressure-heading"
-              eyebrow="Recruitment planning"
-              title="Top counties for recruitment review"
-              description="Counties ranked by children per engaged provider, excluding limited-data counties."
-            />
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <SectionHeading
+                titleId="recruitment-pressure-heading"
+                eyebrow="Recruitment planning"
+                title="Top counties for recruitment review"
+                description="Top five eligible counties ranked by suggested recruitment attention, then children per engaged provider."
+                className="mb-0"
+              />
+              <Link
+                href="/recruitment"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-brand-navy underline-offset-4 hover:underline"
+              >
+                View all counties
+              </Link>
+            </div>
             <RecruitmentCountiesSection counties={topRecruitmentCounties} />
           </SectionShell>
         </SectionReveal>
@@ -86,25 +96,34 @@ export function OverviewPageContent({
         <SectionReveal>
           <SectionShell tone="raised">
             <SectionHeading
-              eyebrow="Provider retention outlook"
-              title="Retention and placement analytics"
-              description="License timing, outreach distribution, and placement context for Illinois review."
+              eyebrow="Statewide analytics"
+              title="Primary statewide signals"
+              description="Charts that highlight upcoming license exposure and county recruitment pressure."
+              className="mb-5"
             />
-            <div className="grid gap-6 lg:grid-cols-2">
-              <LicenseExpirationsChart data={monthlyMetrics} />
-              <RetentionDistributionChart data={retentionDistribution} />
-              <PlacementTypeChart snapshot={snapshot} />
-              <LargestCountiesChart counties={largestCounties} />
+            <div className="grid gap-5 lg:grid-cols-2">
+              <OverviewUpcomingLicensesChart
+                monthlyMetrics={monthlyMetrics}
+                retentionSummary={retentionSummary}
+              />
+              <OverviewRecruitmentPressureChart counties={recruitmentPressureCounties} />
             </div>
           </SectionShell>
         </SectionReveal>
 
-        <SectionShell className="flex flex-col gap-3 border-t border-border-subtle pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl text-sm text-text-secondary">
-            Metrics reflect the fixed reporting date and rule-based decision-support methodology. They
-            support staff review and do not predict placement outcomes.
-          </p>
-          <MethodologyLink />
+        <OverviewAdditionalAnalysis
+          snapshot={snapshot}
+          monthlyMetrics={monthlyMetrics}
+          retentionDistribution={retentionDistribution}
+          largestCounties={largestCounties}
+          showHistoricalLicenseChart={showHistoricalLicenseChart}
+        />
+
+        <SectionShell className="space-y-4 border-t border-border-subtle pt-8">
+          <OverviewPlanningNote />
+          <div className="flex justify-end">
+            <MethodologyLink />
+          </div>
         </SectionShell>
       </div>
     </div>

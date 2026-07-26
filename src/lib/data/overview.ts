@@ -7,6 +7,10 @@ import {
   getCachedSystemSnapshot,
 } from "@/lib/data/cached-snapshot";
 import { timedOperation } from "@/lib/performance/timing";
+import {
+  selectOverviewRecruitmentCounties,
+} from "@/lib/overview/recruitment-counties";
+import { REPORTING_DATE } from "@/config/metrics";
 import type {
   CountyMetricsDto,
   DatasetMetadataDto,
@@ -165,18 +169,23 @@ export async function getOverviewPageData() {
       const [
         snapshot,
         monthlyMetrics,
-        topRecruitmentCounties,
+        rankedRecruitmentCounties,
         retentionDistribution,
         largestCounties,
         retentionSummary,
       ] = await Promise.all([
         getCachedSystemSnapshot(),
         getCachedMonthlyMetrics(24),
-        getCachedRecruitmentCountyRanking(10),
+        getCachedRecruitmentCountyRanking(100),
         getCachedRetentionPriorityDistribution(),
         getCachedLargestCounties(5),
         getCachedRetentionSummaryMetrics(),
       ]);
+
+      const topRecruitmentCounties = selectOverviewRecruitmentCounties(rankedRecruitmentCounties);
+      const showHistoricalLicenseChart = !monthlyMetrics.some(
+        (item) => item.month > REPORTING_DATE && item.licenseExpirations > 0,
+      );
 
       const insights = buildOverviewInsights({
         snapshot,
@@ -188,10 +197,12 @@ export async function getOverviewPageData() {
         snapshot,
         monthlyMetrics,
         topRecruitmentCounties,
+        recruitmentPressureCounties: rankedRecruitmentCounties,
         retentionDistribution,
         largestCounties,
         retentionSummary,
         insights,
+        showHistoricalLicenseChart,
       };
     },
     { cache: "hit" },

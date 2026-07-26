@@ -40,11 +40,11 @@ test.describe("visual quality repair", () => {
   test("statewide metrics remain inside content container", async ({ page }) => {
     await page.goto("/");
 
-    const container = page.locator(".overview-metrics.content-container");
+    const container = page.locator(".overview-metrics");
     await expect(container).toBeVisible();
 
     const containerBox = await container.boundingBox();
-    const rightCard = page.locator(".overview-metrics__grid > div").nth(2);
+    const rightCard = page.locator(".overview-metrics__grid .overview-metric-card").nth(2);
     const cardBox = await rightCard.boundingBox();
 
     expect(containerBox).not.toBeNull();
@@ -83,7 +83,7 @@ test.describe("visual quality repair", () => {
     await expect(
       page.getByRole("heading", { name: /Translate foster-home data into clear action/i }),
     ).toBeVisible();
-    await expect(page.getByText("Statewide metrics")).toBeVisible();
+    await expect(page.getByText("Statewide snapshot")).toBeVisible();
 
     const opacity = await page.locator(".fi-text-reveal").first().evaluate((el) => window.getComputedStyle(el).opacity);
     expect(Number(opacity)).toBeGreaterThan(0.9);
