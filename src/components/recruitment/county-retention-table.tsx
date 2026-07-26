@@ -3,6 +3,11 @@ import Link from "next/link";
 import { DataTableShell } from "@/components/data-table-shell";
 import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
 import {
+  formatLicenseTiming,
+  PrimaryReason,
+} from "@/components/shared/reason-summary";
+import { TableViewActionLink } from "@/components/shared/table-view-action-link";
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,49 +18,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  TableMobileDetails,
   TableMobileField,
   TableMobileItem,
   TableMobileList,
 } from "@/components/ui/table-mobile-list";
-import { tableColumnClasses } from "@/components/ui/table-utils";
-import type { PaginatedResult, ProviderMetricsDto } from "@/lib/types/domain";
+import type { ProviderMetricsDto } from "@/lib/types/domain";
 import {
-  formatBooleanLabel,
-  formatCount,
-  formatNullablePercent,
-  formatOutreachPriorityLabel,
+  formatCompactOutreachPriorityLabel,
+  formatCountyName,
   formatProviderId,
+  formatReportingDate,
 } from "@/lib/utils/formatters";
 
 type CountyRetentionTableProps = {
   county: string;
   providers: ProviderMetricsDto[];
-  pagination: PaginatedResult<ProviderMetricsDto>;
 };
+
+function providerReasonContext(provider: ProviderMetricsDto) {
+  return {
+    daysSinceLastPlacement: provider.daysSinceLastPlacement,
+    daysUntilExpiration: provider.daysUntilExpiration,
+    currentlyHasPlacement: provider.currentlyHasPlacement,
+    engagementRateLast365: provider.engagementRateLast365,
+  };
+}
 
 export function CountyRetentionTable({
   county,
   providers,
-  pagination,
 }: CountyRetentionTableProps) {
+  const countyLabel = formatCountyName(county);
   const retentionHref = `/retention?county=${encodeURIComponent(county)}`;
 
   return (
     <section aria-labelledby="county-retention-heading">
       <DataTableShell
         titleId="county-retention-heading"
-        title="Retention outreach providers"
-        description="Licensed providers in this county that may warrant staff review based on outreach priority."
+        title="Priority-provider preview"
+        description="Licensed providers in this county with the most urgent suggested outreach."
         actions={
           <Link
             href={retentionHref}
             className="text-sm font-medium text-brand-navy underline-offset-4 hover:underline"
           >
-            View all county providers
+            Review all {countyLabel} providers
           </Link>
         }
-        footer={`Showing ${formatCount(providers.length)} of ${formatCount(pagination.totalCount)} providers in ${county} County.`}
+        footer={`Showing ${providers.length} priority providers in ${countyLabel}.`}
       >
         {providers.length === 0 ? (
           <p className="px-4 py-6 text-sm text-text-secondary" role="status">
@@ -75,29 +85,35 @@ export function CountyRetentionTable({
                     </Link>
                     <PriorityBadge
                       level={priorityToAttentionLevel(provider.outreachPriority)}
-                      label={formatOutreachPriorityLabel(provider.outreachPriority)}
+                      label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
                     />
                   </div>
                   <dl className="mt-3 space-y-2">
                     <TableMobileField
-                      label="Days until expiration"
-                      value={formatCount(provider.daysUntilExpiration)}
+                      label="Why review"
+                      value={
+                        <PrimaryReason
+                          reasons={provider.outreachReasons}
+                          context={providerReasonContext(provider)}
+                          providerId={provider.providerId}
+                        />
+                      }
                     />
                     <TableMobileField
-                      label="Placement status"
-                      value={formatBooleanLabel(
-                        provider.currentlyHasPlacement,
-                        "Active",
-                        "Inactive",
+                      label="License timing"
+                      value={formatLicenseTiming(
+                        provider.licenseEndDate,
+                        provider.daysUntilExpiration,
+                        formatReportingDate,
                       )}
                     />
                   </dl>
-                  <TableMobileDetails summary="View engagement details">
-                    <TableMobileField
-                      label="Engagement (365 days)"
-                      value={formatNullablePercent(provider.engagementRateLast365)}
+                  <div className="mt-3 border-t border-border-subtle pt-3">
+                    <TableViewActionLink
+                      href={`/providers/${provider.providerId}`}
+                      label="View provider"
                     />
-                  </TableMobileDetails>
+                  </div>
                 </TableMobileItem>
               ))}
             </TableMobileList>
@@ -105,23 +121,19 @@ export function CountyRetentionTable({
             <div className="table-desktop-only">
               <Table>
                 <TableColgroup>
-                  <TableCol style={{ width: "24%" }} />
-                  <TableCol style={{ width: "22%" }} />
                   <TableCol style={{ width: "18%" }} />
                   <TableCol style={{ width: "18%" }} />
-                  <TableCol style={{ width: "18%" }} />
+                  <TableCol style={{ width: "28%" }} />
+                  <TableCol style={{ width: "20%" }} />
+                  <TableCol style={{ width: "16%" }} />
                 </TableColgroup>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead scope="col">Provider</TableHead>
-                    <TableHead scope="col">Outreach priority</TableHead>
-                    <TableHead scope="col" className={tableColumnClasses.numeric}>
-                      Days until expiration
-                    </TableHead>
-                    <TableHead scope="col">Placement status</TableHead>
-                    <TableHead scope="col" className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                      Engagement (365 days)
-                    </TableHead>
+                    <TableHead scope="col">Suggested outreach</TableHead>
+                    <TableHead scope="col">Why review</TableHead>
+                    <TableHead scope="col">License timing</TableHead>
+                    <TableHead scope="col">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -138,21 +150,29 @@ export function CountyRetentionTable({
                       <TableCell>
                         <PriorityBadge
                           level={priorityToAttentionLevel(provider.outreachPriority)}
-                          label={formatOutreachPriorityLabel(provider.outreachPriority)}
+                          label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
                         />
                       </TableCell>
-                      <TableCell className={tableColumnClasses.numeric}>
-                        {formatCount(provider.daysUntilExpiration)}
+                      <TableCell>
+                        <PrimaryReason
+                          reasons={provider.outreachReasons}
+                          context={providerReasonContext(provider)}
+                          providerId={provider.providerId}
+                        />
                       </TableCell>
                       <TableCell>
-                        {formatBooleanLabel(
-                          provider.currentlyHasPlacement,
-                          "Active",
-                          "Inactive",
+                        {formatLicenseTiming(
+                          provider.licenseEndDate,
+                          provider.daysUntilExpiration,
+                          formatReportingDate,
                         )}
                       </TableCell>
-                      <TableCell className={`${tableColumnClasses.numeric} ${tableColumnClasses.tabletHidden}`}>
-                        {formatNullablePercent(provider.engagementRateLast365)}
+                      <TableCell>
+                        <TableViewActionLink
+                          href={`/providers/${provider.providerId}`}
+                          label="View provider"
+                          compact
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

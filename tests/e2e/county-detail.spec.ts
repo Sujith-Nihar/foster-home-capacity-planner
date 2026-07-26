@@ -8,19 +8,22 @@ test.describe("county detail page", () => {
     await expect(
       page.getByRole("banner", { name: "Application header" }).getByText("Reporting date:"),
     ).toBeVisible();
-    await expect(page.getByText("High recruitment attention", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Current placement demand" })).toBeVisible();
+    await expect(page.getByText("High suggested recruitment attention", { exact: true })).toBeVisible();
+    await expect(page.getByText("Eligible for comparison")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Key recruitment signals" })).toBeVisible();
     await expect(page.getByText("Current foster-home children", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Age-group recruitment comparison" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Retention outreach providers" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Limitations and interpretation" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /View all county providers/i })).toHaveAttribute(
+    await expect(page.getByRole("heading", { name: "Why this county warrants review" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Age-group recruitment focus" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Provider retention watch" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Priority-provider preview" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Limitations and appropriate use" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Review all Cook County providers/i }).first()).toHaveAttribute(
       "href",
       /\/retention\?county=Cook/,
     );
   });
 
-  test("links to a provider detail page from the retention table", async ({ page }) => {
+  test("links to a provider detail page from the priority-provider preview", async ({ page }) => {
     await page.goto("/recruitment/Cook");
 
     const providerLink = page.getByRole("link", { name: /^Provider \d+$/ }).first();
@@ -38,5 +41,28 @@ test.describe("county detail page", () => {
     await page.goto("/recruitment/St.%20Clair");
 
     await expect(page.getByRole("heading", { name: "St. Clair County", exact: true }).first()).toBeVisible();
+  });
+
+  test("toggles technical comparison details from a full-width table footer", async ({ page }) => {
+    await page.goto("/recruitment/Cook");
+
+    const toggle = page.getByRole("button", { name: "Show technical comparison details" });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByText("Matching licensed providers")).toHaveCount(0);
+
+    await toggle.click();
+    const expandedToggle = page.getByRole("button", { name: "Hide technical comparison details" });
+    await expect(expandedToggle).toHaveAttribute("aria-expanded", "true");
+    await expect(expandedToggle).toBeVisible();
+    await expect(page.getByText("Matching licensed providers")).toBeVisible();
+    await expect(page.getByText("Exact typical comparable-county value")).toBeVisible();
+
+    await expandedToggle.click();
+    await expect(page.getByRole("button", { name: "Show technical comparison details" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await expect(page.getByText("Matching licensed providers")).toHaveCount(0);
   });
 });

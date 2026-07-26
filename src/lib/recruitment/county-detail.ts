@@ -1,20 +1,40 @@
 import { AGE_GROUPS } from "@/config/metrics";
 import type { AgeGroupLabel } from "@/config/metrics";
-import { buildAgeGroupPrioritySummary, computeStatewideAgeGroupBenchmarks } from "@/lib/recruitment/age-groups";
+import {
+  buildAgeGroupPrioritySummary,
+  computeStatewideAgeGroupBenchmarks,
+  type StatewideAgeGroupBenchmark,
+} from "@/lib/recruitment/age-groups";
 import {
   buildDataSufficiencyReason,
   getComparisonStatus,
   getSuggestedRecruitmentAttention,
   isLimitedDataCounty,
+  type ComparisonStatus,
 } from "@/lib/recruitment/classification";
 import { summarizeRecruitmentReason } from "@/lib/recruitment/summary-labels";
 import type { CountyAgeMetricsDto, CountyMetricsDto } from "@/lib/types/domain";
 import {
+  formatCount,
   formatCountyName,
   formatNullablePercent,
   formatRatio,
   formatSuggestedRecruitmentAttentionLabel,
 } from "@/lib/utils/formatters";
+
+export type CountyReviewFinding = {
+  title: string;
+  description: string;
+};
+
+export type AgeGroupComparisonInterpretation =
+  | "Far above typical"
+  | "Above typical"
+  | "Similar to typical"
+  | "Below typical"
+  | "Not calculated";
+
+const SIMILAR_TO_TYPICAL_TOLERANCE = 0.1;
 
 export function orderCountyAgeGroups(
   ageGroups: CountyAgeMetricsDto[],
@@ -122,4 +142,112 @@ export function buildCountyLimitations(county: CountyMetricsDto): string[] {
 
 export function ageGroupSectionLabel(label: AgeGroupLabel): string {
   return label === "Unknown" ? "Age unavailable" : `Ages ${label}`;
+}
+
+export function formatCountyComparisonStatusDisplayLabel(status: ComparisonStatus): string {
+  if (status === "Eligible") {
+    return "Eligible for comparison";
+  }
+
+  return status;
+}
+
+export function formatOutOfCountyPlacementDisplay(
+  count: number | null | undefined,
+  rate: number | null | undefined,
+): string {
+  const parts: string[] = [];
+
+  if (count !== null && count !== undefined) {
+    parts.push(`${formatCount(count)} children`);
+  }
+
+  if (rate !== null && rate !== undefined) {
+    parts.push(formatNullablePercent(rate));
+  }
+
+  if (parts.length === 0) {
+    return "—";
+  }
+
+  return parts.join(" · ");
+}
+
+function providerPressureComparisonPhrase(reasons: string[]): string | null {
+  if (
+    reasons.some((reason) =>
+      /75th percentile statewide for children per active provider/i.test(reason),
+    )
+  ) {
+    return "higher than most comparable counties";
+  }
+
+  if (
+    reasons.some((reason) => /statewide median for children per active provider/i.test(reason))
+  ) {
+    return "higher than the typical comparable county";
+  }
+
+  return null;
+}
+
+export function buildCountyReviewFindings(county: CountyMetricsDto): CountyReviewFinding[] {
+  const findings: CountyReviewFinding[] = [];
+
+  if (county.childrenPerActiveProvider !== null) {
+    const comparisonPhrase = providerPressureComparisonPhrase(county.recruitmentReasons);
+    const ratio = formatRatio(county.childrenPerActiveProvider);
+    const description = comparisonPhrase
+      ? `${ratio} children per engaged provider, ${comparisonPhrase}.`
+      : `${ratio} children per engaged provider.`;
+
+    findings.push({
+      title: "Provider pressure",
+      description,
+    });
+  }
+
+  if (county.outOfCountyFosterRate !== null) {
+    const rate = formatNullablePercent(county.outOfCountyFosterRate);
+    findings.push({
+      title: "Placement location",
+      description: `${rate} of foster-home children are placed outside their home county.`,
+    });
+  }
+
+  if (county.highestPressureAgeGroup && county.highestPressureAgeGroup !== "Unknown") {
+    findings.push({
+      title: "Age focus",
+      description: `Ages ${county.highestPressureAgeGroup} have the highest pressure relative to matching engaged providers.`,
+    });
+  }
+
+  return findings;
+}
+
+export function interpretAgeGroupCountyComparison(
+  ratio: number | null,
+  benchmark: StatewideAgeGroupBenchmark | undefined,
+): AgeGroupComparisonInterpretation {
+  if (ratio === null || !benchmark || benchmark.median === null) {
+    return "Not calculated";
+  }
+
+  const { median, p75 } = benchmark;
+
+  if (p75 !== null && ratio >= p75) {
+    return "Far above typical";
+  }
+
+  const relativeDifference = Math.abs(ratio - median) / median;
+
+  if (relativeDifference <= SIMILAR_TO_TYPICAL_TOLERANCE) {
+    return "Similar to typical";
+  }
+
+  if (ratio > median) {
+    return "Above typical";
+  }
+
+  return "Below typical";
 }

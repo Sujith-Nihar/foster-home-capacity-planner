@@ -39,7 +39,7 @@ test.describe("metric explanations", () => {
     await page.goto("/recruitment/Cook");
     await expect(page.getByRole("heading", { name: "Why this county warrants review" })).toBeVisible();
     await expect(
-      page.getByText(/Comparison group: Counties with at least 10 current foster-home children and 3 engaged providers/i),
+      page.getByText(/Compared with counties that have at least 10 current foster-home children and 3 engaged providers/i),
     ).toBeVisible();
   });
 

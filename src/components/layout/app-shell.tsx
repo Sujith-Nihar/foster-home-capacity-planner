@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { BackToTop } from "@/components/layout/back-to-top";
 
 type AppShellProps = {
   children: ReactNode;
@@ -13,6 +14,7 @@ export function AppShell({ children }: AppShellProps) {
       <main className="min-w-0 flex-1">
         <div className="app-container min-w-0 py-6 lg:py-8">{children}</div>
       </main>
+      <BackToTop />
     </div>
   );
 }

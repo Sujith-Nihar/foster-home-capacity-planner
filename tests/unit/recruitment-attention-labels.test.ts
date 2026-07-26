@@ -11,7 +11,7 @@ import {
 describe("recruitment attention labels", () => {
   it("uses complete accessible labels", () => {
     expect(formatRecruitmentAttentionAccessibleLabel("High", false)).toBe(
-      "High suggested attention",
+      "High suggested recruitment attention",
     );
     expect(formatRecruitmentAttentionAccessibleLabel("Not scored", true)).toBe("Limited data");
   });
@@ -19,7 +19,7 @@ describe("recruitment attention labels", () => {
   it("supports compact badge labels in constrained table cells", () => {
     expect(formatRecruitmentAttentionBadgeLabel("Medium", false, "compact")).toBe("Medium attention");
     expect(formatRecruitmentAttentionBadgeLabel("High", false, "full")).toBe(
-      "High suggested attention",
+      "High suggested recruitment attention",
     );
     expect(formatRecruitmentAttentionBadgeLabel("Not scored", true, "full")).toBe("Limited data");
   });

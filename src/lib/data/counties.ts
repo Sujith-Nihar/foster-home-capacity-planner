@@ -134,7 +134,7 @@ export async function getCountyPageData(
             () =>
               getRetentionProvidersForCounty(county, {
                 ...searchParams,
-                pageSize: searchParams.pageSize ?? "10",
+                pageSize: searchParams.pageSize ?? "5",
                 sort: searchParams.sort ?? "outreach_priority",
                 direction: searchParams.direction ?? "asc",
               }),

@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ageGroupSectionLabel,
   buildCountyExecutiveSummary,
   buildCountyLimitations,
   buildCountyPriorityExplanation,
-  ageGroupSectionLabel,
+  buildCountyReviewFindings,
+  formatCountyComparisonStatusDisplayLabel,
+  formatOutOfCountyPlacementDisplay,
+  interpretAgeGroupCountyComparison,
   orderCountyAgeGroups,
 } from "@/lib/recruitment/county-detail";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
@@ -133,5 +137,46 @@ describe("county detail helpers", () => {
     const limitations = buildCountyLimitations(sampleCounty());
     expect(limitations.some((item) => item.includes("not available beds"))).toBe(true);
     expect(limitations.some((item) => item.includes("child identifiers"))).toBe(true);
+  });
+
+  it("builds three county review findings from existing metrics", () => {
+    const findings = buildCountyReviewFindings(
+      sampleCounty({
+        childrenPerActiveProvider: 8.42,
+        outOfCountyFosterRate: 0.828,
+        highestPressureAgeGroup: "13–17",
+        recruitmentReasons: [
+          "Above the 75th percentile statewide for children per active provider",
+        ],
+      }),
+    );
+
+    expect(findings).toHaveLength(3);
+    expect(findings[0]?.title).toBe("Provider pressure");
+    expect(findings[0]?.description).toContain("8.42 children per engaged provider");
+    expect(findings[0]?.description).toContain("higher than most comparable counties");
+    expect(findings[1]?.description).toContain("82.8%");
+    expect(findings[2]?.description).toContain("Ages 13–17");
+  });
+
+  it("formats out-of-county placement with count and rate", () => {
+    expect(formatOutOfCountyPlacementDisplay(864, 0.828)).toBe("864 children · 82.8%");
+  });
+
+  it("formats eligible comparison status for display", () => {
+    expect(formatCountyComparisonStatusDisplayLabel("Eligible")).toBe("Eligible for comparison");
+  });
+
+  it("interprets age-group county comparisons in plain language", () => {
+    expect(
+      interpretAgeGroupCountyComparison(8, { ageGroup: "13–17", median: 4, p75: 6 }),
+    ).toBe("Far above typical");
+    expect(
+      interpretAgeGroupCountyComparison(5, { ageGroup: "13–17", median: 4, p75: 6 }),
+    ).toBe("Above typical");
+    expect(
+      interpretAgeGroupCountyComparison(4, { ageGroup: "13–17", median: 4, p75: 6 }),
+    ).toBe("Similar to typical");
+    expect(interpretAgeGroupCountyComparison(null, undefined)).toBe("Not calculated");
   });
 });

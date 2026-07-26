@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MethodologyLink } from "@/components/methodology-link";
-import { PriorityBadge, suggestedAttentionToLevel } from "@/components/priority-badge";
+import { CountyDetailHeroAside } from "@/components/recruitment/county-detail-hero-aside";
 import { CountyDetailPageContent } from "@/components/recruitment/county-detail-page-content";
 import { CountyNotFound } from "@/components/recruitment/county-not-found";
 import { PageIntroduction } from "@/components/ui/page-introduction";
@@ -12,16 +12,10 @@ import { breadcrumbCounty } from "@/lib/navigation/breadcrumbs";
 import { normalizeRouteCounty } from "@/lib/navigation/counties";
 import { setPerformanceRoute } from "@/lib/performance/timing";
 import { buildCountyExecutiveSummary } from "@/lib/recruitment/county-detail";
+import { isLimitedDataCounty } from "@/lib/recruitment/classification";
+import { summarizeRecruitmentReason } from "@/lib/recruitment/reason-display";
 import type { CountyMetricsDto } from "@/lib/types/domain";
-import {
-  getComparisonStatus,
-  getSuggestedRecruitmentAttention,
-} from "@/lib/recruitment/classification";
-import {
-  formatComparisonStatusLabel,
-  formatCountyName,
-  formatSuggestedRecruitmentAttentionLabel,
-} from "@/lib/utils/formatters";
+import { formatCountyName } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +46,14 @@ function countyIntroDescription(county: CountyMetricsDto): string {
   return buildCountyExecutiveSummary(county);
 }
 
+function countyPrimaryReason(county: CountyMetricsDto): string | null {
+  if (isLimitedDataCounty(county) || county.recruitmentReasons.length === 0) {
+    return null;
+  }
+
+  return summarizeRecruitmentReason(county.recruitmentReasons[0]);
+}
+
 export default async function CountyDetailPage({
   params,
   searchParams,
@@ -75,18 +77,10 @@ export default async function CountyDetailPage({
         headline={displayName}
         description={countyIntroDescription(data.county)}
         aside={
-          <div className="space-y-2">
-            <PriorityBadge
-              level={suggestedAttentionToLevel(getSuggestedRecruitmentAttention(data.county))}
-              label={formatSuggestedRecruitmentAttentionLabel(
-                getSuggestedRecruitmentAttention(data.county),
-              )}
-            />
-            <p className="text-sm text-text-secondary">
-              <span className="font-medium text-text-primary">Comparison status: </span>
-              {formatComparisonStatusLabel(getComparisonStatus(data.county))}
-            </p>
-          </div>
+          <CountyDetailHeroAside
+            county={data.county}
+            primaryReason={countyPrimaryReason(data.county)}
+          />
         }
       />
       <CountyDetailPageContent data={data} />

@@ -28,7 +28,7 @@ export function formatRecruitmentAttentionAccessibleLabel(
     return "Limited data";
   }
 
-  return `${attention} suggested attention`;
+  return `${attention} suggested recruitment attention`;
 }
 
 export function formatRecruitmentAttentionBadgeLabel(
@@ -44,7 +44,7 @@ export function formatRecruitmentAttentionBadgeLabel(
     return `${attention} attention`;
   }
 
-  return `${attention} suggested attention`;
+  return `${attention} suggested recruitment attention`;
 }
 
 export function getRecruitmentAttentionBadgeTitle(
