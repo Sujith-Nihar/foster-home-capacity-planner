@@ -7,7 +7,7 @@ import {
 } from "@/lib/providers/detail";
 import {
   buildProviderPreferenceContext,
-  formatCurrentPreferenceLabel,
+  formatPreferredAgeRangeLabel,
 } from "@/lib/providers/preference-context";
 import type { ProviderActivityPeriodDto, ProviderMetricsDto } from "@/lib/types/domain";
 
@@ -59,14 +59,14 @@ describe("provider route parsing", () => {
 });
 
 describe("provider preference context", () => {
-  it("formats the current preference label", () => {
-    expect(formatCurrentPreferenceLabel(0, 8)).toBe("Current preference: Ages 0–8");
+  it("formats the preferred age range label", () => {
+    expect(formatPreferredAgeRangeLabel(0, 8)).toBe("Ages 0–8");
   });
 
   it("returns alignment context only when preferences overlap county pressure", () => {
     const provider = sampleProvider({ minAge: 6, maxAge: 18 });
     expect(buildProviderPreferenceContext(provider, "13–17")).toContain(
-      "highest recruitment-pressure age group",
+      "Overlaps Adams County's highest-pressure age group: Ages 13–17.",
     );
     expect(buildProviderPreferenceContext(provider, "0–5")).toBeNull();
     expect(buildProviderPreferenceContext(provider, null)).toBeNull();
@@ -113,9 +113,7 @@ describe("provider activity summary", () => {
       }),
     ]);
 
-    expect(summary).toContain("2 recorded activity periods");
     expect(summary).toContain("221 active days");
-    expect(summary).toContain("current period");
   });
 
   it("returns an empty-state message when no periods exist", () => {

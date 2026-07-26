@@ -15,7 +15,7 @@ type PageIntroductionProps = {
   eyebrow: string;
   headline?: string;
   highlightPhrase?: string;
-  description?: string;
+  description?: ReactNode;
   actions?: PageIntroductionAction[];
   actionSlot?: ReactNode;
   aside?: ReactNode;

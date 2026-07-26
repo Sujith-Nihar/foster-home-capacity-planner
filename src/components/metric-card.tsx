@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export type MetricCardVariant = "default" | "neutral" | "positive" | "amber" | "attention";
 
 type MetricCardProps = {
-  label: string;
+  label: ReactNode;
   value: ReactNode;
   helperText?: string;
   icon?: ReactNode;
@@ -38,7 +38,7 @@ function MetricCardContent({
   helperText,
   icon,
   variant = "default",
-}: MetricCardProps) {
+}: Omit<MetricCardProps, "href" | "className">) {
   return (
     <>
       <CardHeader className="gap-1 pb-0">

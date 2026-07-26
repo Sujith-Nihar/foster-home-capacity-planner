@@ -31,8 +31,8 @@ test.describe("metric explanations", () => {
 
   test("retention page links to calculation explanation", async ({ page }) => {
     await page.goto("/retention");
-    await expect(page.getByText("How outreach priority is calculated")).toBeVisible();
-    await expect(page.getByRole("note")).toContainText(/does not predict closure/i);
+    await expect(page.getByText("How suggested outreach priority is calculated")).toBeVisible();
+    await expect(page.getByText(/does not predict closure/i)).toBeVisible();
   });
 
   test("county page explains the comparison group", async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe("metric explanations", () => {
     await expect(
       page.getByRole("heading", { name: "Why this provider appears in the outreach list" }),
     ).toBeVisible();
-    await expect(page.getByText(/does not predict whether the provider will renew/i)).toBeVisible();
+    await expect(page.getByText(/does not predict provider closure/i)).toBeVisible();
   });
 
   test("overview includes planning priority callout", async ({ page }) => {

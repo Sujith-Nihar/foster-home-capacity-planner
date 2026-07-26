@@ -5,6 +5,7 @@ import {
   getPrimaryOutreachReasonForDisplay,
   type OutreachReasonContext,
 } from "@/lib/retention/reason-display";
+import { formatDayCount } from "@/lib/utils/pluralization";
 import { cn } from "@/lib/utils";
 
 type PrimaryReasonProps = {
@@ -107,7 +108,7 @@ export function formatLicenseTiming(
           licenseTimingEmphasisClass(daysUntilExpiration),
         )}
       >
-        Ends in {daysUntilExpiration} days
+        Ends in {formatDayCount(daysUntilExpiration)}
       </span>
       <span className="block text-xs text-text-secondary whitespace-nowrap">
         {formatDate(licenseEndDate)}

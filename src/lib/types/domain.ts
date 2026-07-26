@@ -1,4 +1,5 @@
 import type { AgeGroupLabel } from "@/config/metrics";
+import type { MeasurableAgeGroupLabel } from "@/lib/recruitment/age-groups";
 
 export type RecruitmentPriority = "High" | "Medium" | "Low" | "Limited data";
 export type OutreachPriority = "High" | "Medium" | "Low";
@@ -143,6 +144,8 @@ export type ProviderDetailDto = {
 
 export type ProviderPageData = ProviderDetailDto & {
   reviewSummary: string;
-  currentPreferenceLabel: string;
-  preferenceContext: string | null;
+  preferredAgeRangeLabel: string;
+  ageGroupOverlapNote: string | null;
+  countyRecruitmentOverlapSentence: string | null;
+  highestPressureAgeGroup: MeasurableAgeGroupLabel | null;
 };

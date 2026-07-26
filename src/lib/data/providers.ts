@@ -12,12 +12,14 @@ import {
 import { DataAccessError } from "@/lib/supabase/errors";
 import type { ProviderDetailDto, ProviderPageData } from "@/lib/types/domain";
 import { buildProviderReviewSummary } from "@/lib/providers/detail";
-import {
-  buildProviderPreferenceContext,
-  formatCurrentPreferenceLabel,
-} from "@/lib/providers/preference-context";
 import { parseProviderRouteId } from "@/lib/navigation/providers";
 import type { MeasurableAgeGroupLabel } from "@/lib/recruitment/age-groups";
+import {
+  buildCountyRecruitmentOverlapSentence,
+  buildProviderPreferenceContext,
+  formatPreferredAgeRangeLabel,
+  providerHasAgeGroupOverlap,
+} from "@/lib/providers/preference-context";
 import { getCountyMetricsByName } from "@/lib/data/counties";
 import { timedOperation } from "@/lib/performance/timing";
 import { getCachedReportingDate } from "@/lib/data/cached-snapshot";
@@ -148,13 +150,16 @@ export async function getProviderPageData(
 
         const highestPressureAgeGroup =
           (countyMetrics.highestPressureAgeGroup as MeasurableAgeGroupLabel | null) ?? null;
+        const hasAgeGroupOverlap = providerHasAgeGroupOverlap(provider, highestPressureAgeGroup);
 
         return {
           provider,
           activityPeriods,
           reviewSummary: buildProviderReviewSummary(provider),
-          currentPreferenceLabel: formatCurrentPreferenceLabel(provider.minAge, provider.maxAge),
-          preferenceContext: buildProviderPreferenceContext(provider, highestPressureAgeGroup),
+          preferredAgeRangeLabel: formatPreferredAgeRangeLabel(provider.minAge, provider.maxAge),
+          ageGroupOverlapNote: buildProviderPreferenceContext(provider, highestPressureAgeGroup),
+          countyRecruitmentOverlapSentence: buildCountyRecruitmentOverlapSentence(hasAgeGroupOverlap),
+          highestPressureAgeGroup,
         };
       } catch (error) {
         if (error instanceof DataAccessError && error.code === "NOT_FOUND") {

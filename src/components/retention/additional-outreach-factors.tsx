@@ -3,13 +3,14 @@
 import { useId } from "react";
 
 import { AccessibleInfoPopover } from "@/components/shared/accessible-info-popover";
+import { formatAdditionalFactorCount } from "@/lib/utils/pluralization";
 
 type AdditionalOutreachFactorsProps = {
   reasons: string[];
 };
 
 function formatAdditionalFactorsLabel(count: number): string {
-  return count === 1 ? "View 1 more factor" : `View ${count} more factors`;
+  return formatAdditionalFactorCount(count);
 }
 
 export function AdditionalOutreachFactors({ reasons }: AdditionalOutreachFactorsProps) {
