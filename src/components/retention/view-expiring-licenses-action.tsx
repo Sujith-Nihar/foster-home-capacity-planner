@@ -29,7 +29,9 @@ export function ViewExpiringLicensesAction({
   className,
 }: ViewExpiringLicensesActionProps) {
   const isActive = isExpiringLicensesViewActive(searchParams);
-  const label = isActive ? "View provider list" : "View expiring licenses";
+  const label = isActive
+    ? "View provider list"
+    : "View providers with licenses ending within 90 days";
 
   if (isActive) {
     return (

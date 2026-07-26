@@ -4,6 +4,7 @@ import { mapRetentionExportRows } from "@/lib/data/exports";
 import {
   buildRetentionPageHref,
   buildRetentionQueryString,
+  compareRetentionProvidersByDefaultPriority,
   sortRetentionProviders,
 } from "@/lib/retention/query";
 import type { ProviderMetricsDto } from "@/lib/types/domain";
@@ -59,6 +60,32 @@ describe("retention filters and sorting", () => {
     expect(sorted.map((provider) => provider.providerId)).toEqual([2, 3, 1]);
   });
 
+  it("breaks outreach-priority ties by license end date, inactivity, and provider id", () => {
+    const providers = [
+      sampleProvider({
+        providerId: 3,
+        outreachPriority: "High",
+        daysUntilExpiration: 90,
+        daysSinceLastPlacement: 120,
+      }),
+      sampleProvider({
+        providerId: 1,
+        outreachPriority: "High",
+        daysUntilExpiration: 14,
+        daysSinceLastPlacement: 30,
+      }),
+      sampleProvider({
+        providerId: 2,
+        outreachPriority: "High",
+        daysUntilExpiration: 14,
+        daysSinceLastPlacement: 180,
+      }),
+    ];
+
+    const sorted = [...providers].sort(compareRetentionProvidersByDefaultPriority);
+    expect(sorted.map((provider) => provider.providerId)).toEqual([2, 1, 3]);
+  });
+
   it("builds retention query strings from active filters", () => {
     expect(
       buildRetentionQueryString({
@@ -95,7 +122,7 @@ describe("retention export", () => {
     expect(csv).toContain("provider_id,county,license_end_date");
     expect(csv).toContain("500001,Cook");
     expect(csv).toContain("High outreach priority");
-    expect(csv).toContain("Inactive for 212 days");
+    expect(csv).toContain("No placement activity for an extended period");
   });
 
   it("serializes retention export rows to CSV", () => {

@@ -68,7 +68,7 @@ describe("retention search params", () => {
       sort: "outreach_priority",
       direction: "asc",
       page: 1,
-      pageSize: 25,
+      pageSize: 10,
     });
   });
 
@@ -100,9 +100,8 @@ describe("retention search params", () => {
     });
   });
 
-  it("rejects invalid page sizes", () => {
-    const result = safeParseRetentionSearchParams({ pageSize: "500" });
-    expect(result.success).toBe(false);
+  it("falls back to the default page size for unsupported values", () => {
+    expect(parseRetentionSearchParams({ pageSize: "500" }).pageSize).toBe(10);
   });
 
   it("rejects invalid engagement values", () => {

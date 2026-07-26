@@ -1,7 +1,7 @@
-import { OperationalResultCount } from "@/components/operational/operational-result-count";
 import { RetentionPagination } from "@/components/retention/retention-pagination";
 import { RetentionProviderTableContent } from "@/components/retention/retention-provider-table-content";
 import { getRetentionProviders } from "@/lib/data/retention";
+import { buildRetentionResultCountMessage } from "@/lib/retention/result-count";
 import { parseRetentionSearchParams } from "@/lib/validation/search-params";
 
 type RetentionProviderResultsProps = {
@@ -24,13 +24,9 @@ export async function RetentionProviderResults({ searchParams }: RetentionProvid
 
   return (
     <>
-      <div className="px-4 pt-2">
-        <OperationalResultCount
-          totalCount={pagination.totalCount}
-          noun="provider"
-          nounPlural="providers"
-        />
-      </div>
+      <p className="px-4 pt-2 text-sm text-text-secondary" role="status" aria-live="polite">
+        {buildRetentionResultCountMessage(pagination.totalCount, params)}
+      </p>
 
       {pagination.items.length === 0 ? (
         <p className="px-4 py-6 text-sm text-text-secondary" role="status">

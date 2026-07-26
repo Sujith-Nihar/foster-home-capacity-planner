@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { DataTableShell } from "@/components/data-table-shell";
-import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
+import { OutreachPriorityBadge } from "@/components/retention/outreach-priority-badge";
 import {
   formatLicenseTiming,
+  getPrimaryOutreachReasonForDisplay,
   PrimaryReason,
 } from "@/components/shared/reason-summary";
 import { TableViewActionLink } from "@/components/shared/table-view-action-link";
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/table-mobile-list";
 import type { ProviderMetricsDto } from "@/lib/types/domain";
 import {
-  formatCompactOutreachPriorityLabel,
   formatCountyName,
   formatProviderId,
   formatReportingDate,
@@ -41,6 +41,8 @@ function providerReasonContext(provider: ProviderMetricsDto) {
     daysUntilExpiration: provider.daysUntilExpiration,
     currentlyHasPlacement: provider.currentlyHasPlacement,
     engagementRateLast365: provider.engagementRateLast365,
+    eligibleLicensedDaysLast365: provider.eligibleLicensedDaysLast365,
+    activeDaysLast365: provider.activeDaysLast365,
   };
 }
 
@@ -74,7 +76,14 @@ export function CountyRetentionTable({
         ) : (
           <>
             <TableMobileList>
-              {providers.map((provider) => (
+              {providers.map((provider) => {
+                const reasonContext = providerReasonContext(provider);
+                const primaryReason = getPrimaryOutreachReasonForDisplay(
+                  provider.outreachReasons,
+                  reasonContext,
+                );
+
+                return (
                 <TableMobileItem key={provider.providerId}>
                   <div className="flex items-start justify-between gap-3">
                     <Link
@@ -83,9 +92,9 @@ export function CountyRetentionTable({
                     >
                       Provider {formatProviderId(provider.providerId)}
                     </Link>
-                    <PriorityBadge
-                      level={priorityToAttentionLevel(provider.outreachPriority)}
-                      label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
+                    <OutreachPriorityBadge
+                      priority={provider.outreachPriority}
+                      primaryReason={primaryReason}
                     />
                   </div>
                   <dl className="mt-3 space-y-2">
@@ -115,7 +124,8 @@ export function CountyRetentionTable({
                     />
                   </div>
                 </TableMobileItem>
-              ))}
+                );
+              })}
             </TableMobileList>
 
             <div className="table-desktop-only">
@@ -130,14 +140,21 @@ export function CountyRetentionTable({
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead scope="col">Provider</TableHead>
-                    <TableHead scope="col">Suggested outreach</TableHead>
+                    <TableHead scope="col">Suggested outreach priority</TableHead>
                     <TableHead scope="col">Why review</TableHead>
                     <TableHead scope="col">License timing</TableHead>
                     <TableHead scope="col">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {providers.map((provider) => (
+                  {providers.map((provider) => {
+                    const reasonContext = providerReasonContext(provider);
+                    const primaryReason = getPrimaryOutreachReasonForDisplay(
+                      provider.outreachReasons,
+                      reasonContext,
+                    );
+
+                    return (
                     <TableRow key={provider.providerId}>
                       <TableCell>
                         <Link
@@ -148,9 +165,9 @@ export function CountyRetentionTable({
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <PriorityBadge
-                          level={priorityToAttentionLevel(provider.outreachPriority)}
-                          label={formatCompactOutreachPriorityLabel(provider.outreachPriority)}
+                        <OutreachPriorityBadge
+                          priority={provider.outreachPriority}
+                          primaryReason={primaryReason}
                         />
                       </TableCell>
                       <TableCell>
@@ -175,7 +192,8 @@ export function CountyRetentionTable({
                         />
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

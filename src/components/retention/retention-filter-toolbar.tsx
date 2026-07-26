@@ -1,16 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { ActiveFilterChips } from "@/components/retention/active-filter-chips";
+import { RetentionOutreachMethodologyNote } from "@/components/retention/retention-outreach-methodology-note";
 import {
   OperationalFilterField,
   OperationalFilterGrid,
   OperationalFilterPanel,
   OPERATIONAL_FILTER_CONTROL_CLASS,
 } from "@/components/operational/operational-filter-panel";
-import { OperationalMethodologyLink } from "@/components/operational/operational-methodology-link";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,11 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  RETENTION_METRICS,
-  RETENTION_OUTREACH_HELP,
-  RETENTION_OUTREACH_RULES,
-} from "@/content/methodology";
 import { useOperationalFilters } from "@/hooks/use-operational-filters";
 import { useSyncDraftFromApplied } from "@/hooks/use-sync-draft-from-applied";
 import { buildRetentionQueryString } from "@/lib/retention/query";
@@ -48,17 +42,23 @@ type RetentionFilterToolbarProps = {
 const ALL_FILTER_VALUE = "all";
 
 const ACTIVITY_LABELS: Record<(typeof RETENTION_ACTIVITY_FILTERS)[number], string> = {
-  all: "All providers",
-  active: "Currently active",
-  inactive: "Currently inactive",
+  all: "All placement statuses",
+  active: "Has a current placement",
+  inactive: "No current placement",
 };
 
 const EXPIRATION_LABELS: Record<(typeof RETENTION_EXPIRATION_FILTERS)[number], string> = {
-  all: "Any expiration window",
+  all: "Any license-ending period",
   within_30: "Within 30 days",
   within_60: "Within 60 days",
   within_90: "Within 90 days",
   within_180: "Within 180 days",
+};
+
+const PRIORITY_LABELS: Record<(typeof OUTREACH_PRIORITIES)[number], string> = {
+  High: "High outreach",
+  Medium: "Medium outreach",
+  Low: "Low outreach",
 };
 
 function decimalToPercent(value: number | undefined): string {
@@ -81,8 +81,8 @@ function percentToDecimal(value: string): number | undefined {
 
 function hasAdvancedFilters(searchParams: RetentionSearchParams): boolean {
   return (
-    searchParams.expiration !== "all" ||
     searchParams.minInactivityDays !== undefined ||
+    searchParams.maxInactivityDays !== undefined ||
     searchParams.minEngagement !== undefined ||
     searchParams.maxEngagement !== undefined ||
     searchParams.minAge !== undefined ||
@@ -191,8 +191,9 @@ export function RetentionFilterToolbar({
 
   const advancedFilterCount = useMemo(() => {
     let count = 0;
-    if (searchParams.expiration !== "all") count += 1;
-    if (searchParams.minInactivityDays !== undefined) count += 1;
+    if (searchParams.minInactivityDays !== undefined || searchParams.maxInactivityDays !== undefined) {
+      count += 1;
+    }
     if (searchParams.minEngagement !== undefined || searchParams.maxEngagement !== undefined) {
       count += 1;
     }
@@ -205,40 +206,17 @@ export function RetentionFilterToolbar({
       title={title}
       titleId={titleId}
       description={
-        <>
-          Review licensed providers by {RETENTION_METRICS.outreachPriority.label.toLowerCase()},
-          placement activity, and license timing.
-          <OperationalMethodologyLink title={RETENTION_OUTREACH_HELP.title}>
-            <p>{RETENTION_OUTREACH_HELP.explanation}</p>
-            <div>
-              <p className="font-medium text-text-primary">High outreach</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                {RETENTION_OUTREACH_RULES.high.map((rule) => (
-                  <li key={rule}>{rule}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="font-medium text-text-primary">Medium outreach</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                {RETENTION_OUTREACH_RULES.medium.map((rule) => (
-                  <li key={rule}>{rule}</li>
-                ))}
-              </ul>
-            </div>
-            <p>{RETENTION_METRICS.outreachPriority.limitation}</p>
-            <Link
-              href="/methodology#prototype-planning-rules"
-              className="inline-flex font-medium text-brand-navy underline-offset-4 hover:underline"
-            >
-              View full methodology
-            </Link>
-          </OperationalMethodologyLink>
-        </>
+        <div className="space-y-3">
+          <p>
+            Review licensed providers by suggested outreach priority, placement activity, and license
+            timing.
+          </p>
+          <RetentionOutreachMethodologyNote />
+        </div>
       }
       primaryFilters={
-        <OperationalFilterGrid>
-          <OperationalFilterField label="Provider search">
+        <>
+          <OperationalFilterField label="Provider search" className="operational-filter-search-field">
             <Input
               type="search"
               inputMode="numeric"
@@ -249,11 +227,12 @@ export function RetentionFilterToolbar({
                   providerId: event.target.value.replace(/\D/g, ""),
                 }))
               }
-              placeholder="Provider ID"
+              placeholder="Search by provider ID"
               className={OPERATIONAL_FILTER_CONTROL_CLASS}
             />
           </OperationalFilterField>
 
+          <OperationalFilterGrid>
           <OperationalFilterField label="County">
             <Select
               value={draft.county}
@@ -275,7 +254,7 @@ export function RetentionFilterToolbar({
             </Select>
           </OperationalFilterField>
 
-          <OperationalFilterField label="Outreach priority">
+          <OperationalFilterField label="Suggested outreach priority">
             <Select
               value={draft.priority}
               onValueChange={(value) =>
@@ -283,20 +262,20 @@ export function RetentionFilterToolbar({
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
-                <SelectValue placeholder="All priorities" />
+                <SelectValue placeholder="All outreach priorities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_FILTER_VALUE}>All priorities</SelectItem>
+                <SelectItem value={ALL_FILTER_VALUE}>All outreach priorities</SelectItem>
                 {OUTREACH_PRIORITIES.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {item}
+                    {PRIORITY_LABELS[item]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </OperationalFilterField>
 
-          <OperationalFilterField label="Current activity">
+          <OperationalFilterField label="Current placement status">
             <Select
               value={draft.activity}
               onValueChange={(value) =>
@@ -307,7 +286,7 @@ export function RetentionFilterToolbar({
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
-                <SelectValue placeholder="All providers" />
+                <SelectValue placeholder="All placement statuses" />
               </SelectTrigger>
               <SelectContent>
                 {RETENTION_ACTIVITY_FILTERS.map((item) => (
@@ -318,11 +297,8 @@ export function RetentionFilterToolbar({
               </SelectContent>
             </Select>
           </OperationalFilterField>
-        </OperationalFilterGrid>
-      }
-      advancedFilters={
-        <>
-          <OperationalFilterField label="License expiration window">
+
+          <OperationalFilterField label="License ending within">
             <Select
               value={draft.expiration}
               onValueChange={(value) =>
@@ -333,7 +309,7 @@ export function RetentionFilterToolbar({
               }
             >
               <SelectTrigger className={OPERATIONAL_FILTER_CONTROL_CLASS}>
-                <SelectValue placeholder="Any expiration window" />
+                <SelectValue placeholder="Any license-ending period" />
               </SelectTrigger>
               <SelectContent>
                 {RETENTION_EXPIRATION_FILTERS.map((item) => (
@@ -344,7 +320,11 @@ export function RetentionFilterToolbar({
               </SelectContent>
             </Select>
           </OperationalFilterField>
-
+          </OperationalFilterGrid>
+        </>
+      }
+      advancedFilters={
+        <>
           <OperationalFilterField label="Minimum days since last placement">
             <Input
               type="number"
@@ -359,7 +339,7 @@ export function RetentionFilterToolbar({
             />
           </OperationalFilterField>
 
-          <OperationalFilterField label="Engagement rate range (%)">
+          <OperationalFilterField label="Placement activity percentage range">
             <div className="grid grid-cols-2 gap-3">
               <Input
                 type="number"

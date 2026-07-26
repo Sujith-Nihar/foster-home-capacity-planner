@@ -191,6 +191,8 @@ async function listRetentionProviders(
             ascending: params.direction === "asc",
             nullsFirst: false,
           })
+          .order("days_until_expiration", { ascending: true, nullsFirst: false })
+          .order("days_since_last_placement", { ascending: false, nullsFirst: true })
           .order("provider_id", { ascending: true })
           .range(from, to);
 

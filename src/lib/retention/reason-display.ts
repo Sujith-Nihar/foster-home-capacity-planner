@@ -24,6 +24,17 @@ export function formatOutreachReasonForDisplay(
   return explainOutreachReason(reason, context).primary;
 }
 
+export function getPrimaryOutreachReasonForDisplay(
+  reasons: string[],
+  context: OutreachReasonContext,
+): string | null {
+  if (reasons.length === 0) {
+    return null;
+  }
+
+  return formatOutreachReasonForDisplay(reasons[0], context);
+}
+
 export function explainOutreachReason(
   reason: string,
   context: OutreachReasonContext,
@@ -38,9 +49,11 @@ export function explainOutreachReason(
   if (reason === "Inactive for at least 180 days") {
     return {
       primary:
-        context.daysSinceLastPlacement !== null
-          ? `Inactive for ${context.daysSinceLastPlacement} days`
-          : "Inactive for at least 180 days",
+        context.daysSinceLastPlacement !== null && context.daysSinceLastPlacement >= 180
+          ? "No placement activity for an extended period"
+          : context.daysSinceLastPlacement !== null
+            ? `No current placement for ${context.daysSinceLastPlacement} days`
+            : "No placement activity for an extended period",
       technical: reason,
       triggeredRule: reason,
       actualValue:
@@ -54,8 +67,8 @@ export function explainOutreachReason(
     return {
       primary:
         context.daysSinceLastPlacement !== null
-          ? `Inactive for ${context.daysSinceLastPlacement} days`
-          : "Inactive for at least 90 days",
+          ? `No current placement for ${context.daysSinceLastPlacement} days`
+          : "No current placement for an extended period",
       technical: reason,
       triggeredRule: reason,
       actualValue:
@@ -70,7 +83,7 @@ export function explainOutreachReason(
     reason.includes("inactive for at least 60")
   ) {
     return {
-      primary: `Inactive and license ends in ${context.daysUntilExpiration} days`,
+      primary: `No current placement and license ends in ${context.daysUntilExpiration} days`,
       technical: reason,
       triggeredRule: "Inactive for at least 60 days with a license ending within 90 days",
       actualValue:
@@ -82,7 +95,7 @@ export function explainOutreachReason(
 
   if (reason === "Inactive with license expiring within 180 days") {
     return {
-      primary: `Inactive and license ends in ${context.daysUntilExpiration} days`,
+      primary: `No current placement and license ends in ${context.daysUntilExpiration} days`,
       technical: reason,
       triggeredRule: reason,
       actualValue: `${context.daysUntilExpiration} days until license expiration`,
@@ -91,7 +104,7 @@ export function explainOutreachReason(
 
   if (reason.includes("Engagement below 10%")) {
     return {
-      primary: "Limited placement activity during the previous year",
+      primary: "Limited placement activity during the past 12 months",
       technical: reason,
       triggeredRule: `Recent placement activity below 10% after at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days`,
       actualValue: formatEngagementActualValue(context),
@@ -100,7 +113,7 @@ export function explainOutreachReason(
 
   if (reason.includes("Very low engagement while inactive")) {
     return {
-      primary: "Limited placement activity during the previous year",
+      primary: "Limited placement activity during the past 12 months",
       technical: reason,
       triggeredRule: `Recent placement activity below ${formatPercent(RETENTION_THRESHOLDS.highEngagementRateMax, 0)} after at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days`,
       actualValue: formatEngagementActualValue(context),
@@ -109,7 +122,7 @@ export function explainOutreachReason(
 
   if (reason.includes("Engagement below 25%")) {
     return {
-      primary: "Limited placement activity during the previous year",
+      primary: "Limited placement activity during the past 12 months",
       technical: reason,
       triggeredRule: `Recent placement activity below ${formatPercent(RETENTION_THRESHOLDS.mediumEngagementRateMax, 0)} after at least ${RETENTION_THRESHOLDS.minEligibleLicensedDays} eligible licensed days`,
       actualValue: formatEngagementActualValue(context),
@@ -118,7 +131,7 @@ export function explainOutreachReason(
 
   if (reason === "Currently active with very low annual engagement") {
     return {
-      primary: "Limited placement activity during the previous year",
+      primary: "Limited placement activity during the past 12 months",
       technical: reason,
       triggeredRule: `Recent placement activity below ${formatPercent(RETENTION_THRESHOLDS.highEngagementRateMax, 0)} while currently active`,
       actualValue: formatEngagementActualValue(context),
@@ -127,7 +140,7 @@ export function explainOutreachReason(
 
   if (reason === "Currently active with license expiring within 60 days") {
     return {
-      primary: "Currently active, with renewal approaching",
+      primary: "Has a current placement, but license ends soon",
       technical: reason,
       triggeredRule: reason,
       actualValue: `${context.daysUntilExpiration} days until license expiration`,

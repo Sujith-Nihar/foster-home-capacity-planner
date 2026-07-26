@@ -1,5 +1,6 @@
 import type { OutreachPriority, SortDirection } from "@/lib/types/domain";
 import type { RetentionSearchParams } from "@/lib/validation/search-params";
+import { RETENTION_DEFAULT_PAGE_SIZE } from "@/lib/pagination/constants";
 
 const OUTREACH_PRIORITY_ORDER: Record<OutreachPriority, number> = {
   High: 0,
@@ -7,21 +8,48 @@ const OUTREACH_PRIORITY_ORDER: Record<OutreachPriority, number> = {
   Low: 2,
 };
 
-export function sortRetentionProviders<T extends { outreachPriority: OutreachPriority }>(
-  providers: T[],
-  sort: RetentionSearchParams["sort"],
-  direction: SortDirection,
-): T[] {
+type RetentionProviderSortRow = {
+  outreachPriority: OutreachPriority;
+  daysUntilExpiration: number;
+  daysSinceLastPlacement: number | null;
+  providerId: number;
+};
+
+export function compareRetentionProvidersByDefaultPriority<T extends RetentionProviderSortRow>(
+  left: T,
+  right: T,
+): number {
+  const priorityDifference =
+    OUTREACH_PRIORITY_ORDER[left.outreachPriority] - OUTREACH_PRIORITY_ORDER[right.outreachPriority];
+
+  if (priorityDifference !== 0) {
+    return priorityDifference;
+  }
+
+  const expirationDifference = left.daysUntilExpiration - right.daysUntilExpiration;
+  if (expirationDifference !== 0) {
+    return expirationDifference;
+  }
+
+  const leftInactivity = left.daysSinceLastPlacement ?? -1;
+  const rightInactivity = right.daysSinceLastPlacement ?? -1;
+  const inactivityDifference = rightInactivity - leftInactivity;
+  if (inactivityDifference !== 0) {
+    return inactivityDifference;
+  }
+
+  return left.providerId - right.providerId;
+}
+
+export function sortRetentionProviders<
+  T extends RetentionProviderSortRow & { outreachPriority: OutreachPriority },
+>(providers: T[], sort: RetentionSearchParams["sort"], direction: SortDirection): T[] {
   if (sort !== "outreach_priority") {
     return providers;
   }
 
-  return [...providers].sort((left, right) => {
-    const difference =
-      OUTREACH_PRIORITY_ORDER[left.outreachPriority] -
-      OUTREACH_PRIORITY_ORDER[right.outreachPriority];
-    return direction === "asc" ? difference : -difference;
-  });
+  const sorted = [...providers].sort(compareRetentionProvidersByDefaultPriority);
+  return direction === "desc" ? sorted.reverse() : sorted;
 }
 
 export function buildRetentionQueryString(
@@ -66,7 +94,7 @@ export function buildRetentionQueryString(
   if (params.page !== undefined && params.page > 1) {
     search.set("page", String(params.page));
   }
-  if (params.pageSize !== undefined && params.pageSize !== 25) {
+  if (params.pageSize !== undefined && params.pageSize !== RETENTION_DEFAULT_PAGE_SIZE) {
     search.set("pageSize", String(params.pageSize));
   }
   search.set("sort", params.sort);

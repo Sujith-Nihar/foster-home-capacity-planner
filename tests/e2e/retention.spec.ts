@@ -10,16 +10,19 @@ test.describe("retention page", () => {
       }),
     ).toBeVisible();
     await expect(page.getByText("Licensed providers", { exact: true })).toBeVisible();
-    await expect(page.getByText("High outreach priority", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: /licenses expire within 90 days/i })).toBeVisible();
-    await expect(page.getByRole("note")).toContainText(/rule-based staff-review category/i);
+    await expect(page.getByText("High-priority outreach providers", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /licenses end within 90 days/i })).toBeVisible();
+    await expect(
+      page.getByText("How suggested outreach priority is calculated"),
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Licensed provider outreach list" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: /Suggested outreach/i }),
+      page.getByRole("columnheader", { name: /Suggested outreach priority/i }),
     ).toBeVisible();
     await expect(page.getByRole("columnheader", { name: /Why review/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Review high-priority providers" })).toBeVisible();
     await expect(page.getByRole("columnheader", { name: "Action" })).toBeVisible();
   });
 
@@ -32,7 +35,7 @@ test.describe("retention page", () => {
   });
 
   test("links provider rows to provider detail pages", async ({ page }) => {
-    await page.goto("/retention?priority=High&pageSize=5");
+    await page.goto("/retention?priority=High&pageSize=10");
 
     const providerLink = page.getByRole("link", { name: /^\d+$/ }).first();
     await expect(providerLink).toBeVisible();

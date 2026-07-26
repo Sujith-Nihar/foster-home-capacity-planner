@@ -15,15 +15,21 @@ type ActiveFilterChipsProps = {
 };
 
 const EXPIRATION_LABELS: Record<string, string> = {
-  within_30: "Expires within 30 days",
-  within_60: "Expires within 60 days",
-  within_90: "Expires within 90 days",
-  within_180: "Expires within 180 days",
+  within_30: "Within 30 days",
+  within_60: "Within 60 days",
+  within_90: "Within 90 days",
+  within_180: "Within 180 days",
 };
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  active: "Currently active",
-  inactive: "Currently inactive",
+  active: "Has a current placement",
+  inactive: "No current placement",
+};
+
+const PRIORITY_CHIP_LABELS: Record<string, string> = {
+  High: "High outreach",
+  Medium: "Medium outreach",
+  Low: "Low outreach",
 };
 
 function formatPercent(value: number): string {
@@ -58,7 +64,7 @@ export function ActiveFilterChips({
   if (searchParams.priority) {
     chips.push({
       key: "priority",
-      label: `${searchParams.priority} priority`,
+      label: PRIORITY_CHIP_LABELS[searchParams.priority] ?? searchParams.priority,
       removeParams: { priority: undefined },
     });
   }
@@ -99,7 +105,7 @@ export function ActiveFilterChips({
       : "100%";
     chips.push({
       key: "engagement",
-      label: `Engagement ${min}–${max}`,
+      label: `Placement activity ${min}–${max}`,
       removeParams: { minEngagement: undefined, maxEngagement: undefined },
     });
   }

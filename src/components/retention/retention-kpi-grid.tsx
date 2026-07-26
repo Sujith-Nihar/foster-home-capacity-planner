@@ -1,4 +1,4 @@
-import { CalendarClock, ShieldAlert, UserCheck, UserMinus, Users } from "lucide-react";
+import { CalendarClock, UserCheck, UserMinus, Users } from "lucide-react";
 
 import { MetricCard } from "@/components/metric-card";
 import { ViewExpiringLicensesAction } from "@/components/retention/view-expiring-licenses-action";
@@ -14,37 +14,37 @@ export function RetentionKpiGrid({ summary }: RetentionKpiGridProps) {
   return (
     <section aria-labelledby="retention-kpi-heading" className="space-y-4">
       <h2 id="retention-kpi-heading" className="sr-only">
-        Retention key metrics
+        Statewide provider snapshot
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Licensed providers"
           value={formatCount(summary.currentlyLicensedProviders)}
-          helperText="Licensed beyond the reporting date"
+          helperText="Licensed beyond the reporting date."
           icon={<Users className="size-4" aria-hidden="true" />}
           href="/retention"
         />
         <MetricCard
-          label="Currently active"
+          label="Providers with a current placement"
           value={formatCount(summary.currentlyActiveProviders)}
-          helperText="Current foster-home placement"
+          helperText="Have at least one current foster-home placement."
           icon={<UserCheck className="size-4" aria-hidden="true" />}
           href="/retention?activity=active"
           variant="positive"
         />
         <MetricCard
-          label="Currently inactive"
+          label="Providers without a current placement"
           value={formatCount(summary.inactiveProviders)}
-          helperText="Licensed without current placement"
+          helperText="Do not currently have a foster-home placement."
           icon={<UserMinus className="size-4" aria-hidden="true" />}
           href="/retention?activity=inactive"
           variant="amber"
         />
         <MetricCard
-          label="High outreach priority"
+          label="High-priority outreach providers"
           value={formatCount(summary.highOutreachPriorityProviders)}
-          helperText="Flagged for staff review"
-          icon={<ShieldAlert className="size-4" aria-hidden="true" />}
+          helperText="Meet at least one High suggested outreach rule."
+          icon={<Users className="size-4" aria-hidden="true" />}
           href="/retention?priority=High"
           variant="attention"
         />
@@ -73,11 +73,10 @@ export function RetentionExpirationPanel({
               id="retention-attention-heading"
               className="text-xl font-medium tracking-tight text-text-primary sm:text-2xl"
             >
-              {countLabel} licenses expire within 90 days
+              {countLabel} licenses end within 90 days
             </h2>
             <p className="text-sm leading-6 text-text-secondary">
-              Licensed providers with upcoming expiration dates may need renewal follow-up before
-              capacity is affected.
+              Licensed providers with upcoming license end dates may warrant renewal follow-up.
             </p>
           </div>
         </div>

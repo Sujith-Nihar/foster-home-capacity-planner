@@ -10,9 +10,9 @@ const baseContext = {
 };
 
 describe("formatOutreachReasonForDisplay", () => {
-  it("uses actual inactivity days for threshold reasons", () => {
+  it("uses staff-friendly language for extended inactivity", () => {
     expect(formatOutreachReasonForDisplay("Inactive for at least 180 days", baseContext)).toBe(
-      "Inactive for 194 days",
+      "No placement activity for an extended period",
     );
   });
 
@@ -22,7 +22,7 @@ describe("formatOutreachReasonForDisplay", () => {
         "Inactive with license expiring within 90 days and inactive for at least 60 days",
         baseContext,
       ),
-    ).toBe("Inactive and license ends in 14 days");
+    ).toBe("No current placement and license ends in 14 days");
   });
 
   it("maps engagement reasons to staff-friendly language", () => {
@@ -31,7 +31,7 @@ describe("formatOutreachReasonForDisplay", () => {
         "Engagement below 25% with at least 90 eligible licensed days",
         baseContext,
       ),
-    ).toBe("Limited placement activity during the previous year");
+    ).toBe("Limited placement activity during the past 12 months");
   });
 
   it("keeps active license timing readable", () => {
@@ -40,6 +40,6 @@ describe("formatOutreachReasonForDisplay", () => {
         "Currently active with license expiring within 60 days",
         { ...baseContext, currentlyHasPlacement: true },
       ),
-    ).toBe("Currently active, with renewal approaching");
+    ).toBe("Has a current placement, but license ends soon");
   });
 });

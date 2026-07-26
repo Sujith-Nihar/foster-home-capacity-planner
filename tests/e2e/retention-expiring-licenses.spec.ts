@@ -4,8 +4,11 @@ const EXPIRING_LICENSES_URL =
   /expiration=within_90.*sort=days_until_expiration.*direction=asc/;
 
 async function clickViewExpiringLicenses(page: import("@playwright/test").Page) {
-  const action = page.locator(".page-intro").getByRole("link", { name: "View expiring licenses" });
-  await action.scrollIntoViewIfNeeded();
+  const action = page
+    .locator('[aria-labelledby="retention-attention-heading"]')
+    .getByRole("link", {
+      name: "View providers with licenses ending within 90 days",
+    });
   await expect(action).toBeVisible();
   await action.click();
   await page.waitForURL(EXPIRING_LICENSES_URL, { timeout: 15_000 });
@@ -36,11 +39,7 @@ test.describe("view expiring licenses action", () => {
       expect(listTop.y).toBeGreaterThanOrEqual(headerBottom.y + headerBottom.height - 4);
     }
 
-    await expect(page.getByRole("button", { name: "More filters" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
-    await expect(page.getByText("Expires within 90 days")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Within 90 days Remove Within 90 days filter" })).toBeVisible();
   });
 
   test("sorts by soonest license expiration on the first page", async ({ page }) => {
@@ -56,8 +55,8 @@ test.describe("view expiring licenses action", () => {
 
     const firstText = (await expirationCells.nth(0).innerText()).trim();
     const secondText = (await expirationCells.nth(1).innerText()).trim();
-    const firstDays = Number.parseInt(firstText.match(/(\d+)\s+days/)?.[1] ?? "", 10);
-    const secondDays = Number.parseInt(secondText.match(/(\d+)\s+days/)?.[1] ?? "", 10);
+    const firstDays = Number.parseInt(firstText.match(/Ends in (\d+) days/)?.[1] ?? "", 10);
+    const secondDays = Number.parseInt(secondText.match(/Ends in (\d+) days/)?.[1] ?? "", 10);
 
     expect(Number.isFinite(firstDays)).toBe(true);
     expect(Number.isFinite(secondDays)).toBe(true);
@@ -103,7 +102,7 @@ test.describe("view expiring licenses action", () => {
     await expect(page).toHaveURL(
       "/retention?expiration=within_90&sort=days_until_expiration&direction=asc",
     );
-    await expect(page.getByText("Expires within 90 days")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Within 90 days Remove Within 90 days filter" })).toBeVisible();
   });
 
   test("exports CSV with the active expiration filter", async ({ page }) => {
@@ -128,7 +127,9 @@ test.describe("view expiring licenses action", () => {
 
   test("works from keyboard activation", async ({ page }) => {
     await page.goto("/retention");
-    const action = page.getByRole("link", { name: "View expiring licenses" }).first();
+    const action = page
+      .getByRole("link", { name: "View providers with licenses ending within 90 days" })
+      .first();
     await action.focus();
     await page.keyboard.press("Enter");
 

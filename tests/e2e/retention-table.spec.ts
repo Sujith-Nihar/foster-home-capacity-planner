@@ -8,7 +8,6 @@ async function expectBadgeContentsContained(badge: Locator) {
   const metrics = await badge.evaluate((node) => {
     const badgeRect = node.getBoundingClientRect();
     const icon = node.querySelector(".priority-badge__icon, svg");
-    const label = node.querySelector(".priority-badge__label");
 
     function isContained(child: Element | null) {
       if (!child) {
@@ -27,19 +26,17 @@ async function expectBadgeContentsContained(badge: Locator) {
       badgeWidth: badgeRect.width,
       badgeHeight: badgeRect.height,
       iconContained: isContained(icon),
-      labelContained: isContained(label),
     };
   });
 
   expect(metrics.badgeWidth).toBeGreaterThan(0);
   expect(metrics.badgeHeight).toBeGreaterThanOrEqual(38 - 1);
   expect(metrics.iconContained).toBe(true);
-  expect(metrics.labelContained).toBe(true);
 }
 
 async function expectBadgeInsideOutreachCell(row: Locator) {
   const cell = row.locator("td.retention-col--outreach-cell");
-  const badge = cell.locator(".priority-badge").first();
+  const badge = cell.locator(".outreach-priority-badge, .priority-badge").first();
   await expect(badge).toBeVisible();
   await expectBadgeContentsContained(badge);
 
@@ -106,10 +103,14 @@ test.describe("retention provider table", () => {
   test("shows seven desktop columns without a standalone county column", async ({ page }) => {
     const table = retentionTable(page);
     await expect(table.getByRole("columnheader", { name: "Provider" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Current status" })).toBeVisible();
+    await expect(table.getByRole("columnheader", { name: "Current placement status" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "License timing" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Recent placement activity" })).toBeVisible();
-    await expect(table.getByRole("columnheader", { name: "Suggested outreach" })).toBeVisible();
+    await expect(
+      table.getByRole("columnheader", { name: "Placement activity, past 12 months" }),
+    ).toBeVisible();
+    await expect(
+      table.getByRole("columnheader", { name: "Suggested outreach priority" }),
+    ).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Why review" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Action" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "County" })).toHaveCount(0);

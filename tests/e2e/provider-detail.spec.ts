@@ -25,8 +25,8 @@ test.describe("provider detail page", () => {
   test("shows every triggered outreach reason for a high-priority provider", async ({ page }) => {
     await page.goto("/providers/500021");
 
-    await expect(page.getByText("Inactive and license ends in")).toBeVisible();
-    await expect(page.getByText("High outreach priority")).toBeVisible();
+    await expect(page.getByText(/No current placement and license ends in/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /High suggested outreach priority/i })).toBeVisible();
   });
 
   test("links back to the provider county recruitment page", async ({ page }) => {

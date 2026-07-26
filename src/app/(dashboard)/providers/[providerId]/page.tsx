@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MethodologyLink } from "@/components/methodology-link";
-import { PriorityBadge, priorityToAttentionLevel } from "@/components/priority-badge";
+import { OutreachPriorityBadge } from "@/components/retention/outreach-priority-badge";
 import { ProviderDetailPageContent } from "@/components/providers/provider-detail-page-content";
 import { ProviderNotFound } from "@/components/providers/provider-not-found";
 import { PageIntroduction } from "@/components/ui/page-introduction";
@@ -11,7 +11,8 @@ import { getProviderPageData } from "@/lib/data/providers";
 import { breadcrumbProvider } from "@/lib/navigation/breadcrumbs";
 import { parseProviderRouteId } from "@/lib/navigation/providers";
 import { setPerformanceRoute } from "@/lib/performance/timing";
-import { formatOutreachPriorityLabel, formatProviderId } from "@/lib/utils/formatters";
+import { getPrimaryOutreachReasonForDisplay } from "@/lib/retention/reason-display";
+import { formatProviderId } from "@/lib/utils/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,18 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
   }
 
   const providerLabel = `Provider ${formatProviderId(data.provider.providerId)}`;
+  const outreachReasonContext = {
+    daysSinceLastPlacement: data.provider.daysSinceLastPlacement,
+    daysUntilExpiration: data.provider.daysUntilExpiration,
+    currentlyHasPlacement: data.provider.currentlyHasPlacement,
+    engagementRateLast365: data.provider.engagementRateLast365,
+    eligibleLicensedDaysLast365: data.provider.eligibleLicensedDaysLast365,
+    activeDaysLast365: data.provider.activeDaysLast365,
+  };
+  const primaryOutreachReason = getPrimaryOutreachReasonForDisplay(
+    data.provider.outreachReasons,
+    outreachReasonContext,
+  );
 
   return (
     <>
@@ -55,9 +68,9 @@ export default async function ProviderDetailPage({ params }: ProviderDetailPageP
         headline={providerLabel}
         description="License status, recent activity, and outreach priority context for a single licensed provider."
         aside={
-          <PriorityBadge
-            level={priorityToAttentionLevel(data.provider.outreachPriority)}
-            label={formatOutreachPriorityLabel(data.provider.outreachPriority)}
+          <OutreachPriorityBadge
+            priority={data.provider.outreachPriority}
+            primaryReason={primaryOutreachReason}
           />
         }
       />

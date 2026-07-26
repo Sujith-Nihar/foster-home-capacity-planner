@@ -1,8 +1,8 @@
-import Link from "next/link";
-
+import { AdditionalOutreachFactors } from "@/components/retention/additional-outreach-factors";
 import { StackedTableCell } from "@/components/shared/stacked-table-cell";
 import {
   formatOutreachReasonForDisplay,
+  getPrimaryOutreachReasonForDisplay,
   type OutreachReasonContext,
 } from "@/lib/retention/reason-display";
 import { cn } from "@/lib/utils";
@@ -14,13 +14,9 @@ type PrimaryReasonProps = {
   className?: string;
 };
 
-function formatAdditionalFactorsLabel(count: number): string {
-  return count === 1 ? "+1 additional factor" : `+${count} additional factors`;
-}
+export { formatOutreachReasonForDisplay, getPrimaryOutreachReasonForDisplay, type OutreachReasonContext };
 
-export { formatOutreachReasonForDisplay, type OutreachReasonContext };
-
-export function PrimaryReason({ reasons, context, providerId, className }: PrimaryReasonProps) {
+export function PrimaryReason({ reasons, context, className }: PrimaryReasonProps) {
   if (reasons.length === 0) {
     return <span className={className}>—</span>;
   }
@@ -32,23 +28,8 @@ export function PrimaryReason({ reasons, context, providerId, className }: Prima
 
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="text-sm leading-snug text-text-primary" title={primary}>
-        {primary}
-      </p>
-      {additional.length > 0 ? (
-        providerId ? (
-          <Link
-            href={`/providers/${providerId}`}
-            className="mt-0.5 inline-block text-xs font-medium text-brand-navy underline-offset-2 hover:underline"
-          >
-            {formatAdditionalFactorsLabel(additional.length)}
-          </Link>
-        ) : (
-          <p className="mt-0.5 text-xs font-medium text-brand-navy">
-            {formatAdditionalFactorsLabel(additional.length)}
-          </p>
-        )
-      ) : null}
+      <p className="text-sm leading-snug text-text-primary">{primary}</p>
+      {additional.length > 0 ? <AdditionalOutreachFactors reasons={additional} /> : null}
     </div>
   );
 }
@@ -66,12 +47,12 @@ export function RetentionStatusCell({
   daysSinceLastPlacement: number | null;
 }) {
   if (currentlyHasPlacement) {
-    return <span className="text-sm text-text-primary">Currently active</span>;
+    return <span className="text-sm text-text-primary">Has a current placement</span>;
   }
 
   return (
     <StackedTableCell
-      primary="Inactive"
+      primary="No current placement"
       secondary={
         daysSinceLastPlacement !== null
           ? `${daysSinceLastPlacement} days since last placement`
@@ -83,7 +64,7 @@ export function RetentionStatusCell({
 }
 
 export function formatProviderStatus(currentlyHasPlacement: boolean): string {
-  return currentlyHasPlacement ? "Currently active" : "Inactive";
+  return currentlyHasPlacement ? "Has a current placement" : "No current placement";
 }
 
 export function formatDaysSinceLastPlacement(
@@ -91,7 +72,7 @@ export function formatDaysSinceLastPlacement(
   daysSinceLastPlacement: number | null,
 ): string {
   if (currentlyHasPlacement) {
-    return "Currently active";
+    return "Has a current placement";
   }
 
   if (daysSinceLastPlacement === null) {
@@ -101,6 +82,18 @@ export function formatDaysSinceLastPlacement(
   return `${daysSinceLastPlacement} days`;
 }
 
+function licenseTimingEmphasisClass(daysUntilExpiration: number): string {
+  if (daysUntilExpiration <= 30) {
+    return "text-brand-navy font-medium";
+  }
+
+  if (daysUntilExpiration <= 90) {
+    return "text-text-primary";
+  }
+
+  return "text-text-secondary";
+}
+
 export function formatLicenseTiming(
   licenseEndDate: string,
   daysUntilExpiration: number,
@@ -108,28 +101,45 @@ export function formatLicenseTiming(
 ) {
   return (
     <span className="block min-w-0 text-sm">
-      <span className="block whitespace-nowrap">{formatDate(licenseEndDate)}</span>
-      <span className="block text-xs text-text-secondary tabular-nums">
-        {daysUntilExpiration} days remaining
+      <span
+        className={cn(
+          "block whitespace-nowrap tabular-nums",
+          licenseTimingEmphasisClass(daysUntilExpiration),
+        )}
+      >
+        Ends in {daysUntilExpiration} days
+      </span>
+      <span className="block text-xs text-text-secondary whitespace-nowrap">
+        {formatDate(licenseEndDate)}
       </span>
     </span>
   );
 }
 
-export function formatRecentEngagement(
+export function formatPlacementActivity(
   activeDaysLast365: number,
   engagementRateLast365: number | null,
 ) {
   return (
-    <span className="block min-w-0 text-sm tabular-nums">
-      <span className="block">{activeDaysLast365} active days</span>
-      <span className="block text-xs text-text-secondary">
+    <span className="block min-w-0 text-sm">
+      <span className="block tabular-nums">
+        {activeDaysLast365} days with an active placement
+      </span>
+      <span className="block text-xs text-text-secondary tabular-nums">
         {engagementRateLast365 === null
-          ? "Recent activity unavailable"
-          : `${(engagementRateLast365 * 100).toFixed(1)}% of eligible days`}
+          ? "Eligible licensed days unavailable"
+          : `${(engagementRateLast365 * 100).toFixed(1)}% of eligible licensed days`}
       </span>
     </span>
   );
+}
+
+/** @deprecated Use formatPlacementActivity. */
+export function formatRecentEngagement(
+  activeDaysLast365: number,
+  engagementRateLast365: number | null,
+) {
+  return formatPlacementActivity(activeDaysLast365, engagementRateLast365);
 }
 
 export function StatusAndRenewalCell({

@@ -32,7 +32,7 @@ describe("centralized methodology content", () => {
         currentlyHasPlacement: false,
         engagementRateLast365: 0.05,
       }).primary,
-    ).toBe("Limited placement activity during the previous year");
+    ).toBe("Limited placement activity during the past 12 months");
   });
 
   it("structures methodology into four explicit sections", () => {

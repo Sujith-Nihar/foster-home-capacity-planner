@@ -3,6 +3,10 @@ import { z } from "zod";
 import type { AgeGroupLabel } from "@/config/metrics";
 import type { SortDirection } from "@/lib/types/domain";
 import { RECRUITMENT_PAGE_SIZE_OPTIONS, RECRUITMENT_DEFAULT_PAGE_SIZE } from "@/lib/pagination/constants";
+import {
+  RETENTION_PAGE_SIZE_OPTIONS,
+  RETENTION_DEFAULT_PAGE_SIZE,
+} from "@/lib/pagination/constants";
 import { MAX_EXPORT_ROWS } from "@/lib/utils/csv";
 
 export const SORT_DIRECTIONS = ["asc", "desc"] as const satisfies readonly SortDirection[];
@@ -127,7 +131,15 @@ export const retentionSearchSchema = z.object({
   sort: z.enum(RETENTION_SORT_FIELDS).default("outreach_priority"),
   direction: z.enum(SORT_DIRECTIONS).default("asc"),
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(25),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .transform((value) =>
+      (RETENTION_PAGE_SIZE_OPTIONS as readonly number[]).includes(value)
+        ? value
+        : RETENTION_DEFAULT_PAGE_SIZE,
+    )
+    .default(RETENTION_DEFAULT_PAGE_SIZE),
 });
 
 export const countyProvidersSearchSchema = retentionSearchSchema.pick({
